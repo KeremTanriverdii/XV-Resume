@@ -1,0 +1,30 @@
+{
+  "Index": {
+    "title": "ResumeXCreator"
+  },
+  "Dashboard": {
+    "title": "My Resumes",
+    "templates": "Templates",
+    "settings": "Settings",
+    "emptyState": {
+      "title": "You have no resumes",
+      "description": "You can start creating your tailored resume as soon as you provide a job description and your basic details.",
+      "button": "Create Resume"
+    }
+  },
+  "Landing": {
+    "heroTitlePrefix": "Build Your Professional Resume with ",
+    "heroTitleHighlight": "AI",
+    "heroTitleSuffix": "",
+    "heroSubtitle": "Stand out from the crowd. Our AI-powered resume builder tailors your experience to perfectly match the job description.",
+    "ctaCreate": "Create Resume Now",
+    "ctaSecondary": "View Templates",
+    "featuresTitle": "Why Choose ResumeXCreator?",
+    "feature1Title": "AI Tailoring",
+    "feature1Desc": "Automatically align your skills with the job description.",
+    "feature2Title": "ATS Friendly",
+    "feature2Desc": "Ensures your resume passes Applicant Tracking Systems with flying colors.",
+    "feature3Title": "Modern Templates",
+    "feature3Desc": "Sleek, professional designs that catch recruiters' eyes."
+  }
+}

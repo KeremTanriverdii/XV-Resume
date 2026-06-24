@@ -1,0 +1,30 @@
+{
+  "Index": {
+    "title": "ResumeXCreator"
+  },
+  "Dashboard": {
+    "title": "Özgeçmişlerim",
+    "templates": "Şablonlar",
+    "settings": "Ayarlar",
+    "emptyState": {
+      "title": "Hiç özgeçmişiniz yok",
+      "description": "Bir iş tanımı ve temel bilgilerinizi ekleyerek özelleştirilmiş özgeçmişinizi oluşturmaya hemen başlayabilirsiniz.",
+      "button": "Özgeçmiş Oluştur"
+    }
+  },
+  "Landing": {
+    "heroTitlePrefix": "",
+    "heroTitleHighlight": "Yapay Zeka",
+    "heroTitleSuffix": " ile Profesyonel Özgeçmişinizi Oluşturun",
+    "heroSubtitle": "Rakiplerinizin önüne geçin. Yapay zeka destekli özgeçmiş oluşturucumuz, deneyimlerinizi tam olarak iş tanımına uyacak şekilde özelleştirir.",
+    "ctaCreate": "Hemen Özgeçmiş Oluştur",
+    "ctaSecondary": "Şablonları İncele",
+    "featuresTitle": "Neden ResumeXCreator'ı Seçmelisiniz?",
+    "feature1Title": "Yapay Zeka Özelleştirmesi",
+    "feature1Desc": "Yeteneklerinizi iş tanımıyla otomatik olarak hizalayın.",
+    "feature2Title": "ATS Uyumlu",
+    "feature2Desc": "Özgeçmişinizin Aday Takip Sistemlerinden (ATS) sorunsuz geçmesini sağlar.",
+    "feature3Title": "Modern Şablonlar",
+    "feature3Desc": "İşe alım uzmanlarının dikkatini çeken şık ve profesyonel tasarımlar."
+  }
+}
