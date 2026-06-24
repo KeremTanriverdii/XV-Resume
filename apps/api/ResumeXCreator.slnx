@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="ResumeXCreator.Api/ResumeXCreator.Api.csproj" />
+  <Project Path="ResumeXCreator.Domain/ResumeXCreator.Domain.csproj" />
+  <Project Path="ResumeXCreator.Infrastructure/ResumeXCreator.Infrastructure.csproj" />
+  <Project Path="ResumeXCreator.Services/ResumeXCreator.Services.csproj" />
+</Solution>

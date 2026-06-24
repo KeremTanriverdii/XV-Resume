@@ -1,0 +1,6 @@
+@ResumeXCreator.Api_HostAddress = http://localhost:5075
+
+GET {{ResumeXCreator.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

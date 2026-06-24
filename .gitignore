@@ -43,3 +43,26 @@ Thumbs.db
 .nx/migrate-runs
 .claude/worktrees
 .claude/settings.local.json
+
+# Next.js
+.next
+out
+
+# .NET / C#
+[Bb]in/
+[Oo]bj/
+*.suo
+*.user
+*.useroscs
+*.sln.docstates
+.vs/
+usersecrets.json
+_ReSharper*/
+
+# Environment Variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
