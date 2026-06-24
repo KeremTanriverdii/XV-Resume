@@ -58,6 +58,8 @@ out
 .vs/
 usersecrets.json
 _ReSharper*/
+appsettings.json
+**/appsettings.Development.json
 
 # Environment Variables
 .env
