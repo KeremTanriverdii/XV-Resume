@@ -17,19 +17,19 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
         _dbSet = _context.Set<T>();
     }
 
-    public async Task<IEnumerable<T>> GetAllAsync()
+    public Task<IEnumerable<T>> GetAllAsync()
     {
-        return await _dbSet.ToListAsync();
+        return Task.FromResult<IEnumerable<T>>(_dbSet.ToList());
     }
 
-    public async Task<T?> GetByIdAsync(object id)
+    public Task<T?> GetByIdAsync(object id)
     {
-        return await _dbSet.FindAsync(id);
+        return _dbSet.FindAsync(id).AsTask();
     }
 
-    public async Task AddAsync(T entity)
+    public Task AddAsync(T entity)
     {
-        await _dbSet.AddAsync(entity);
+        return _dbSet.AddAsync(entity).AsTask();
     }
 
     public void Update(T entity)
@@ -42,8 +42,8 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
         _dbSet.Remove(entity);
     }
 
-    public async Task<int> SaveChangesAsync()
+    public Task<int> SaveChangesAsync()
     {
-        return await _context.SaveChangesAsync();
+        return _context.SaveChangesAsync();
     }
 }

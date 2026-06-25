@@ -1,8 +1,11 @@
+using System;
+using System.Collections.Generic;
+
 namespace ResumeXCreator.Services.DTOs;
 
 public class CreateResumeDto
 {
-    public string Title { get; set; } = string.Empty;
-    public string Content { get; set; } = string.Empty;
-    public string JobDescription { get; set; } = string.Empty;
+  public Guid? ProfileId { get; set; }
+  public string JobDescription { get; set; } = string.Empty;
+  public List<string> SelectedLanguagesForGeneration { get; set; } = [];
 }
