@@ -1,4 +1,7 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using ResumeXCreator.Domain.Interfaces;
 using ResumeXCreator.Infrastructure.Data;
 using ResumeXCreator.Infrastructure.Repositories;
@@ -25,6 +28,24 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IResumeService, ResumeService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
 
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+  .AddJwtBearer(options =>
+  {
+    options.Authority = builder.Configuration["Authentication:ValidIssuer"];
+    options.RequireHttpsMetadata = true;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+      ValidateIssuer = true,
+      ValidIssuer = builder.Configuration["Authentication:ValidIssuer"],
+      ValidateAudience = true,
+      ValidAudience = builder.Configuration["Authentication:ValidAudience"],
+      ValidateLifetime = true,
+      ValidateIssuerSigningKey = true
+    };
+  });
+
+builder.Services.AddAuthorization();
+
 // CORS
 builder.Services.AddCors(options =>
 {
@@ -47,6 +68,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 // ── Profile Endpoints ──
 
