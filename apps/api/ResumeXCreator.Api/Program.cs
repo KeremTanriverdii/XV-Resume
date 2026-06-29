@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using ResumeXCreator.Domain.Interfaces;
+using ResumeXCreator.Infrastructure;
 using ResumeXCreator.Infrastructure.Data;
 using ResumeXCreator.Infrastructure.Repositories;
 using ResumeXCreator.Services;
@@ -14,19 +15,11 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddOpenApi();
 
-// DbContext
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+// Infrastructure Services (DbContext & Repositories)
+builder.Services.AddDatabaseServices(builder.Configuration);
 
-// Repositories
-builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-builder.Services.AddScoped<IResumeRepository, ResumeRepository>();
-builder.Services.AddScoped<IProfileRepository, ProfileRepository>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-
-// Services
-builder.Services.AddScoped<IResumeService, ResumeService>();
-builder.Services.AddScoped<IProfileService, ProfileService>();
+// Business Services
+builder.Services.AddBusinessServices();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
   .AddJwtBearer(options =>
