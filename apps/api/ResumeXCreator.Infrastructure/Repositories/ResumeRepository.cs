@@ -11,6 +11,7 @@ public class ResumeRepository(AppDbContext context) : GenericRepository<Resume>(
     {
         return _context.Resumes
             .Include(r => r.Translations)
+            .Include(r => r.Profile)
             .FirstOrDefaultAsync(r => r.Id == id);
     }
 }

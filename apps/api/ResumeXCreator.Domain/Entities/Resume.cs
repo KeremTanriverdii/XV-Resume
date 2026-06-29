@@ -8,6 +8,7 @@ public class Resume
 {
   public Guid Id { get; set; }
   public Guid? ProfileId { get; set; }
+  public string ExternalJobLink { get; set; } = string.Empty;
   public string JobDescription { get; set; } = string.Empty;
   public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

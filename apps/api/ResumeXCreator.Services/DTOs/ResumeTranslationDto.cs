@@ -12,4 +12,6 @@ public class ResumeTranslationDto
   public string ExperienceHtml { get; set; } = string.Empty;
   public string EducationHtml { get; set; } = string.Empty;
   public string SkillsHtml { get; set; } = string.Empty;
+  public int Version { get; set; }
+  public DateTime CreatedAt { get; set; }
 }

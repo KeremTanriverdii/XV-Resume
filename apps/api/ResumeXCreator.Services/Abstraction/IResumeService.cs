@@ -10,4 +10,5 @@ public interface IResumeService
     Task<IEnumerable<ResumeDto>> GetAllResumesAsync();
     Task<ResumeDto?> GetResumeByIdAsync(Guid id);
     Task<ResumeDto> CreateResumeAsync(CreateResumeDto createResumeDto);
+    Task<ResumeDto> GenerateResumeAsync(CreateResumeDto dto, string authenticatedUserId);
 }

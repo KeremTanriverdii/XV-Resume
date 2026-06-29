@@ -7,6 +7,7 @@ public class ResumeDto
 {
   public Guid Id { get; set; }
   public Guid? ProfileId { get; set; }
+  public string ExternalJobLink { get; set; } = string.Empty;
   public string JobDescription { get; set; } = string.Empty;
   public DateTime CreatedAt { get; set; }
   public List<ResumeTranslationDto> Translations { get; set; } = [];

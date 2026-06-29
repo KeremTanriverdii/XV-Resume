@@ -10,5 +10,7 @@ public class ResumeTranslation
   public string ExperienceHtml { get; set; } = default!;
   public string EducationHtml { get; set; } = default!;
   public string SkillsHtml { get; set; } = default!;
+  public int Version { get; set; } = 1;
+  public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
   public Resume? Resume { get; set; }
 }

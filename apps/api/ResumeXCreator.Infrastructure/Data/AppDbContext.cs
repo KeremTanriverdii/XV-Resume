@@ -85,6 +85,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     modelBuilder.Entity<Resume>(entity =>
     {
       entity.HasKey(e => e.Id);
+      entity.Property(e => e.ExternalJobLink).IsRequired().HasMaxLength(2000);
       entity.Property(e => e.JobDescription).IsRequired();
 
       entity.HasOne(d => d.Profile)
@@ -103,6 +104,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
       entity.Property(e => e.ExperienceHtml).IsRequired();
       entity.Property(e => e.EducationHtml).IsRequired();
       entity.Property(e => e.SkillsHtml).IsRequired();
+      entity.Property(e => e.Version).IsRequired().HasDefaultValue(1);
+      entity.Property(e => e.CreatedAt).IsRequired();
 
       entity.HasOne(d => d.Resume)
             .WithMany(p => p.Translations)
