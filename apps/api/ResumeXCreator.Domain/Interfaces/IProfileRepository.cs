@@ -8,5 +8,6 @@ namespace ResumeXCreator.Domain.Interfaces;
 public interface IProfileRepository : IGenericRepository<Profile>
 {
   Task<Profile?> GetWithResumesByIdAsync(Guid id);
+  Task<Profile?> GetWithDetailsByIdAsync(Guid id);
   Task<IEnumerable<Profile>> GetByUserIdAsync(string userId);
 }

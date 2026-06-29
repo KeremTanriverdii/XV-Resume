@@ -11,6 +11,8 @@ public class Profile
   public string FullName { get; set; } = string.Empty;
   public string Title { get; set; } = string.Empty;
   public string Summary { get; set; } = string.Empty;
+  public string Email { get; set; } = string.Empty;
+  public string Phone { get; set; } = string.Empty;
   public string ExperienceJson { get; set; } = "[]";
   public string EducationJson { get; set; } = "[]";
   public List<string> Skills { get; set; } = [];
@@ -22,4 +24,7 @@ public class Profile
   // Navigation Properties
   public User? User { get; set; }
   public ICollection<Resume> Resumes { get; set; } = [];
+  public ICollection<Project> Projects { get; set; } = [];
+  public ICollection<Education> Educations { get; set; } = [];
+  public ICollection<Experience> Experiences { get; set; } = [];
 }

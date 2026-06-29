@@ -19,10 +19,22 @@ public class ProfileRepository(AppDbContext context) : GenericRepository<Profile
         .FirstOrDefaultAsync(p => p.Id == id);
   }
 
-  public Task<IEnumerable<Profile>> GetByUserIdAsync(string userId)
+  public Task<Profile?> GetWithDetailsByIdAsync(Guid id)
   {
-    return Task.FromResult<IEnumerable<Profile>>(_context.Profiles
+    return _context.Profiles
+        .Include(p => p.Projects)
+        .Include(p => p.Educations)
+        .Include(p => p.Experiences)
+        .FirstOrDefaultAsync(p => p.Id == id);
+  }
+
+  public async Task<IEnumerable<Profile>> GetByUserIdAsync(string userId)
+  {
+    return await _context.Profiles
         .Where(p => p.UserId == userId)
-        .ToList());
+        .Include(p => p.Projects)
+        .Include(p => p.Educations)
+        .Include(p => p.Experiences)
+        .ToListAsync();
   }
 }

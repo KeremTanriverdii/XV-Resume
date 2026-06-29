@@ -10,6 +10,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
   public DbSet<Profile> Profiles => Set<Profile>();
   public DbSet<Resume> Resumes => Set<Resume>();
   public DbSet<ResumeTranslation> ResumeTranslations => Set<ResumeTranslation>();
+  public DbSet<Project> Projects => Set<Project>();
+  public DbSet<Education> Educations => Set<Education>();
+  public DbSet<Experience> Experiences => Set<Experience>();
 
   protected override void OnModelCreating(ModelBuilder modelBuilder)
   {
@@ -31,6 +34,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
       entity.Property(e => e.FullName).IsRequired().HasMaxLength(150);
       entity.Property(e => e.Title).HasMaxLength(200);
       entity.Property(e => e.Summary);
+      entity.Property(e => e.Email).HasMaxLength(150);
+      entity.Property(e => e.Phone).HasMaxLength(50);
       entity.Property(e => e.ExperienceJson);
       entity.Property(e => e.EducationJson);
       entity.Property(e => e.Skills);       // text[] with Npgsql
@@ -40,6 +45,39 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
       entity.HasOne(d => d.User)
             .WithMany(p => p.Profiles)
             .HasForeignKey(d => d.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+    });
+
+    // ── Project ──
+    modelBuilder.Entity<Project>(entity =>
+    {
+      entity.HasKey(e => e.Id);
+      entity.Property(e => e.ProjectTitle).IsRequired().HasMaxLength(200);
+      entity.HasOne(d => d.Profile)
+            .WithMany(p => p.Projects)
+            .HasForeignKey(d => d.ProfileId)
+            .OnDelete(DeleteBehavior.Cascade);
+    });
+
+    // ── Education ──
+    modelBuilder.Entity<Education>(entity =>
+    {
+      entity.HasKey(e => e.Id);
+      entity.Property(e => e.SchoolName).IsRequired().HasMaxLength(200);
+      entity.HasOne(d => d.Profile)
+            .WithMany(p => p.Educations)
+            .HasForeignKey(d => d.ProfileId)
+            .OnDelete(DeleteBehavior.Cascade);
+    });
+
+    // ── Experience ──
+    modelBuilder.Entity<Experience>(entity =>
+    {
+      entity.HasKey(e => e.Id);
+      entity.Property(e => e.CompanyName).IsRequired().HasMaxLength(200);
+      entity.HasOne(d => d.Profile)
+            .WithMany(p => p.Experiences)
+            .HasForeignKey(d => d.ProfileId)
             .OnDelete(DeleteBehavior.Cascade);
     });
 
