@@ -1,37 +1,50 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using ResumeXCreator.Domain.Interfaces;
-using ResumeXCreator.Infrastructure.Data;
-using ResumeXCreator.Infrastructure.Repositories;
+using Microsoft.IdentityModel.Tokens;
+using ResumeXCreator.Api.API.Endpoints;
+using ResumeXCreator.Infrastructure;
 using ResumeXCreator.Services;
-using ResumeXCreator.Services.Abstraction;
-using ResumeXCreator.Services.DTOs;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddOpenApi();
 
-// DbContext
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+// Infrastructure Services (DbContext & Repositories)
+builder.Services.AddDatabaseServices(builder.Configuration);
 
-// Repositories
-builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-builder.Services.AddScoped<IResumeRepository, ResumeRepository>();
+// Business Services
+builder.Services.AddBusinessServices();
 
-// Services
-builder.Services.AddScoped<IResumeService, ResumeService>();
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+  .AddJwtBearer(options =>
+  {
+    options.Authority = builder.Configuration["Authentication:ValidIssuer"];
+    options.RequireHttpsMetadata = true;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+      ValidateIssuer = true,
+      ValidIssuer = builder.Configuration["Authentication:ValidIssuer"],
+      ValidateAudience = true,
+      ValidAudience = builder.Configuration["Authentication:ValidAudience"],
+      ValidateLifetime = true,
+      ValidateIssuerSigningKey = true
+    };
+  });
+
+builder.Services.AddAuthorization();
 
 // CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend", policy =>
-    {
-        policy.WithOrigins("http://localhost:3000")
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
-    });
+  options.AddPolicy("AllowFrontend", policy =>
+  {
+    policy.WithOrigins("http://localhost:3000")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+  });
 });
 
 var app = builder.Build();
@@ -39,32 +52,17 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+  app.MapOpenApi();
 }
 
 app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
 
-// API Endpoints
-app.MapGet("/api/resumes", async (IResumeService resumeService) =>
-{
-    var resumes = await resumeService.GetAllResumesAsync();
-    return Results.Ok(resumes);
-})
-.WithName("GetAllResumes");
+app.UseAuthentication();
+app.UseAuthorization();
 
-app.MapGet("/api/resumes/{id:guid}", async (Guid id, IResumeService resumeService) =>
-{
-    var resume = await resumeService.GetResumeByIdAsync(id);
-    return resume is not null ? Results.Ok(resume) : Results.NotFound();
-})
-.WithName("GetResumeById");
-
-app.MapPost("/api/resumes", async (CreateResumeDto createDto, IResumeService resumeService) =>
-{
-    var result = await resumeService.CreateResumeAsync(createDto);
-    return Results.Created($"/api/resumes/{result.Id}", result);
-})
-.WithName("CreateResume");
+// ── Endpoints ──
+app.MapProfileEndpoints();
+app.MapResumeEndpoints();
 
 app.Run();

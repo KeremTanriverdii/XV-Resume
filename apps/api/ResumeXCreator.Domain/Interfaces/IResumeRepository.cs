@@ -4,6 +4,6 @@ namespace ResumeXCreator.Domain.Interfaces;
 
 public interface IResumeRepository : IGenericRepository<Resume>
 {
-    // Resume-specific repository queries can be added here
+    System.Threading.Tasks.Task<Resume?> GetWithTranslationsByIdAsync(System.Guid id);
 }
 // 
