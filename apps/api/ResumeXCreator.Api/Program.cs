@@ -29,7 +29,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
       ValidateAudience = true,
       ValidAudience = builder.Configuration["Authentication:ValidAudience"],
       ValidateLifetime = true,
-      ValidateIssuerSigningKey = true
+      ValidateIssuerSigningKey = true,
+      IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Authentication:JwtSecret"]!))
+
     };
   });
 
@@ -53,6 +55,19 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
   app.MapOpenApi();
+  app.UseDeveloperExceptionPage();
+}
+else
+{
+  app.UseExceptionHandler(errorApp =>
+  {
+    errorApp.Run(async ctx =>
+    {
+      ctx.Response.StatusCode = 500;
+      ctx.Response.ContentType = "application/json";
+      await ctx.Response.WriteAsJsonAsync(new { error = "An unexpected error occurred." });
+    });
+  });
 }
 
 app.UseHttpsRedirection();
