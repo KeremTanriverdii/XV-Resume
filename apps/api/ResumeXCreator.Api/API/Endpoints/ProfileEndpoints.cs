@@ -11,12 +11,16 @@ public static class ProfileEndpoints
     var group = app.MapGroup("/api/v1/profiles");
 
     // GET /api/v1/profiles?userId=xxx
-    group.MapGet("/", async (string userId, IProfileService profileService) =>
+    group.MapGet("/", async (HttpContext ctx, IProfileService profileService) =>
     {
+      var userId = ctx.User.FindFirstValue(ClaimTypes.NameIdentifier);
+      if (userId == null) return Results.Unauthorized();
+
       var profiles = await profileService.GetProfilesByUserIdAsync(userId);
       return Results.Ok(profiles);
     })
-    .WithName("GetProfilesByUserId");
+    .WithName("GetProfilesByUserId")
+    .RequireAuthorization();
 
     // GET /api/v1/profiles/{id}
     group.MapGet("/{id:guid}", async (Guid id, IProfileService profileService) =>
@@ -27,12 +31,17 @@ public static class ProfileEndpoints
     .WithName("GetProfileById");
 
     // POST /api/v1/profiles
-    group.MapPost("/", async (CreateProfileDto dto, IProfileService profileService) =>
+    group.MapPost("/", async (HttpContext ctx, CreateProfileDto dto, IProfileService profileService) =>
     {
+      var userId = ctx.User.FindFirstValue(ClaimTypes.NameIdentifier);
+      if (userId == null) return Results.Unauthorized();
+      dto.UserId = userId;
+
       var result = await profileService.CreateProfileAsync(dto);
       return Results.Created($"/api/v1/profiles/{result.Id}", result);
     })
-    .WithName("CreateProfile");
+    .WithName("CreateProfile")
+    .RequireAuthorization();
 
     // PUT /api/v1/profiles/{id}
     group.MapPut("/{id:guid}", async (Guid id, CreateProfileDto dto, IProfileService profileService) =>
