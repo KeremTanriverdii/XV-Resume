@@ -16,11 +16,11 @@ export default async function LandingPage() {
 
   await queryClient.prefetchQuery({
     queryKey: ['profile', user?.id],
-    queryFn: () => fetchProfile(user?.id,token)
+    queryFn: () => fetchProfile(token)
   })
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <HomePageClient userId={user?.id || undefined} />
+      <HomePageClient />
     </HydrationBoundary>
   );
 }

@@ -26,5 +26,26 @@
     "feature2Desc": "Özgeçmişinizin Aday Takip Sistemlerinden (ATS) sorunsuz geçmesini sağlar.",
     "feature3Title": "Modern Şablonlar",
     "feature3Desc": "İşe alım uzmanlarının dikkatini çeken şık ve profesyonel tasarımlar."
+  },
+  "sidebar": {
+    "menu": "Menü",
+    "new-resume": "Yeni Özgeçmiş",
+    "recent-resumes": "Son Özgeçmişler",
+    "no-recent-resumes": "Özgeçmiş bulunamadı."
+  },
+  "common": {
+    "light": "Açık",
+    "dark": "Koyu",
+    "system": "Sistem"
+  },
+  "auth": {
+    "logout": "Çıkış Yap"
+  },
+  "settings": {
+    "title": "Ayarlar",
+    "language": "Dil",
+    "theme": "Tema",
+    "themeDesc": "Uygulama için bir tema seçin",
+    "logout": "Çıkış Yap"
   }
 }

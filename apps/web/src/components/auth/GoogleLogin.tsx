@@ -3,10 +3,12 @@
 import { createClient } from "@/utils/supabase/client";
 import Image from "next/image";
 import { useState } from "react";
+import { useLocale } from "next-intl";
 
 export default function GoogleLogin() {
   const [isLoading, setIsLoading] = useState(false);
   const supabase = createClient();
+  const locale = useLocale();
 
   const handleGoogleLogin = async () => {
     setIsLoading(true);
@@ -15,7 +17,7 @@ export default function GoogleLogin() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${window.location.origin}/auth/callback?next=/${locale}/dashboard&locale=${locale}`,
       },
     });
 

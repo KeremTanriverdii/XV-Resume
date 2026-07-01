@@ -3,14 +3,13 @@
 import { useAuth } from "@/providers/AuthProvider";
 import { fetchProfile } from "@/services/profileService";
 import { useQuery } from "@tanstack/react-query";
-import Link from "next/link"; // Düzeltildi: Lucide-react yerine next/link kullanıldı
 import { useTranslations } from "next-intl"
 
-// Yeni Componentlerimiz:
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import { Link } from "@/i18n/routing";
 
-export default function HomePageClient({userId}: {userId: string | undefined})
+export default function HomePageClient()
 {
     const t = useTranslations("Landing");
     const {session} = useAuth();
@@ -18,7 +17,7 @@ export default function HomePageClient({userId}: {userId: string | undefined})
 
     const {data:profile,isLoading,isError} = useQuery({
         queryKey:['profile'],
-        queryFn:()=>fetchProfile(userId,token),
+        queryFn:()=>fetchProfile(token),
         staleTime:1000*60*5,
         retry:1
     })

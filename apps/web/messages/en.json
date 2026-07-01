@@ -26,5 +26,26 @@
     "feature2Desc": "Ensures your resume passes Applicant Tracking Systems with flying colors.",
     "feature3Title": "Modern Templates",
     "feature3Desc": "Sleek, professional designs that catch recruiters' eyes."
+  },
+  "sidebar": {
+    "menu": "Menu",
+    "new-resume": "New Resume",
+    "recent-resumes": "Recent Resumes",
+    "no-recent-resumes": "No recent resumes."
+  },
+  "common": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "auth": {
+    "logout": "Logout"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "themeDesc": "Choose a theme for the app",
+    "logout": "Logout"
   }
 }
