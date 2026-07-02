@@ -30,6 +30,7 @@ public class ExperienceService(IExperienceRepository expRepository, IProfileRepo
       Role = dto.Role,
       StartDate = dto.StartDate,
       EndDate = dto.EndDate,
+      IsOngoing = dto.IsOngoing,
       Description = dto.Description,
       LogoUrl = dto.LogoUrl,
       Location = dto.Location
@@ -97,6 +98,7 @@ public class ExperienceService(IExperienceRepository expRepository, IProfileRepo
     experience.Role = dto.Role;
     experience.StartDate = dto.StartDate;
     experience.EndDate = dto.EndDate;
+    experience.IsOngoing = dto.IsOngoing;
     experience.Description = dto.Description;
     experience.LogoUrl = dto.LogoUrl;
     experience.Location = dto.Location;
@@ -155,6 +157,7 @@ public class ExperienceService(IExperienceRepository expRepository, IProfileRepo
     Role = e.Role,
     StartDate = e.StartDate,
     EndDate = e.EndDate,
+    IsOngoing = e.IsOngoing,
     Description = e.Description,
     LogoUrl = e.LogoUrl,
     Location = e.Location

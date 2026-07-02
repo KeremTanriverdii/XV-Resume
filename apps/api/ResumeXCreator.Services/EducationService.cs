@@ -36,6 +36,7 @@ public class EducationService(
       FieldOfStudy = dto.FieldOfStudy,
       StartDate = dto.StartDate,
       EndDate = dto.EndDate,
+      IsOngoing = dto.IsOngoing,
       GPA = dto.GPA
     };
 
@@ -55,6 +56,7 @@ public class EducationService(
     education.FieldOfStudy = dto.FieldOfStudy;
     education.StartDate = dto.StartDate;
     education.EndDate = dto.EndDate;
+    education.IsOngoing = dto.IsOngoing;
     education.GPA = dto.GPA;
 
     _educationRepository.Update(education);
@@ -94,6 +96,7 @@ public class EducationService(
       FieldOfStudy = education.FieldOfStudy,
       StartDate = education.StartDate,
       EndDate = education.EndDate,
+      IsOngoing = education.IsOngoing,
       GPA = education.GPA
     };
   }

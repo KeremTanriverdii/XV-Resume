@@ -25,7 +25,10 @@ import {
   Sun, 
   Moon, 
   Globe,
-  Laptop
+  Laptop,
+  GraduationCap,
+  Briefcase,
+  FolderGit2
 } from "lucide-react"
 import { createClient } from "@/utils/supabase/client"
 import { useAuth } from "./AuthProvider"
@@ -76,8 +79,11 @@ export function AppSidebar() {
   }
 
   const navigateSidebarItem = [
-    { name: "My Resumes", href: "/dashboard", icon: LayoutDashboard },
-    { name: "Profiles", href: "/dashboard/profiles", icon: LayoutTemplate },
+    { name: t("sidebar.my-resumes"), href: "/dashboard", icon: LayoutDashboard },
+    { name: t("sidebar.profiles"), href: "/dashboard/profiles", icon: LayoutTemplate },
+    { name: t("sidebar.educations"), href: "/dashboard/educations", icon: GraduationCap },
+    { name: t("sidebar.experiences"), href: "/dashboard/experiences", icon: Briefcase },
+    { name: t("sidebar.projects"), href: "/dashboard/projects", icon: FolderGit2 },
   ]
 
   return (

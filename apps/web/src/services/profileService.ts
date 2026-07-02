@@ -1,39 +1,15 @@
-const url = process.env.NEXT_PUBLIC_API_URL;
+import { Profile, CreateProfileDto } from "@/types";
+import { api } from "./apiClient";
 
-export const fetchProfile = async (token: string | undefined) => {
-    if (!token) return null; // if token is not defined, return null
-
-    const res = await fetch(`${url}/profiles`, {
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        },
-    });
-
-    if (!res.ok) {
-        console.error("Failed to fetch user's profile", res.statusText);
-        return null;
-    }
-
-    return res.json();
-}
-
-export const createProfile = async (data: any, token: string | undefined) => {
+export const fetchProfile = async (token: string | undefined): Promise<Profile | null> => {
     if (!token) return null;
+    return api.get<Profile>("/profiles", token).catch(() => null);
+};
 
-    const res = await fetch(`${url}/profiles`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(data)
-    });
-
-    if (!res.ok) {
-        console.error("Failed to create profile", res.statusText);
-        return null;
-    }
-
-    return res.json();
-}
+export const createProfile = async (
+    data: CreateProfileDto,
+    token: string | undefined
+): Promise<Profile | null> => {
+    if (!token) return null;
+    return api.post<Profile>("/profiles", data, token).catch(() => null);
+};

@@ -9,6 +9,9 @@ public static class ServiceExtensions
   {
     services.AddScoped<IResumeService, ResumeService>();
     services.AddScoped<IProfileService, ProfileService>();
+    services.AddScoped<IEducationService, EducationService>();
+    services.AddScoped<IExperienceService, ExperienceService>();
+    services.AddScoped<IProjectService, ProjectService>();
     return services;
   }
 }

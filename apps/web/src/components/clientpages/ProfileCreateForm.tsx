@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { CreateProfileDto, Profile } from "@/types"
 import { createProfile } from "@/services/profileService"
 
 interface ProfileCreateFormProps {
@@ -15,17 +16,17 @@ export default function ProfileCreateForm({ token, userId }: ProfileCreateFormPr
   const [profileName, setProfileName] = useState("")
 
   const mutation = useMutation({
-    mutationFn: (newProfile: any) => createProfile(newProfile, token),
+    mutationFn: (newProfile: CreateProfileDto) => createProfile(newProfile, token),
     
     // Optimistic Update
-    onMutate: async (newProfile) => {
+    onMutate: async (newProfile: CreateProfileDto) => {
       await queryClient.cancelQueries({ queryKey: ["profiles", userId] })
 
       // Backup old cache data
-      const previousProfiles = queryClient.getQueryData<any[]>(["profiles", userId])
+      const previousProfiles = queryClient.getQueryData<Profile[]>(["profiles", userId])
 
       // Update cache with new optimistic data
-      queryClient.setQueryData(["profiles", userId], (old: any[] | undefined) => [
+      queryClient.setQueryData(["profiles", userId], (old: Profile[] | undefined) => [
         ...(old || []),
         {
           id: "temp-id-" + Date.now(), // Temporary ID
@@ -33,7 +34,7 @@ export default function ProfileCreateForm({ token, userId }: ProfileCreateFormPr
           fullName: newProfile.fullName,
           userId: userId,
           isOptimistic: true 
-        }
+        } as unknown as Profile
       ])
 
       // Backup context to be passed to onError

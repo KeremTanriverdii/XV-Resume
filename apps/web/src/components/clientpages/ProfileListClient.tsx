@@ -1,5 +1,6 @@
 "use client"
 
+import { Profile } from "@/types"
 import { useQuery } from "@tanstack/react-query"
 import { fetchProfile } from "@/services/profileService"
 
@@ -11,7 +12,7 @@ interface ProfileListClientProps {
 export default function ProfileListClient({ token, userId }: ProfileListClientProps) {
   const { data: profiles, isLoading, error } = useQuery({
     queryKey: ['profiles', userId], 
-    queryFn: () => fetchProfile(token),
+    queryFn: () => fetchProfile(token).then(p => p ? [p] : []), // wrap in array since server endpoint returns single profile
     enabled: !!token && !!userId, 
   })
 
@@ -33,7 +34,7 @@ export default function ProfileListClient({ token, userId }: ProfileListClientPr
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
-      {profiles.map((profile: any) => (
+      {profiles.map((profile: Profile) => (
         <div key={profile.id} className="p-4 border rounded-lg shadow-xs bg-card text-card-foreground">
           <h3 className="font-semibold text-base">{profile.profileName}</h3>
           {profile.fullName && <p className="text-sm text-muted-foreground">{profile.fullName}</p>}

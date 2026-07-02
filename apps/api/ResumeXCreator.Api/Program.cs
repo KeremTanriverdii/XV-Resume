@@ -80,6 +80,7 @@ app.UseAuthorization();
 app.MapProfileEndpoints();
 app.MapExperienceEndpoints();
 app.MapEducationEndpoints();
+app.MapProjectEndpoints();
 app.MapResumeEndpoints();
 
 app.Run();

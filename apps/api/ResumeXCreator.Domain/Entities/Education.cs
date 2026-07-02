@@ -11,7 +11,8 @@ public class Education
   public string Degree { get; set; } = string.Empty;
   public string FieldOfStudy { get; set; } = string.Empty;
   public DateTime StartDate { get; set; }
-  public DateTime EndDate { get; set; }
+  public DateTime? EndDate { get; set; }
+  public bool IsOngoing { get; set; }
   public string? GPA { get; set; } = string.Empty;
 
   // Navigation properties
