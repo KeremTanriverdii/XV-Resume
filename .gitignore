@@ -68,3 +68,6 @@ appsettings.json
 .env.test.local
 .env.production.local
 
+# Local Documentation
+GIT_GUIDE.md
+
