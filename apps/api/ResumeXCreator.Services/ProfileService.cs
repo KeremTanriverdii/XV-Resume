@@ -9,9 +9,16 @@ using ResumeXCreator.Services.DTOs;
 
 namespace ResumeXCreator.Services;
 
-public class ProfileService(IProfileRepository profileRepository) : IProfileService
+public class ProfileService(
+    IProfileRepository profileRepository, 
+    IExperienceRepository experienceRepository,
+    IEducationRepository educationRepository,
+    IProjectRepository projectRepository) : IProfileService
 {
   private readonly IProfileRepository _profileRepository = profileRepository;
+  private readonly IExperienceRepository _experienceRepository = experienceRepository;
+  private readonly IEducationRepository _educationRepository = educationRepository;
+  private readonly IProjectRepository _projectRepository = projectRepository;
 
   public async Task<IEnumerable<ProfileDto>> GetProfilesByUserIdAsync(string userId)
   {
@@ -19,10 +26,10 @@ public class ProfileService(IProfileRepository profileRepository) : IProfileServ
     return profiles.Select(MapToDto);
   }
 
-  public async Task<ProfileDto?> GetProfileByIdAsync(Guid id)
+  public async Task<ProfileDto?> GetProfileByIdAsync(string userId, Guid id)
   {
     var profile = await _profileRepository.GetWithDetailsByIdAsync(id);
-    if (profile == null) return null;
+    if (profile == null || profile.UserId != userId) return null;
     return MapToDto(profile);
   }
 
@@ -49,54 +56,138 @@ public class ProfileService(IProfileRepository profileRepository) : IProfileServ
 
     if (dto.Projects != null)
     {
+      int sortOrder = 0;
       foreach (var pr in dto.Projects)
       {
-        profile.Projects.Add(new Project
+        Project? project = null;
+        if (pr.Id != Guid.Empty)
         {
-          Id = pr.Id == Guid.Empty ? Guid.NewGuid() : pr.Id,
+          project = await _projectRepository.GetByIdAsync(pr.Id);
+        }
+
+        if (project == null)
+        {
+          project = new Project
+          {
+            Id = pr.Id == Guid.Empty ? Guid.NewGuid() : pr.Id,
+            UserId = profile.UserId,
+            ProjectTitle = pr.Title,
+            Description = pr.Description,
+            TechologiesUsed = pr.TechologiesUsed,
+            Links = pr.Links,
+            RepositoryUrl = pr.RepositoryUrl
+          };
+          await _projectRepository.AddAsync(project);
+        }
+        else
+        {
+          project.ProjectTitle = pr.Title;
+          project.Description = pr.Description;
+          project.TechologiesUsed = pr.TechologiesUsed;
+          project.Links = pr.Links;
+          project.RepositoryUrl = pr.RepositoryUrl;
+          _projectRepository.Update(project);
+        }
+
+        profile.ProfileProjects.Add(new ProfileProject
+        {
           ProfileId = profile.Id,
-          ProjectTitle = pr.Title,
-          Description = pr.Description,
-          TechologiesUsed = pr.TechologiesUsed,
-          Links = pr.Links,
-          RepositoryUrl = pr.RepositoryUrl
+          ProjectId = project.Id,
+          SortOrder = sortOrder++
         });
       }
     }
 
     if (dto.Educations != null)
     {
+      int sortOrder = 0;
       foreach (var ed in dto.Educations)
       {
-        profile.Educations.Add(new Education
+        Education? education = null;
+        if (ed.Id != Guid.Empty)
         {
-          Id = ed.Id == Guid.Empty ? Guid.NewGuid() : ed.Id,
+          education = await _educationRepository.GetByIdAsync(ed.Id);
+        }
+
+        if (education == null)
+        {
+          education = new Education
+          {
+            Id = ed.Id == Guid.Empty ? Guid.NewGuid() : ed.Id,
+            UserId = profile.UserId,
+            SchoolName = ed.SchoolName,
+            Degree = ed.Degree,
+            FieldOfStudy = ed.FieldOfStudy,
+            StartDate = ed.StartDate,
+            EndDate = ed.EndDate,
+            GPA = ed.GPA
+          };
+          await _educationRepository.AddAsync(education);
+        }
+        else
+        {
+          education.SchoolName = ed.SchoolName;
+          education.Degree = ed.Degree;
+          education.FieldOfStudy = ed.FieldOfStudy;
+          education.StartDate = ed.StartDate;
+          education.EndDate = ed.EndDate;
+          education.GPA = ed.GPA;
+          _educationRepository.Update(education);
+        }
+
+        profile.ProfileEducations.Add(new ProfileEducation
+        {
           ProfileId = profile.Id,
-          SchoolName = ed.SchoolName,
-          Degree = ed.Degree,
-          FieldOfStudy = ed.FieldOfStudy,
-          StartDate = ed.StartDate,
-          EndDate = ed.EndDate,
-          GPA = ed.GPA
+          EducationId = education.Id,
+          SortOrder = sortOrder++
         });
       }
     }
 
     if (dto.Experiences != null)
     {
+      int sortOrder = 0;
       foreach (var ex in dto.Experiences)
       {
-        profile.Experiences.Add(new Experience
+        Experience? experience = null;
+        if (ex.Id != Guid.Empty)
         {
-          Id = ex.Id == Guid.Empty ? Guid.NewGuid() : ex.Id,
+          experience = await _experienceRepository.GetByIdAsync(ex.Id);
+        }
+
+        if (experience == null)
+        {
+          experience = new Experience
+          {
+            Id = ex.Id == Guid.Empty ? Guid.NewGuid() : ex.Id,
+            UserId = profile.UserId,
+            CompanyName = ex.CompanyName,
+            Role = ex.Role,
+            StartDate = ex.StartDate,
+            EndDate = ex.EndDate,
+            Description = ex.Description,
+            LogoUrl = ex.LogoUrl,
+            Location = ex.Location
+          };
+          await _experienceRepository.AddAsync(experience);
+        }
+        else
+        {
+          experience.CompanyName = ex.CompanyName;
+          experience.Role = ex.Role;
+          experience.StartDate = ex.StartDate;
+          experience.EndDate = ex.EndDate;
+          experience.Description = ex.Description;
+          experience.LogoUrl = ex.LogoUrl;
+          experience.Location = ex.Location;
+          _experienceRepository.Update(experience);
+        }
+
+        profile.ProfileExperiences.Add(new ProfileExperience
+        {
           ProfileId = profile.Id,
-          CompanyName = ex.CompanyName,
-          Role = ex.Role,
-          StartDate = ex.StartDate,
-          EndDate = ex.EndDate,
-          Description = ex.Description,
-          LogoUrl = ex.LogoUrl,
-          Location = ex.Location
+          ExperienceId = experience.Id,
+          SortOrder = sortOrder++
         });
       }
     }
@@ -107,10 +198,10 @@ public class ProfileService(IProfileRepository profileRepository) : IProfileServ
     return MapToDto(profile);
   }
 
-  public async Task<ProfileDto?> UpdateProfileAsync(Guid id, CreateProfileDto dto)
+  public async Task<ProfileDto?> UpdateProfileAsync(string userId, Guid id, CreateProfileDto dto)
   {
     var profile = await _profileRepository.GetWithDetailsByIdAsync(id);
-    if (profile == null) return null;
+    if (profile == null || profile.UserId != userId) return null;
 
     profile.ProfileName = dto.ProfileName;
     profile.FullName = dto.FullName;
@@ -128,34 +219,68 @@ public class ProfileService(IProfileRepository profileRepository) : IProfileServ
     // --- Update Projects ---
     if (dto.Projects != null)
     {
-      var projectsToRemove = profile.Projects.Where(p => !dto.Projects.Any(dp => dp.Id == p.Id)).ToList();
-      foreach (var p in projectsToRemove)
+      var linksToRemove = profile.ProfileProjects
+          .Where(pp => !dto.Projects.Any(dp => dp.Id == pp.ProjectId))
+          .ToList();
+      foreach (var link in linksToRemove)
       {
-        profile.Projects.Remove(p);
+        profile.ProfileProjects.Remove(link);
       }
 
+      int sortOrder = 0;
       foreach (var dp in dto.Projects)
       {
-        var existing = profile.Projects.FirstOrDefault(p => p.Id == dp.Id);
-        if (existing != null)
+        var existingLink = profile.ProfileProjects.FirstOrDefault(pp => pp.ProjectId == dp.Id);
+        if (existingLink != null)
         {
-          existing.ProjectTitle = dp.Title;
-          existing.Description = dp.Description;
-          existing.TechologiesUsed = dp.TechologiesUsed;
-          existing.Links = dp.Links;
-          existing.RepositoryUrl = dp.RepositoryUrl;
+          existingLink.SortOrder = sortOrder++;
+          
+          if (existingLink.Project != null)
+          {
+            existingLink.Project.ProjectTitle = dp.Title;
+            existingLink.Project.Description = dp.Description;
+            existingLink.Project.TechologiesUsed = dp.TechologiesUsed;
+            existingLink.Project.Links = dp.Links;
+            existingLink.Project.RepositoryUrl = dp.RepositoryUrl;
+          }
         }
         else
         {
-          profile.Projects.Add(new Project
+          Project? project = null;
+          if (dp.Id != Guid.Empty)
           {
-            Id = dp.Id == Guid.Empty ? Guid.NewGuid() : dp.Id,
+            project = await _projectRepository.GetByIdAsync(dp.Id);
+          }
+
+          if (project == null)
+          {
+            project = new Project
+            {
+              Id = dp.Id == Guid.Empty ? Guid.NewGuid() : dp.Id,
+              UserId = profile.UserId,
+              ProjectTitle = dp.Title,
+              Description = dp.Description,
+              TechologiesUsed = dp.TechologiesUsed,
+              Links = dp.Links,
+              RepositoryUrl = dp.RepositoryUrl
+            };
+            await _projectRepository.AddAsync(project);
+          }
+          else
+          {
+            project.ProjectTitle = dp.Title;
+            project.Description = dp.Description;
+            project.TechologiesUsed = dp.TechologiesUsed;
+            project.Links = dp.Links;
+            project.RepositoryUrl = dp.RepositoryUrl;
+            _projectRepository.Update(project);
+          }
+
+          profile.ProfileProjects.Add(new ProfileProject
+          {
             ProfileId = profile.Id,
-            ProjectTitle = dp.Title,
-            Description = dp.Description,
-            TechologiesUsed = dp.TechologiesUsed,
-            Links = dp.Links,
-            RepositoryUrl = dp.RepositoryUrl
+            ProjectId = project.Id,
+            SortOrder = sortOrder++
           });
         }
       }
@@ -164,36 +289,71 @@ public class ProfileService(IProfileRepository profileRepository) : IProfileServ
     // --- Update Educations ---
     if (dto.Educations != null)
     {
-      var educationsToRemove = profile.Educations.Where(e => !dto.Educations.Any(de => de.Id == e.Id)).ToList();
-      foreach (var e in educationsToRemove)
+      var linksToRemove = profile.ProfileEducations
+          .Where(pe => !dto.Educations.Any(de => de.Id == pe.EducationId))
+          .ToList();
+      foreach (var link in linksToRemove)
       {
-        profile.Educations.Remove(e);
+        profile.ProfileEducations.Remove(link);
       }
 
+      int sortOrder = 0;
       foreach (var de in dto.Educations)
       {
-        var existing = profile.Educations.FirstOrDefault(e => e.Id == de.Id);
-        if (existing != null)
+        var existingLink = profile.ProfileEducations.FirstOrDefault(pe => pe.EducationId == de.Id);
+        if (existingLink != null)
         {
-          existing.SchoolName = de.SchoolName;
-          existing.Degree = de.Degree;
-          existing.FieldOfStudy = de.FieldOfStudy;
-          existing.StartDate = de.StartDate;
-          existing.EndDate = de.EndDate;
-          existing.GPA = de.GPA;
+          existingLink.SortOrder = sortOrder++;
+          
+          if (existingLink.Education != null)
+          {
+            existingLink.Education.SchoolName = de.SchoolName;
+            existingLink.Education.Degree = de.Degree;
+            existingLink.Education.FieldOfStudy = de.FieldOfStudy;
+            existingLink.Education.StartDate = de.StartDate;
+            existingLink.Education.EndDate = de.EndDate;
+            existingLink.Education.GPA = de.GPA;
+          }
         }
         else
         {
-          profile.Educations.Add(new Education
+          Education? education = null;
+          if (de.Id != Guid.Empty)
           {
-            Id = de.Id == Guid.Empty ? Guid.NewGuid() : de.Id,
+            education = await _educationRepository.GetByIdAsync(de.Id);
+          }
+
+          if (education == null)
+          {
+            education = new Education
+            {
+              Id = de.Id == Guid.Empty ? Guid.NewGuid() : de.Id,
+              UserId = profile.UserId,
+              SchoolName = de.SchoolName,
+              Degree = de.Degree,
+              FieldOfStudy = de.FieldOfStudy,
+              StartDate = de.StartDate,
+              EndDate = de.EndDate,
+              GPA = de.GPA
+            };
+            await _educationRepository.AddAsync(education);
+          }
+          else
+          {
+            education.SchoolName = de.SchoolName;
+            education.Degree = de.Degree;
+            education.FieldOfStudy = de.FieldOfStudy;
+            education.StartDate = de.StartDate;
+            education.EndDate = de.EndDate;
+            education.GPA = de.GPA;
+            _educationRepository.Update(education);
+          }
+
+          profile.ProfileEducations.Add(new ProfileEducation
+          {
             ProfileId = profile.Id,
-            SchoolName = de.SchoolName,
-            Degree = de.Degree,
-            FieldOfStudy = de.FieldOfStudy,
-            StartDate = de.StartDate,
-            EndDate = de.EndDate,
-            GPA = de.GPA
+            EducationId = education.Id,
+            SortOrder = sortOrder++
           });
         }
       }
@@ -202,38 +362,74 @@ public class ProfileService(IProfileRepository profileRepository) : IProfileServ
     // --- Update Experiences ---
     if (dto.Experiences != null)
     {
-      var experiencesToRemove = profile.Experiences.Where(e => !dto.Experiences.Any(de => de.Id == e.Id)).ToList();
-      foreach (var e in experiencesToRemove)
+      var linksToRemove = profile.ProfileExperiences
+          .Where(pe => !dto.Experiences.Any(de => de.Id == pe.ExperienceId))
+          .ToList();
+      foreach (var link in linksToRemove)
       {
-        profile.Experiences.Remove(e);
+        profile.ProfileExperiences.Remove(link);
       }
 
+      int sortOrder = 0;
       foreach (var de in dto.Experiences)
       {
-        var existing = profile.Experiences.FirstOrDefault(e => e.Id == de.Id);
-        if (existing != null)
+        var existingLink = profile.ProfileExperiences.FirstOrDefault(pe => pe.ExperienceId == de.Id);
+        if (existingLink != null)
         {
-          existing.CompanyName = de.CompanyName;
-          existing.Role = de.Role;
-          existing.StartDate = de.StartDate;
-          existing.EndDate = de.EndDate;
-          existing.Description = de.Description;
-          existing.LogoUrl = de.LogoUrl;
-          existing.Location = de.Location;
+          existingLink.SortOrder = sortOrder++;
+          
+          if (existingLink.Experience != null)
+          {
+            existingLink.Experience.CompanyName = de.CompanyName;
+            existingLink.Experience.Role = de.Role;
+            existingLink.Experience.StartDate = de.StartDate;
+            existingLink.Experience.EndDate = de.EndDate;
+            existingLink.Experience.Description = de.Description;
+            existingLink.Experience.LogoUrl = de.LogoUrl;
+            existingLink.Experience.Location = de.Location;
+          }
         }
         else
         {
-          profile.Experiences.Add(new Experience
+          Experience? experience = null;
+          if (de.Id != Guid.Empty)
           {
-            Id = de.Id == Guid.Empty ? Guid.NewGuid() : de.Id,
+            experience = await _experienceRepository.GetByIdAsync(de.Id);
+          }
+
+          if (experience == null)
+          {
+            experience = new Experience
+            {
+              Id = de.Id == Guid.Empty ? Guid.NewGuid() : de.Id,
+              UserId = profile.UserId,
+              CompanyName = de.CompanyName,
+              Role = de.Role,
+              StartDate = de.StartDate,
+              EndDate = de.EndDate,
+              Description = de.Description,
+              LogoUrl = de.LogoUrl,
+              Location = de.Location
+            };
+            await _experienceRepository.AddAsync(experience);
+          }
+          else
+          {
+            experience.CompanyName = de.CompanyName;
+            experience.Role = de.Role;
+            experience.StartDate = de.StartDate;
+            experience.EndDate = de.EndDate;
+            experience.Description = de.Description;
+            experience.LogoUrl = de.LogoUrl;
+            experience.Location = de.Location;
+            _experienceRepository.Update(experience);
+          }
+
+          profile.ProfileExperiences.Add(new ProfileExperience
+          {
             ProfileId = profile.Id,
-            CompanyName = de.CompanyName,
-            Role = de.Role,
-            StartDate = de.StartDate,
-            EndDate = de.EndDate,
-            Description = de.Description,
-            LogoUrl = de.LogoUrl,
-            Location = de.Location
+            ExperienceId = experience.Id,
+            SortOrder = sortOrder++
           });
         }
       }
@@ -245,10 +441,10 @@ public class ProfileService(IProfileRepository profileRepository) : IProfileServ
     return MapToDto(profile);
   }
 
-  public async Task<bool> DeleteProfileAsync(Guid id)
+  public async Task<bool> DeleteProfileAsync(string userId, Guid id)
   {
     var profile = await _profileRepository.GetByIdAsync(id);
-    if (profile == null) return false;
+    if (profile == null || profile.UserId != userId) return false;
 
     _profileRepository.Delete(profile);
     await _profileRepository.SaveChangesAsync();
@@ -272,38 +468,44 @@ public class ProfileService(IProfileRepository profileRepository) : IProfileServ
     PhotoUrl = p.PhotoUrl,
     ShowPhoto = p.ShowPhoto,
     CreatedAt = p.CreatedAt,
-    Projects = p.Projects?.Select(pr => new ProjectDto
-    {
-      Id = pr.Id,
-      ProfileId = pr.ProfileId,
-      Title = pr.ProjectTitle,
-      Description = pr.Description,
-      TechologiesUsed = pr.TechologiesUsed,
-      Links = pr.Links,
-      RepositoryUrl = pr.RepositoryUrl
-    }).ToList() ?? [],
-    Educations = p.Educations?.Select(ed => new EducationDto
-    {
-      Id = ed.Id,
-      ProfileId = ed.ProfileId,
-      SchoolName = ed.SchoolName,
-      Degree = ed.Degree,
-      FieldOfStudy = ed.FieldOfStudy,
-      StartDate = ed.StartDate,
-      EndDate = ed.EndDate,
-      GPA = ed.GPA
-    }).ToList() ?? [],
-    Experiences = p.Experiences?.Select(ex => new ExperienceDto
-    {
-      Id = ex.Id,
-      ProfileId = ex.ProfileId,
-      CompanyName = ex.CompanyName,
-      Role = ex.Role,
-      StartDate = ex.StartDate,
-      EndDate = ex.EndDate,
-      Description = ex.Description,
-      LogoUrl = ex.LogoUrl,
-      Location = ex.Location
-    }).ToList() ?? []
+    Projects = p.ProfileProjects?
+      .OrderBy(pp => pp.SortOrder)
+      .Select(pp => new ProjectDto
+      {
+        Id = pp.ProjectId,
+        ProfileId = pp.ProfileId,
+        Title = pp.Project?.ProjectTitle ?? string.Empty,
+        Description = pp.Project?.Description ?? string.Empty,
+        TechologiesUsed = pp.Project?.TechologiesUsed,
+        Links = pp.Project?.Links,
+        RepositoryUrl = pp.Project?.RepositoryUrl
+      }).ToList() ?? [],
+    Educations = p.ProfileEducations?
+      .OrderBy(pe => pe.SortOrder)
+      .Select(pe => new EducationDto
+      {
+        Id = pe.EducationId,
+        ProfileId = pe.ProfileId,
+        SchoolName = pe.Education?.SchoolName ?? string.Empty,
+        Degree = pe.Education?.Degree ?? string.Empty,
+        FieldOfStudy = pe.Education?.FieldOfStudy ?? string.Empty,
+        StartDate = pe.Education?.StartDate ?? DateTime.MinValue,
+        EndDate = pe.Education?.EndDate ?? DateTime.MinValue,
+        GPA = pe.Education?.GPA
+      }).ToList() ?? [],
+    Experiences = p.ProfileExperiences?
+      .OrderBy(pe => pe.SortOrder)
+      .Select(pe => new ExperienceDto
+      {
+        Id = pe.ExperienceId,
+        ProfileId = pe.ProfileId,
+        CompanyName = pe.Experience?.CompanyName ?? string.Empty,
+        Role = pe.Experience?.Role ?? string.Empty,
+        StartDate = pe.Experience?.StartDate ?? DateTime.MinValue,
+        EndDate = pe.Experience?.EndDate ?? DateTime.MinValue,
+        Description = pe.Experience?.Description ?? string.Empty,
+        LogoUrl = pe.Experience?.LogoUrl,
+        Location = pe.Experience?.Location
+      }).ToList() ?? []
   };
 }

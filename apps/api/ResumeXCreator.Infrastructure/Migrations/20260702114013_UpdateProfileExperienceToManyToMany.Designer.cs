@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ResumeXCreator.Infrastructure.Data;
@@ -12,9 +13,11 @@ using ResumeXCreator.Infrastructure.Data;
 namespace ResumeXCreator.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260702114013_UpdateProfileExperienceToManyToMany")]
+    partial class UpdateProfileExperienceToManyToMany
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -43,6 +46,9 @@ namespace ResumeXCreator.Infrastructure.Migrations
                     b.Property<string>("GPA")
                         .HasColumnType("text");
 
+                    b.Property<Guid>("ProfileId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("SchoolName")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -51,12 +57,9 @@ namespace ResumeXCreator.Infrastructure.Migrations
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("UserId")
-                        .HasColumnType("text");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("ProfileId");
 
                     b.ToTable("Educations");
                 });
@@ -173,24 +176,6 @@ namespace ResumeXCreator.Infrastructure.Migrations
                     b.ToTable("Profiles");
                 });
 
-            modelBuilder.Entity("ResumeXCreator.Domain.Entities.ProfileEducation", b =>
-                {
-                    b.Property<Guid>("ProfileId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("EducationId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("SortOrder")
-                        .HasColumnType("integer");
-
-                    b.HasKey("ProfileId", "EducationId");
-
-                    b.HasIndex("EducationId");
-
-                    b.ToTable("ProfileEducations");
-                });
-
             modelBuilder.Entity("ResumeXCreator.Domain.Entities.ProfileExperience", b =>
                 {
                     b.Property<Guid>("ProfileId")
@@ -209,24 +194,6 @@ namespace ResumeXCreator.Infrastructure.Migrations
                     b.ToTable("ProfileExperiences");
                 });
 
-            modelBuilder.Entity("ResumeXCreator.Domain.Entities.ProfileProject", b =>
-                {
-                    b.Property<Guid>("ProfileId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("ProjectId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("SortOrder")
-                        .HasColumnType("integer");
-
-                    b.HasKey("ProfileId", "ProjectId");
-
-                    b.HasIndex("ProjectId");
-
-                    b.ToTable("ProfileProjects");
-                });
-
             modelBuilder.Entity("ResumeXCreator.Domain.Entities.Project", b =>
                 {
                     b.Property<Guid>("Id")
@@ -240,6 +207,9 @@ namespace ResumeXCreator.Infrastructure.Migrations
                     b.Property<string>("Links")
                         .HasColumnType("text");
 
+                    b.Property<Guid>("ProfileId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("ProjectTitle")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -251,12 +221,9 @@ namespace ResumeXCreator.Infrastructure.Migrations
                     b.Property<string>("TechologiesUsed")
                         .HasColumnType("text");
 
-                    b.Property<string>("UserId")
-                        .HasColumnType("text");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("ProfileId");
 
                     b.ToTable("Projects");
                 });
@@ -363,12 +330,13 @@ namespace ResumeXCreator.Infrastructure.Migrations
 
             modelBuilder.Entity("ResumeXCreator.Domain.Entities.Education", b =>
                 {
-                    b.HasOne("ResumeXCreator.Domain.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                    b.HasOne("ResumeXCreator.Domain.Entities.Profile", "Profile")
+                        .WithMany("Educations")
+                        .HasForeignKey("ProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("Profile");
                 });
 
             modelBuilder.Entity("ResumeXCreator.Domain.Entities.Experience", b =>
@@ -391,25 +359,6 @@ namespace ResumeXCreator.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("ResumeXCreator.Domain.Entities.ProfileEducation", b =>
-                {
-                    b.HasOne("ResumeXCreator.Domain.Entities.Education", "Education")
-                        .WithMany("ProfileEducations")
-                        .HasForeignKey("EducationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ResumeXCreator.Domain.Entities.Profile", "Profile")
-                        .WithMany("ProfileEducations")
-                        .HasForeignKey("ProfileId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Education");
-
-                    b.Navigation("Profile");
-                });
-
             modelBuilder.Entity("ResumeXCreator.Domain.Entities.ProfileExperience", b =>
                 {
                     b.HasOne("ResumeXCreator.Domain.Entities.Experience", "Experience")
@@ -429,33 +378,15 @@ namespace ResumeXCreator.Infrastructure.Migrations
                     b.Navigation("Profile");
                 });
 
-            modelBuilder.Entity("ResumeXCreator.Domain.Entities.ProfileProject", b =>
+            modelBuilder.Entity("ResumeXCreator.Domain.Entities.Project", b =>
                 {
                     b.HasOne("ResumeXCreator.Domain.Entities.Profile", "Profile")
-                        .WithMany("ProfileProjects")
+                        .WithMany("Projects")
                         .HasForeignKey("ProfileId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ResumeXCreator.Domain.Entities.Project", "Project")
-                        .WithMany("ProfileProjects")
-                        .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Profile");
-
-                    b.Navigation("Project");
-                });
-
-            modelBuilder.Entity("ResumeXCreator.Domain.Entities.Project", b =>
-                {
-                    b.HasOne("ResumeXCreator.Domain.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ResumeXCreator.Domain.Entities.Resume", b =>
@@ -479,11 +410,6 @@ namespace ResumeXCreator.Infrastructure.Migrations
                     b.Navigation("Resume");
                 });
 
-            modelBuilder.Entity("ResumeXCreator.Domain.Entities.Education", b =>
-                {
-                    b.Navigation("ProfileEducations");
-                });
-
             modelBuilder.Entity("ResumeXCreator.Domain.Entities.Experience", b =>
                 {
                     b.Navigation("ProfileExperiences");
@@ -491,18 +417,13 @@ namespace ResumeXCreator.Infrastructure.Migrations
 
             modelBuilder.Entity("ResumeXCreator.Domain.Entities.Profile", b =>
                 {
-                    b.Navigation("ProfileEducations");
+                    b.Navigation("Educations");
 
                     b.Navigation("ProfileExperiences");
 
-                    b.Navigation("ProfileProjects");
+                    b.Navigation("Projects");
 
                     b.Navigation("Resumes");
-                });
-
-            modelBuilder.Entity("ResumeXCreator.Domain.Entities.Project", b =>
-                {
-                    b.Navigation("ProfileProjects");
                 });
 
             modelBuilder.Entity("ResumeXCreator.Domain.Entities.Resume", b =>

@@ -24,7 +24,7 @@ public class Profile
   // Navigation Properties
   public User? User { get; set; }
   public ICollection<Resume> Resumes { get; set; } = [];
-  public ICollection<Project> Projects { get; set; } = [];
-  public ICollection<Education> Educations { get; set; } = [];
-  public ICollection<Experience> Experiences { get; set; } = [];
+  public ICollection<ProfileProject> ProfileProjects { get; set; } = [];
+  public ICollection<ProfileEducation> ProfileEducations { get; set; } = [];
+  public ICollection<ProfileExperience> ProfileExperiences { get; set; } = [];
 }

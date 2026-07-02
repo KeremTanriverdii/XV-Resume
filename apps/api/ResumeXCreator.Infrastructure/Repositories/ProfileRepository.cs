@@ -22,9 +22,12 @@ public class ProfileRepository(AppDbContext context) : GenericRepository<Profile
   public Task<Profile?> GetWithDetailsByIdAsync(Guid id)
   {
     return _context.Profiles
-        .Include(p => p.Projects)
-        .Include(p => p.Educations)
-        .Include(p => p.Experiences)
+        .Include(p => p.ProfileProjects)
+            .ThenInclude(pp => pp.Project)
+        .Include(p => p.ProfileEducations)
+            .ThenInclude(pe => pe.Education)
+        .Include(p => p.ProfileExperiences)
+            .ThenInclude(pe => pe.Experience)
         .FirstOrDefaultAsync(p => p.Id == id);
   }
 
@@ -32,9 +35,12 @@ public class ProfileRepository(AppDbContext context) : GenericRepository<Profile
   {
     return await _context.Profiles
         .Where(p => p.UserId == userId)
-        .Include(p => p.Projects)
-        .Include(p => p.Educations)
-        .Include(p => p.Experiences)
+        .Include(p => p.ProfileProjects)
+            .ThenInclude(pp => pp.Project)
+        .Include(p => p.ProfileEducations)
+            .ThenInclude(pe => pe.Education)
+        .Include(p => p.ProfileExperiences)
+            .ThenInclude(pe => pe.Experience)
         .ToListAsync();
   }
 }
