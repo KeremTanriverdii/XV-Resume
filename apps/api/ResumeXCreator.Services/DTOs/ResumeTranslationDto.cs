@@ -2,16 +2,16 @@ using System;
 
 namespace ResumeXCreator.Services.DTOs;
 
-public class ResumeTranslationDto
+public record ResumeTranslationDto
 {
-  public int Id { get; set; }
-  public Guid ResumeId { get; set; }
-  public string LanguageCode { get; set; } = string.Empty;
-  public string Title { get; set; } = string.Empty;
-  public string Summary { get; set; } = string.Empty;
-  public string ExperienceHtml { get; set; } = string.Empty;
-  public string EducationHtml { get; set; } = string.Empty;
-  public string SkillsHtml { get; set; } = string.Empty;
-  public int Version { get; set; }
-  public DateTime CreatedAt { get; set; }
+  public int Id { get; init; }
+  public Guid ResumeId { get; init; }
+  public string LanguageCode { get; init; } = string.Empty;
+  public string Title { get; init; } = string.Empty;
+  public string Summary { get; init; } = string.Empty;
+  public string ExperienceHtml { get; init; } = string.Empty;
+  public string EducationHtml { get; init; } = string.Empty;
+  public string SkillsHtml { get; init; } = string.Empty;
+  public int Version { get; init; }
+  public DateTime CreatedAt { get; init; }
 }

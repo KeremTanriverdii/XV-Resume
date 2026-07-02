@@ -10,19 +10,19 @@ namespace ResumeXCreator.Services.DTOs;
 ///   B) NewProfile → Create and save a new profile
 ///   C) ManualProfileData → Enter manual information once (not saved)
 /// </summary>
-public class CreateResumeDto
+public record CreateResumeDto
 {
   // ── Job (required) ──
-  public string ExternalJobLink { get; set; } = string.Empty;
+  public string ExternalJobLink { get; init; } = string.Empty;
 
   // ── Profile Source (3 options) ──
-  public Guid? ProfileId { get; set; }                          // A: Existing profile
-  public CreateProfileDto? NewProfile { get; set; }              // B: Create new profile
-  public ManualProfileDataDto? ManualProfileData { get; set; }   // C: One-time
+  public Guid? ProfileId { get; init; }                          // A: Existing profile
+  public CreateProfileDto? NewProfile { get; init; }              // B: Create new profile
+  public ManualProfileDataDto? ManualProfileData { get; init; }   // C: One-time
 
   // ── Options ──
-  public List<string> SelectedLanguagesForGeneration { get; set; } = [];
+  public List<string> SelectedLanguagesForGeneration { get; init; } = [];
 
   // ── Version/Session Management ──
-  public Guid? ResumeId { get; set; }                           // To add a new version to an existing CV session/chat
+  public Guid? ResumeId { get; init; }                           // To add a new version to an existing CV session/chat
 }

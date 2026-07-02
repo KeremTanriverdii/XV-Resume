@@ -143,24 +143,24 @@ public class ResumeService(IResumeRepository resumeRepository, IProfileRepositor
     else if (dto.NewProfile != null)
     {
       // Scenario B: Create New Profile 
-      dto.NewProfile.UserId = authenticatedUserId;
+      var newProfile = dto.NewProfile with { UserId = authenticatedUserId };
 
       profile = new Profile
       {
         Id = Guid.NewGuid(),
         UserId = authenticatedUserId,
-        ProfileName = dto.NewProfile.ProfileName,
-        FullName = dto.NewProfile.FullName,
-        Title = dto.NewProfile.Title,
-        Summary = dto.NewProfile.Summary,
-        Email = dto.NewProfile.Email,
-        Phone = dto.NewProfile.Phone,
-        ExperienceJson = dto.NewProfile.ExperienceJson,
-        EducationJson = dto.NewProfile.EducationJson,
-        Skills = dto.NewProfile.Skills,
-        SocialLinks = dto.NewProfile.SocialLinks,
-        PhotoUrl = dto.NewProfile.PhotoUrl,
-        ShowPhoto = dto.NewProfile.ShowPhoto,
+        ProfileName = newProfile.ProfileName,
+        FullName = newProfile.FullName,
+        Title = newProfile.Title,
+        Summary = newProfile.Summary,
+        Email = newProfile.Email,
+        Phone = newProfile.Phone,
+        ExperienceJson = newProfile.ExperienceJson,
+        EducationJson = newProfile.EducationJson,
+        Skills = newProfile.Skills,
+        SocialLinks = newProfile.SocialLinks,
+        PhotoUrl = newProfile.PhotoUrl,
+        ShowPhoto = newProfile.ShowPhoto,
         CreatedAt = DateTime.UtcNow
       };
 

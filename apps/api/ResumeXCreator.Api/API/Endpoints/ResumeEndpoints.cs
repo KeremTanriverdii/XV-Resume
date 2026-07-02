@@ -8,7 +8,7 @@ public static class ResumeEndpoints
 {
   public static void MapResumeEndpoints(this IEndpointRouteBuilder app)
   {
-    var group = app.MapGroup("/api/v1/resumes");
+    var group = app.MapGroup("/api/v1/resumes").RequireAuthorization();
 
     // GET /api/v1/resumes
     group.MapGet("/", async (IResumeService resumeService) =>
@@ -16,8 +16,7 @@ public static class ResumeEndpoints
       var resumes = await resumeService.GetAllResumesAsync();
       return Results.Ok(resumes);
     })
-    .WithName("GetAllResumes")
-    .RequireAuthorization();
+    .WithName("GetAllResumes");
 
     // GET /api/v1/resumes/{id}
     group.MapGet("/{id:guid}", async (Guid id, IResumeService resumeService) =>
@@ -25,8 +24,7 @@ public static class ResumeEndpoints
       var resume = await resumeService.GetResumeByIdAsync(id);
       return resume is not null ? Results.Ok(resume) : Results.NotFound();
     })
-    .WithName("GetResumeById")
-    .RequireAuthorization();
+    .WithName("GetResumeById");
 
     // POST /api/v1/resumes/generate
     group.MapPost("/generate", async (CreateResumeDto dto, IResumeService resumeService, HttpContext ctx) =>
@@ -52,7 +50,6 @@ public static class ResumeEndpoints
         return Results.Json(new { error = ex.Message }, statusCode: 403);
       }
     })
-    .WithName("GenerateResume")
-    .RequireAuthorization();
+    .WithName("GenerateResume");
   }
 }

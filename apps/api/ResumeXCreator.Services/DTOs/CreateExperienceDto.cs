@@ -1,10 +1,7 @@
-using System;
-
 namespace ResumeXCreator.Services.DTOs;
 
-public record ExperienceDto
+public record CreateExperienceDto
 {
-  public Guid Id { get; init; }
   public Guid? ProfileId { get; init; }
   public string CompanyName { get; init; } = string.Empty;
   public string Role { get; init; } = string.Empty;

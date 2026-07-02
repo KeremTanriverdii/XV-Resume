@@ -2,23 +2,23 @@ using System.Collections.Generic;
 
 namespace ResumeXCreator.Services.DTOs;
 
-public class CreateProfileDto
+public record CreateProfileDto
 {
-  public string? UserId { get; set; }
-  public string ProfileName { get; set; } = string.Empty;
-  public string FullName { get; set; } = string.Empty;
-  public string Title { get; set; } = string.Empty;
-  public string Summary { get; set; } = string.Empty;
-  public string Email { get; set; } = string.Empty;
-  public string Phone { get; set; } = string.Empty;
-  public string ExperienceJson { get; set; } = "[]";
-  public string EducationJson { get; set; } = "[]";
-  public List<string> Skills { get; set; } = [];
-  public List<string> SocialLinks { get; set; } = [];
-  public string? PhotoUrl { get; set; }
-  public bool ShowPhoto { get; set; }
+  public string? UserId { get; init; }
+  public string ProfileName { get; init; } = string.Empty;
+  public string FullName { get; init; } = string.Empty;
+  public string Title { get; init; } = string.Empty;
+  public string Summary { get; init; } = string.Empty;
+  public string Email { get; init; } = string.Empty;
+  public string Phone { get; init; } = string.Empty;
+  public string ExperienceJson { get; init; } = "[]";
+  public string EducationJson { get; init; } = "[]";
+  public List<string> Skills { get; init; } = [];
+  public List<string> SocialLinks { get; init; } = [];
+  public string? PhotoUrl { get; init; }
+  public bool ShowPhoto { get; init; }
 
-  public List<ProjectDto>? Projects { get; set; }
-  public List<EducationDto>? Educations { get; set; }
-  public List<ExperienceDto>? Experiences { get; set; }
+  public List<ProjectDto>? Projects { get; init; }
+  public List<EducationDto>? Educations { get; init; }
+  public List<ExperienceDto>? Experiences { get; init; }
 }

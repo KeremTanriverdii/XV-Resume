@@ -13,6 +13,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
   public DbSet<Project> Projects => Set<Project>();
   public DbSet<Education> Educations => Set<Education>();
   public DbSet<Experience> Experiences => Set<Experience>();
+  public DbSet<ProfileExperience> ProfileExperiences => Set<ProfileExperience>();
+  public DbSet<ProfileProject> ProfileProjects => Set<ProfileProject>();
+  public DbSet<ProfileEducation> ProfileEducations => Set<ProfileEducation>();
 
   protected override void OnModelCreating(ModelBuilder modelBuilder)
   {
@@ -53,9 +56,25 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     {
       entity.HasKey(e => e.Id);
       entity.Property(e => e.ProjectTitle).IsRequired().HasMaxLength(200);
-      entity.HasOne(d => d.Profile)
-            .WithMany(p => p.Projects)
-            .HasForeignKey(d => d.ProfileId)
+      entity.HasOne(e => e.User)
+            .WithMany()
+            .HasForeignKey(e => e.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+    });
+
+    // ── ProfileProject ──
+    modelBuilder.Entity<ProfileProject>(entity =>
+    {
+      entity.HasKey(pp => new { pp.ProfileId, pp.ProjectId });
+
+      entity.HasOne(pp => pp.Profile)
+            .WithMany(p => p.ProfileProjects)
+            .HasForeignKey(pp => pp.ProfileId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+      entity.HasOne(pp => pp.Project)
+            .WithMany(p => p.ProfileProjects)
+            .HasForeignKey(pp => pp.ProjectId)
             .OnDelete(DeleteBehavior.Cascade);
     });
 
@@ -64,9 +83,25 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     {
       entity.HasKey(e => e.Id);
       entity.Property(e => e.SchoolName).IsRequired().HasMaxLength(200);
-      entity.HasOne(d => d.Profile)
-            .WithMany(p => p.Educations)
-            .HasForeignKey(d => d.ProfileId)
+      entity.HasOne(e => e.User)
+            .WithMany()
+            .HasForeignKey(e => e.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+    });
+
+    // ── ProfileEducation ──
+    modelBuilder.Entity<ProfileEducation>(entity =>
+    {
+      entity.HasKey(pe => new { pe.ProfileId, pe.EducationId });
+
+      entity.HasOne(pe => pe.Profile)
+            .WithMany(p => p.ProfileEducations)
+            .HasForeignKey(pe => pe.ProfileId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+      entity.HasOne(pe => pe.Education)
+            .WithMany(e => e.ProfileEducations)
+            .HasForeignKey(pe => pe.EducationId)
             .OnDelete(DeleteBehavior.Cascade);
     });
 
@@ -75,9 +110,25 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     {
       entity.HasKey(e => e.Id);
       entity.Property(e => e.CompanyName).IsRequired().HasMaxLength(200);
-      entity.HasOne(d => d.Profile)
-            .WithMany(p => p.Experiences)
-            .HasForeignKey(d => d.ProfileId)
+      entity.HasOne(e => e.User)
+            .WithMany()
+            .HasForeignKey(e => e.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+    });
+
+    // ── ProfileExperience ──
+    modelBuilder.Entity<ProfileExperience>(entity =>
+    {
+      entity.HasKey(pe => new { pe.ProfileId, pe.ExperienceId });
+
+      entity.HasOne(pe => pe.Profile)
+            .WithMany(p => p.ProfileExperiences)
+            .HasForeignKey(pe => pe.ProfileId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+      entity.HasOne(pe => pe.Experience)
+            .WithMany(e => e.ProfileExperiences)
+            .HasForeignKey(pe => pe.ExperienceId)
             .OnDelete(DeleteBehavior.Cascade);
     });
 

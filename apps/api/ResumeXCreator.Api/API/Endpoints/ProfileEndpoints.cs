@@ -8,7 +8,7 @@ public static class ProfileEndpoints
 {
   public static void MapProfileEndpoints(this IEndpointRouteBuilder app)
   {
-    var group = app.MapGroup("/api/v1/profiles");
+    var group = app.MapGroup("/api/v1/profiles").RequireAuthorization();
 
     // GET /api/v1/profiles?userId=xxx
     group.MapGet("/", async (HttpContext ctx, IProfileService profileService) =>
@@ -19,13 +19,15 @@ public static class ProfileEndpoints
       var profiles = await profileService.GetProfilesByUserIdAsync(userId);
       return Results.Ok(profiles);
     })
-    .WithName("GetProfilesByUserId")
-    .RequireAuthorization();
+    .WithName("GetProfilesByUserId");
 
     // GET /api/v1/profiles/{id}
-    group.MapGet("/{id:guid}", async (Guid id, IProfileService profileService) =>
+    group.MapGet("/{id:guid}", async (Guid id, HttpContext ctx, IProfileService profileService) =>
     {
-      var profile = await profileService.GetProfileByIdAsync(id);
+      var userId = ctx.User.FindFirstValue(ClaimTypes.NameIdentifier);
+      if (userId == null) return Results.Unauthorized();
+
+      var profile = await profileService.GetProfileByIdAsync(userId, id);
       return profile is not null ? Results.Ok(profile) : Results.NotFound();
     })
     .WithName("GetProfileById");
@@ -35,26 +37,31 @@ public static class ProfileEndpoints
     {
       var userId = ctx.User.FindFirstValue(ClaimTypes.NameIdentifier);
       if (userId == null) return Results.Unauthorized();
-      dto.UserId = userId;
+      var dtoWithUser = dto with { UserId = userId };
 
-      var result = await profileService.CreateProfileAsync(dto);
+      var result = await profileService.CreateProfileAsync(dtoWithUser);
       return Results.Created($"/api/v1/profiles/{result.Id}", result);
     })
-    .WithName("CreateProfile")
-    .RequireAuthorization();
+    .WithName("CreateProfile");
 
     // PUT /api/v1/profiles/{id}
-    group.MapPut("/{id:guid}", async (Guid id, CreateProfileDto dto, IProfileService profileService) =>
+    group.MapPut("/{id:guid}", async (Guid id, HttpContext ctx, CreateProfileDto dto, IProfileService profileService) =>
     {
-      var result = await profileService.UpdateProfileAsync(id, dto);
+      var userId = ctx.User.FindFirstValue(ClaimTypes.NameIdentifier);
+      if (userId == null) return Results.Unauthorized();
+
+      var result = await profileService.UpdateProfileAsync(userId, id, dto);
       return result is not null ? Results.Ok(result) : Results.NotFound();
     })
     .WithName("UpdateProfile");
 
     // DELETE /api/v1/profiles/{id}
-    group.MapDelete("/{id:guid}", async (Guid id, IProfileService profileService) =>
+    group.MapDelete("/{id:guid}", async (Guid id, HttpContext ctx, IProfileService profileService) =>
     {
-      var deleted = await profileService.DeleteProfileAsync(id);
+      var userId = ctx.User.FindFirstValue(ClaimTypes.NameIdentifier);
+      if (userId == null) return Results.Unauthorized();
+
+      var deleted = await profileService.DeleteProfileAsync(userId, id);
       return deleted ? Results.NoContent() : Results.NotFound();
     })
     .WithName("DeleteProfile");

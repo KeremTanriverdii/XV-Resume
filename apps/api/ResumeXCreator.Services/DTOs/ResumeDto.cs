@@ -3,12 +3,12 @@ using System.Collections.Generic;
 
 namespace ResumeXCreator.Services.DTOs;
 
-public class ResumeDto
+public record ResumeDto
 {
-  public Guid Id { get; set; }
-  public Guid? ProfileId { get; set; }
-  public string ExternalJobLink { get; set; } = string.Empty;
-  public string JobDescription { get; set; } = string.Empty;
-  public DateTime CreatedAt { get; set; }
-  public List<ResumeTranslationDto> Translations { get; set; } = [];
+  public Guid Id { get; init; }
+  public Guid? ProfileId { get; init; }
+  public string ExternalJobLink { get; init; } = string.Empty;
+  public string JobDescription { get; init; } = string.Empty;
+  public DateTime CreatedAt { get; init; }
+  public List<ResumeTranslationDto> Translations { get; init; } = [];
 }
