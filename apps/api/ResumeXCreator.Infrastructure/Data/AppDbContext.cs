@@ -21,6 +21,30 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
   {
     base.OnModelCreating(modelBuilder);
 
+    // ── DateTime Converter ──
+    var dateTimeConverter = new Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter<DateTime, DateTime>(
+      v => v.Kind == DateTimeKind.Utc ? v : DateTime.SpecifyKind(v, DateTimeKind.Utc),
+
+v => v);
+
+    var nullableDateTimeConverter = new Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter<DateTime?, DateTime?>(
+    v => !v.HasValue ? null : (v.Value.Kind == DateTimeKind.Utc ? v.Value : DateTime.SpecifyKind(v.Value, DateTimeKind.Utc)),
+    v => v);
+    foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+    {
+      foreach (var property in entityType.GetProperties())
+      {
+        if (property.ClrType == typeof(DateTime))
+        {
+          property.SetValueConverter(dateTimeConverter);
+        }
+        else if (property.ClrType == typeof(DateTime?))
+        {
+          property.SetValueConverter(nullableDateTimeConverter);
+        }
+      }
+    }
+
     // ── User ──
     modelBuilder.Entity<User>(entity =>
     {

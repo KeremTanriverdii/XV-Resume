@@ -215,6 +215,7 @@ public class ProfileService(
     profile.SocialLinks = dto.SocialLinks;
     profile.PhotoUrl = dto.PhotoUrl;
     profile.ShowPhoto = dto.ShowPhoto;
+    profile.Location = dto.Location;
 
     // --- Update Projects ---
     if (dto.Projects != null)
@@ -468,6 +469,7 @@ public class ProfileService(
     PhotoUrl = p.PhotoUrl,
     ShowPhoto = p.ShowPhoto,
     CreatedAt = p.CreatedAt,
+    Location = p.Location,
     Projects = p.ProfileProjects?
       .OrderBy(pp => pp.SortOrder)
       .Select(pp => new ProjectDto

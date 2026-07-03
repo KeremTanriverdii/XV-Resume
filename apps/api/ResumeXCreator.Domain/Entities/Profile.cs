@@ -20,6 +20,7 @@ public class Profile
   public string? PhotoUrl { get; set; }
   public bool ShowPhoto { get; set; }
   public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+  public string Location { get; set; } = string.Empty;
 
   // Navigation Properties
   public User? User { get; set; }

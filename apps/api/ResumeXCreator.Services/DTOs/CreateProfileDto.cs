@@ -17,6 +17,7 @@ public record CreateProfileDto
   public List<string> SocialLinks { get; init; } = [];
   public string? PhotoUrl { get; init; }
   public bool ShowPhoto { get; init; }
+  public string Location { get; init; } = string.Empty;
 
   public List<ProjectDto>? Projects { get; init; }
   public List<EducationDto>? Educations { get; init; }

@@ -11,7 +11,7 @@ export default async function ProfilesPage() {
     if (userError || !user) {
         redirect("/login")
     }
-
+    const metaData = user.user_metadata;
     const { data: { session } } = await supabase.auth.getSession()
     const token = session?.access_token
 
@@ -22,7 +22,7 @@ export default async function ProfilesPage() {
             </div>
             
             {/* İyimser güncelleme (optimistic update) destekli form */}
-            <ProfileCreateForm token={token} userId={user.id} />
+            <ProfileCreateForm token={token} userId={user.id} metaData={metaData} />
             
             {/* Server'dan gelen token ve userId prop olarak iletiliyor */}
                 <ProfileListClient token={token} userId={user.id} />

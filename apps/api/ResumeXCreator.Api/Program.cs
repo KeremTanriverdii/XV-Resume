@@ -6,6 +6,8 @@ using ResumeXCreator.Api.API.Endpoints;
 using ResumeXCreator.Infrastructure;
 using ResumeXCreator.Services;
 
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.

@@ -101,6 +101,7 @@ export interface Profile {
   photoUrl?: string;
   showPhoto: boolean;
   createdAt: string;
+  location?: string;
   projects?: Project[];
   educations?: Education[];
   experiences?: Experience[];
@@ -117,4 +118,5 @@ export interface CreateProfileDto {
   socialLinks?: string[];
   photoUrl?: string;
   showPhoto?: boolean;
+  location?: string;
 }
