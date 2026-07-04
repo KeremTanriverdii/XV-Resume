@@ -1,0 +1,128 @@
+{
+  "Index": {
+    "title": "ResumeXCreator"
+  },
+  "Dashboard": {
+    "title": "Meine Lebensläufe",
+    "templates": "Vorlagen",
+    "settings": "Einstellungen",
+    "emptyState": {
+      "title": "Sie haben keine Lebensläufe",
+      "description": "Sie können mit der Erstellung Ihres maßgeschneiderten Lebenslaufs beginnen, sobald Sie eine Stellenbeschreibung und Ihre grundlegenden Daten angeben.",
+      "button": "Lebenslauf erstellen"
+    }
+  },
+  "Landing": {
+    "heroTitlePrefix": "Erstellen Sie Ihren professionellen Lebenslauf mit ",
+    "heroTitleHighlight": "KI",
+    "heroTitleSuffix": "",
+    "heroSubtitle": "Heben Sie sich von der Masse ab. Unser KI-gestützter Lebenslauf-Builder passt Ihre Erfahrung perfekt an die Stellenbeschreibung an.",
+    "ctaCreate": "Jetzt Lebenslauf erstellen",
+    "ctaSecondary": "Vorlagen anzeigen",
+    "featuresTitle": "Warum ResumeXCreator wählen?",
+    "feature1Title": "KI-Anpassung",
+    "feature1Desc": "Richten Sie Ihre Fähigkeiten automatisch an der Stellenbeschreibung aus.",
+    "feature2Title": "ATS-freundlich",
+    "feature2Desc": "Stellt sicher, dass Ihr Lebenslauf Bewerber-Tracking-Systeme mit Bravour besteht.",
+    "feature3Title": "Moderne Vorlagen",
+    "feature3Desc": "Elegante, professionelle Designs, die Personalverantwortlichen ins Auge fallen."
+  },
+  "sidebar": {
+    "menu": "Menü",
+    "new-resume": "Neuer Lebenslauf",
+    "recent-resumes": "Letzte Lebensläufe",
+    "no-recent-resumes": "Keine letzten Lebensläufe.",
+    "my-resumes": "Meine Lebensläufe",
+    "profiles": "Profile",
+    "educations": "Ausbildungen",
+    "experiences": "Berufserfahrung",
+    "projects": "Projekte"
+  },
+  "common": {
+    "light": "Hell",
+    "dark": "Dunkel",
+    "system": "System"
+  },
+  "auth": {
+    "logout": "Abmelden"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "language": "Sprache",
+    "theme": "Design",
+    "themeDesc": "Wählen Sie ein Design für die App",
+    "logout": "Abmelden"
+  },
+  "educations": {
+    "title": "Bildungsverwaltung",
+    "myEducations": "Meine Ausbildungen",
+    "addEducation": "Ausbildung hinzufügen",
+    "editEducation": "Ausbildung bearbeiten",
+    "newEducation": "Neue Ausbildungsinformationen",
+    "schoolName": "Name der Schule / Universität",
+    "schoolPlaceholder": "z. B. Stanford University",
+    "degree": "Abschluss / Studienstufe",
+    "degreePlaceholder": "z. B. Bachelor, Master",
+    "fieldOfStudy": "Studienrichtung / Fachbereich",
+    "fieldPlaceholder": "z. B. Informatik",
+    "gpa": "Notendurchschnitt (GPA)",
+    "gpaPlaceholder": "z. B. 3.80",
+    "startDate": "Startdatum",
+    "endDate": "Abschluss / Enddatum",
+    "ongoing": "Laufend",
+    "noEducation": "Sie haben noch keine Ausbildungsinformationen hinzugefügt.",
+    "cancel": "Abbrechen",
+    "update": "Aktualisieren",
+    "loading": "Bildungsverlauf wird geladen...",
+    "error": "Beim Laden der Ausbildungsinformationen ist ein Fehler aufmen."
+  },
+  "experiences": {
+    "title": "Erfahrungsverwaltung",
+    "myExperiences": "Meine Berufserfahrung",
+    "addExperience": "Erfahrung hinzufügen",
+    "editExperience": "Erfahrung bearbeiten",
+    "newExperience": "Neue Erfahrungsinformationen",
+    "companyName": "Firmenname",
+    "companyPlaceholder": "z. B. Google",
+    "role": "Rolle / Titel",
+    "rolePlaceholder": "z. B. Softwareentwickler",
+    "location": "Ort",
+    "locationPlaceholder": "z. B. New York, USA (Remote)",
+    "logoUrl": "Logo-URL",
+    "logoPlaceholder": "z. B. https://example.com/logo.png",
+    "startDate": "Startdatum",
+    "endDate": "Enddatum",
+    "ongoing": "Laufend",
+    "description": "Beschreibung / Aufgaben",
+    "descPlaceholder": "Ihre Aufgaben, Erfolge und Ihr Tech-Stack in dieser Rolle...",
+    "noExperience": "Sie haben noch keine Erfahrungsinformationen hinzugefügt.",
+    "cancel": "Abbrechen",
+    "update": "Aktualisieren",
+    "loading": "Erfahrungsverlauf wird geladen...",
+    "error": "Beim Laden der Erfahrungsinformationen ist ein Fehler aufgetreten."
+  },
+  "projects": {
+    "title": "Projektverwaltung",
+    "myProjects": "Meine Projekte",
+    "addProject": "Projekt hinzufügen",
+    "editProject": "Projekt bearbeiten",
+    "newProject": "Neue Projektinformationen",
+    "projectTitle": "Projekttitel",
+    "projectTitlePlaceholder": "z. B. E-Commerce Automatisierungsplattform",
+    "projectLink": "Projekt-Link (Live-Demo)",
+    "projectLinkPlaceholder": "z. B. https://meineapp.com",
+    "repoUrl": "Repository-URL",
+    "repoPlaceholder": "z. B. https://github.com/benutzername/repo",
+    "techUsed": "Verwendete Technologien (Kommagetrennt)",
+    "techPlaceholder": "z. B. React, Node.js, PostgreSQL",
+    "description": "Projektbeschreibung",
+    "descPlaceholder": "Zweck des Projekts, technische Herausforderungen und Erfolge...",
+    "noProject": "Sie haben noch keine Projekte hinzugefügt.",
+    "cancel": "Abbrechen",
+    "update": "Aktualisieren",
+    "liveDemo": "Live-Demo",
+    "codeRepository": "Code-Repository",
+    "loading": "Projekte werden geladen...",
+    "error": "Beim Laden der Projekte ist ein Fehler aufgetreten."
+  }
+}

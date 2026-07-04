@@ -1,0 +1,128 @@
+{
+  "Index": {
+    "title": "ResumeXCreator"
+  },
+  "Dashboard": {
+    "title": "Mis Currículums",
+    "templates": "Plantillas",
+    "settings": "Configuración",
+    "emptyState": {
+      "title": "No tienes currículums",
+      "description": "Puedes empezar a crear tu currículum personalizado tan pronto como proporciones una descripción del trabajo y tus datos básicos.",
+      "button": "Crear Currículum"
+    }
+  },
+  "Landing": {
+    "heroTitlePrefix": "Crea Tu Currículum Profesional con ",
+    "heroTitleHighlight": "IA",
+    "heroTitleSuffix": "",
+    "heroSubtitle": "Destaca entre la multitud. Nuestro creador de currículums impulsado por IA adapta tu experiencia para que coincida perfectamente con la descripción del trabajo.",
+    "ctaCreate": "Crear Currículum Ahora",
+    "ctaSecondary": "Ver Plantillas",
+    "featuresTitle": "¿Por qué elegir ResumeXCreator?",
+    "feature1Title": "Adaptación con IA",
+    "feature1Desc": "Alinea automáticamente tus habilidades con la descripción del trabajo.",
+    "feature2Title": "Compatible con ATS",
+    "feature2Desc": "Asegura que tu currículum pase los Sistemas de Seguimiento de Candidatos con éxito.",
+    "feature3Title": "Plantillas Modernas",
+    "feature3Desc": "Diseños elegantes y profesionales que captan la atención de los reclutadores."
+  },
+  "sidebar": {
+    "menu": "Menú",
+    "new-resume": "Nuevo Currículum",
+    "recent-resumes": "Currículums Recientes",
+    "no-recent-resumes": "No hay currículums recientes.",
+    "my-resumes": "Mis Currículums",
+    "profiles": "Perfiles",
+    "educations": "Educación",
+    "experiences": "Experiencia",
+    "projects": "Proyectos"
+  },
+  "common": {
+    "light": "Claro",
+    "dark": "Oscuro",
+    "system": "Sistema"
+  },
+  "auth": {
+    "logout": "Cerrar sesión"
+  },
+  "settings": {
+    "title": "Configuración",
+    "language": "Idioma",
+    "theme": "Tema",
+    "themeDesc": "Elige un tema para la aplicación",
+    "logout": "Cerrar sesión"
+  },
+  "educations": {
+    "title": "Gestión de Educación",
+    "myEducations": "Mi Educación",
+    "addEducation": "Añadir Educación",
+    "editEducation": "Editar Educación",
+    "newEducation": "Nueva Información de Educación",
+    "schoolName": "Nombre de la Escuela / Universidad",
+    "schoolPlaceholder": "ej. Universidad de Stanford",
+    "degree": "Grado / Nivel de estudios",
+    "degreePlaceholder": "ej. Licenciatura, Maestría",
+    "fieldOfStudy": "Campo de Estudio / Departamento",
+    "fieldPlaceholder": "ej. Informática",
+    "gpa": "Promedio de Calificaciones (GPA)",
+    "gpaPlaceholder": "ej. 3.80",
+    "startDate": "Fecha de Inicio",
+    "endDate": "Fecha de Graduación / Fin",
+    "ongoing": "En curso",
+    "noEducation": "Aún no has añadido información de educación.",
+    "cancel": "Cancelar",
+    "update": "Actualizar",
+    "loading": "Cargando historial de educación...",
+    "error": "Ocurrió un error al cargar la información de educación."
+  },
+  "experiences": {
+    "title": "Gestión de Experiencia",
+    "myExperiences": "Mi Experiencia",
+    "addExperience": "Añadir Experiencia",
+    "editExperience": "Editar Experiencia",
+    "newExperience": "Nueva Información de Experiencia",
+    "companyName": "Nombre de la Empresa",
+    "companyPlaceholder": "ej. Google",
+    "role": "Rol / Título",
+    "rolePlaceholder": "ej. Ingeniero de Software",
+    "location": "Ubicación",
+    "locationPlaceholder": "ej. Nueva York, EE. UU. (Remoto)",
+    "logoUrl": "URL del Logo",
+    "logoPlaceholder": "ej. https://ejemplo.com/logo.png",
+    "startDate": "Fecha de Inicio",
+    "endDate": "Fecha de Fin",
+    "ongoing": "En curso",
+    "description": "Descripción / Responsabilidades",
+    "descPlaceholder": "Tus responsabilidades, logros y pila tecnológica en este rol...",
+    "noExperience": "Aún no has añadido información de experiencia.",
+    "cancel": "Cancelar",
+    "update": "Actualizar",
+    "loading": "Cargando historial de experiencia...",
+    "error": "Ocurrió un error al cargar la información de experiencia."
+  },
+  "projects": {
+    "title": "Gestión de Proyectos",
+    "myProjects": "Mis Proyectos",
+    "addProject": "Añadir Proyecto",
+    "editProject": "Editar Proyecto",
+    "newProject": "Nueva Información de Proyecto",
+    "projectTitle": "Título del Proyecto",
+    "projectTitlePlaceholder": "ej. Plataforma de Automatización de E-Commerce",
+    "projectLink": "Enlace del Proyecto (Demo en vivo)",
+    "projectLinkPlaceholder": "ej. https://miaplicacion.com",
+    "repoUrl": "URL del Repositorio",
+    "repoPlaceholder": "ej. https://github.com/usuario/repo",
+    "techUsed": "Tecnologías Utilizadas (Separadas por comas)",
+    "techPlaceholder": "ej. React, Node.js, PostgreSQL",
+    "description": "Descripción del Proyecto",
+    "descPlaceholder": "Propósito del proyecto, desafíos técnicos y logros...",
+    "noProject": "Aún no has añadido proyectos.",
+    "cancel": "Cancelar",
+    "update": "Actualizar",
+    "liveDemo": "Demo en vivo",
+    "codeRepository": "Repositorio de Código",
+    "loading": "Cargando proyectos...",
+    "error": "Ocurrió un error al cargar los proyectos."
+  }
+}

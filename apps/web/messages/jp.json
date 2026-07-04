@@ -1,0 +1,128 @@
+{
+  "Index": {
+    "title": "ResumeXCreator"
+  },
+  "Dashboard": {
+    "title": "マイ履歴書",
+    "templates": "テンプレート",
+    "settings": "設定",
+    "emptyState": {
+      "title": "履歴書がありません",
+      "description": "求人情報と基本情報を入力すると、すぐに最適化された履歴書の作成を開始できます。",
+      "button": "履歴書を作成する"
+    }
+  },
+  "Landing": {
+    "heroTitlePrefix": "",
+    "heroTitleHighlight": "AI",
+    "heroTitleSuffix": "でプロフェッショナルな履歴書を作成",
+    "heroSubtitle": "周囲に差をつけましょう。AIを搭載した履歴書作成ツールが、あなたの経歴を求人情報に完璧にマッチするよう最適化します。",
+    "ctaCreate": "今すぐ履歴書を作成",
+    "ctaSecondary": "テンプレートを表示",
+    "featuresTitle": "ResumeXCreatorが選ばれる理由",
+    "feature1Title": "AI最適化",
+    "feature1Desc": "あなたのスキルを自動的に求人情報に合わせます。",
+    "feature2Title": "ATS対応",
+    "feature2Desc": "履歴書が採用管理システム（ATS）をスムーズに通過できるようにします。",
+    "feature3Title": "モダンなテンプレート",
+    "feature3Desc": "採用担当者の目を引く、洗練されたプロフェッショナルなデザイン。"
+  },
+  "sidebar": {
+    "menu": "メニュー",
+    "new-resume": "新しい履歴書",
+    "recent-resumes": "最近の履歴書",
+    "no-recent-resumes": "最近作成された履歴書はありません。",
+    "my-resumes": "マイ履歴書",
+    "profiles": "プロフィール",
+    "educations": "学歴",
+    "experiences": "職歴",
+    "projects": "プロジェクト"
+  },
+  "common": {
+    "light": "ライト",
+    "dark": "ダーク",
+    "system": "システム"
+  },
+  "auth": {
+    "logout": "ログアウト"
+  },
+  "settings": {
+    "title": "設定",
+    "language": "言語",
+    "theme": "テーマ",
+    "themeDesc": "アプリのテーマを選択",
+    "logout": "ログアウト"
+  },
+  "educations": {
+    "title": "学歴管理",
+    "myEducations": "マイ学歴",
+    "addEducation": "学歴を追加",
+    "editEducation": "学歴を編集",
+    "newEducation": "新規学歴情報",
+    "schoolName": "学校名 / 大学名",
+    "schoolPlaceholder": "例: 東京大学",
+    "degree": "学位 / 学年",
+    "degreePlaceholder": "例: 学士、修士",
+    "fieldOfStudy": "専攻分野 / 学部",
+    "fieldPlaceholder": "例: コンピュータサイエンス",
+    "gpa": "GPA（評定平均）",
+    "gpaPlaceholder": "例: 3.80",
+    "startDate": "開始日",
+    "endDate": "卒業 / 終了日",
+    "ongoing": "在学中",
+    "noEducation": "学歴情報はまだ登録されていません。",
+    "cancel": "キャンセル",
+    "update": "更新",
+    "loading": "学歴履歴を読み込み中...",
+    "error": "学歴情報の読み込み中にエラーが発生しました。"
+  },
+  "experiences": {
+    "title": "職歴管理",
+    "myExperiences": "マイ職歴",
+    "addExperience": "職歴を追加",
+    "editExperience": "職歴を編集",
+    "newExperience": "新規職歴情報",
+    "companyName": "企業名",
+    "companyPlaceholder": "例: Google",
+    "role": "役割 / 役職",
+    "rolePlaceholder": "例: ソフトウェアエンジニア",
+    "location": "勤務地",
+    "locationPlaceholder": "例: 東京都、日本（リモート）",
+    "logoUrl": "ロゴのURL",
+    "logoPlaceholder": "例: https://example.com/logo.png",
+    "startDate": "開始日",
+    "endDate": "終了日",
+    "ongoing": "在籍中",
+    "description": "業務内容 / 責任範囲",
+    "descPlaceholder": "この職務での責任、成果、使用した技術スタックなど...",
+    "noExperience": "職歴情報はまだ登録されていません。",
+    "cancel": "キャンセル",
+    "update": "更新",
+    "loading": "職歴履歴を読み込み中...",
+    "error": "職歴情報の読み込み中にエラーが発生しました。"
+  },
+  "projects": {
+    "title": "プロジェクト管理",
+    "myProjects": "マイプロジェクト",
+    "addProject": "プロジェクトを追加",
+    "editProject": "プロジェクトを編集",
+    "newProject": "新規プロジェクト情報",
+    "projectTitle": "プロジェクト名",
+    "projectTitlePlaceholder": "例: EC自動化プラットフォーム",
+    "projectLink": "プロジェクトのリンク（ライブデモ）",
+    "projectLinkPlaceholder": "例: https://myawesomeapp.com",
+    "repoUrl": "リポジトリのURL",
+    "repoPlaceholder": "例: https://github.com/username/repo",
+    "techUsed": "使用技術（カンマ区切り）",
+    "techPlaceholder": "例: React, Node.js, PostgreSQL",
+    "description": "プロジェクトの説明",
+    "descPlaceholder": "プロジェクトの目的、技術的な課題、および成果...",
+    "noProject": "プロジェクトはまだ登録されていません。",
+    "cancel": "キャンセル",
+    "update": "更新",
+    "liveDemo": "ライブデモ",
+    "codeRepository": "コードリポジトリ",
+    "loading": "プロジェクトを読み込み中...",
+    "error": "プロジェクトの読み込み中にエラーが発生しました。"
+  }
+}

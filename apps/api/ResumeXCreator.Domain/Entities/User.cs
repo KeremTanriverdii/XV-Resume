@@ -7,5 +7,10 @@ namespace ResumeXCreator.Domain.Entities
     public string Name { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public List<Profile> Profiles { get; set; } = [];
+    public string ChoosedLanguage { get; set; } = "en";
+    public string Country { get; set; } = string.Empty;
+    public string Phone { get; set; } = string.Empty;
+    public string DistrictAndCityLocation { get; set; } = string.Empty;
+    public string? PostponedTitle { get; set; } = string.Empty;
   }
 }

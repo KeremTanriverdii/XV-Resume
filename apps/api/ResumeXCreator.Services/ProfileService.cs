@@ -10,7 +10,7 @@ using ResumeXCreator.Services.DTOs;
 namespace ResumeXCreator.Services;
 
 public class ProfileService(
-    IProfileRepository profileRepository, 
+    IProfileRepository profileRepository,
     IExperienceRepository experienceRepository,
     IEducationRepository educationRepository,
     IProjectRepository projectRepository) : IProfileService
@@ -235,7 +235,7 @@ public class ProfileService(
         if (existingLink != null)
         {
           existingLink.SortOrder = sortOrder++;
-          
+
           if (existingLink.Project != null)
           {
             existingLink.Project.ProjectTitle = dp.Title;
@@ -305,7 +305,7 @@ public class ProfileService(
         if (existingLink != null)
         {
           existingLink.SortOrder = sortOrder++;
-          
+
           if (existingLink.Education != null)
           {
             existingLink.Education.SchoolName = de.SchoolName;
@@ -378,7 +378,7 @@ public class ProfileService(
         if (existingLink != null)
         {
           existingLink.SortOrder = sortOrder++;
-          
+
           if (existingLink.Experience != null)
           {
             existingLink.Experience.CompanyName = de.CompanyName;

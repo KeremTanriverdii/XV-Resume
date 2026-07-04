@@ -3,7 +3,7 @@
 import { useAuth } from "@/providers/AuthProvider";
 import { fetchProfile } from "@/services/profileService";
 import { useQuery } from "@tanstack/react-query";
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -12,15 +12,7 @@ import { Link } from "@/i18n/routing";
 export default function HomePageClient()
 {
     const t = useTranslations("Landing");
-    const {session} = useAuth();
-    const token = session?.access_token;
 
-    const {data:profile,isLoading,isError} = useQuery({
-        queryKey:['profile'],
-        queryFn:()=>fetchProfile(token),
-        staleTime:1000*60*5,
-        retry:1
-    })
 
     return (
         <div className="min-h-screen bg-background text-foreground flex flex-col font-sans">
