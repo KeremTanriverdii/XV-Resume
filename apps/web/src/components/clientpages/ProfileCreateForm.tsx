@@ -13,10 +13,10 @@ import { Plus, Trash2, Globe, Info } from "lucide-react"
 import Image from "next/image"
 import { UserMetadata } from "@supabase/supabase-js"
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuTrigger } from "../ui/dropdown-menu"
-import { useLocale } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import CreateExperienceModal from "./CreateExpreienceModal"
 import CreateEducationModal from "./CreateEducetionModal"
-// import CreateProjectModal from "./CreateProjectModal"
+
 export interface ProfileCreateFormProps {
   token: string | undefined
   userId: string | undefined
@@ -41,6 +41,7 @@ const languagesList = [
 ]
 
 export default function ProfileCreateForm({ token, userId, metaData }: ProfileCreateFormProps) {
+  const t = useTranslations("profiles")
   const queryClient = useQueryClient()
   const [fullName, setFullName] = useState(metaData?.full_name || metaData?.name || "")
   const [profileName, setProfileName] = useState("")
@@ -158,40 +159,40 @@ export default function ProfileCreateForm({ token, userId, metaData }: ProfileCr
     <div className="space-y-4 border rounded-lg p-6 max-w-xl bg-card text-card-foreground shadow-sm">
       <div className="flex items-center justify-between border-b pb-3">
         <h3 className="font-semibold text-lg tracking-wide text-foreground">
-          Profil Oluştur
+          {t('addProfile')}
         </h3>
         {mutation.isPending && (
-          <span className="text-xs text-muted-foreground animate-pulse">Kaydediliyor...</span>
+          <span className="text-xs text-muted-foreground animate-pulse">{t('saving')}</span>
         )}
         {mutation.isError && (
-          <span className="text-xs text-destructive font-medium">Hata oluştu!</span>
+          <span className="text-xs text-destructive font-medium">{t('createError')}</span>
         )}
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="flex justify-between gap-2">
           <div className="space-y-2">
-          <label className="text-sm font-medium">Profil İsmi</label>
+          <label className="text-sm font-medium">{t('profileName')}</label>
           <Input
             className="w-full bg-background"
-            placeholder="Örn: Türkçe CV, English Resume"
+            placeholder={t('profileNamePlaceholder')}
             value={profileName}
             onChange={(e) => setProfileName(e.target.value)}
             />
             </div>
 
             <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium">Oluşturulacak Diller</label>
+              <label className="text-sm font-medium">{t('languagesToCreate')}</label>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="w-full justify-between gap-2 text-sm font-normal cursor-pointer bg-background">
                     {selectedLanguages.length > 0
                       ? selectedLanguages.map(lang => languagesList.find(l => l.code === lang)?.label).join(", ")
-                      : "Dil Seçin"}
+                      : t('selectLanguage')}
                   </Button> 
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-48">
-                  <DropdownMenuLabel>Diller</DropdownMenuLabel>
+                  <DropdownMenuLabel>{t('languages')}</DropdownMenuLabel>
                   {languagesList.map((lang) => {
                     const isChecked = selectedLanguages.includes(lang.code)
                     return (
@@ -220,10 +221,10 @@ export default function ProfileCreateForm({ token, userId, metaData }: ProfileCr
 
         
         <div className="space-y-2">
-          <label className="text-sm font-medium">Tam İsim</label>
+          <label className="text-sm font-medium">{t('name')}</label>
           <Input
             className="w-full bg-background"
-            placeholder="Tam İsim"
+            placeholder={t('name')}
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             required
@@ -232,10 +233,10 @@ export default function ProfileCreateForm({ token, userId, metaData }: ProfileCr
 
 
         <div className="space-y-2">
-          <label className="text-sm font-medium">Başlık</label>
+          <label className="text-sm font-medium">{t('titleLabel')}</label>
           <Input
             className="w-full bg-background"
-            placeholder="Örn: Kıdemli Yazılım Geliştirici"
+            placeholder={t('titlePlaceholder')}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
@@ -243,29 +244,29 @@ export default function ProfileCreateForm({ token, userId, metaData }: ProfileCr
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium">E-posta</label>
+            <label className="text-sm font-medium">{t('email')}</label>
             <Input
               className="w-full bg-background"
               type="email"
-              placeholder="e-posta@adresiniz.com"
+              placeholder={t('emailPlaceholder')}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium">Telefon</label>
+            <label className="text-sm font-medium">{t('phone')}</label>
             <Input
               className="w-full bg-background"
-              placeholder="05xx xxx xx xx"
+              placeholder={t('phonePlaceholder')}
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium">Lokasyon</label>
+            <label className="text-sm font-medium">{t('location')}</label>
             <Input
               className="w-full bg-background"
-              placeholder="Örn: İstanbul, TR"
+              placeholder={t('locationPlaceholder')}
               value={location}
               onChange={(e) => setLocation(e.target.value)}
             />
@@ -273,20 +274,20 @@ export default function ProfileCreateForm({ token, userId, metaData }: ProfileCr
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium">Özet (Summary)</label>
+          <label className="text-sm font-medium">{t('summary')}</label>
           <textarea
             className="w-full min-h-[80px] border rounded-md px-3 py-2 text-sm bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            placeholder="Kendinizden kısaca bahsedin..."
+            placeholder={t('summaryPlaceholder')}
             value={summary}
             onChange={(e) => setSummary(e.target.value)}
           />
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium">Yetenekler (Virgülle ayırın)</label>
+          <label className="text-sm font-medium">{t('skills')}</label>
           <Input
             className="w-full bg-background"
-            placeholder="React, TypeScript, Node.js"
+            placeholder={t('skillsPlaceholder')}
             value={skillsInput}
             onChange={(e) => setSkillsInput(e.target.value)}
           />
@@ -294,7 +295,7 @@ export default function ProfileCreateForm({ token, userId, metaData }: ProfileCr
 
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <label className="text-sm font-semibold text-foreground">Sosyal Medya Linkleri</label>
+            <label className="text-sm font-semibold text-foreground">{t('socialLinksLabel')}</label>
             <Button
               type="button"
               variant="outline"
@@ -303,13 +304,13 @@ export default function ProfileCreateForm({ token, userId, metaData }: ProfileCr
               onClick={() => setSocialLinks([...socialLinks, ""])}
             >
               <Plus className="h-3.5 w-3.5" />
-              Link Ekle
+              {t('addLink')}
             </Button>
           </div>
           
           {socialLinks.length === 0 ? (
             <div className="text-xs text-muted-foreground bg-muted/10 p-3 border border-dashed rounded-md text-center">
-              Henüz sosyal medya linki eklenmedi.
+              {t('noSocialLinks')}
             </div>
           ) : (
             <div className="space-y-2">
@@ -320,7 +321,7 @@ export default function ProfileCreateForm({ token, userId, metaData }: ProfileCr
                   </div>
                   <Input
                     className="flex-1 bg-background"
-                    placeholder="Örn: github.com/username veya linkedin.com/in/username"
+                    placeholder={t('socialLinkPlaceholder')}
                     value={link}
                     onChange={(e) => {
                       const updated = [...socialLinks]
@@ -348,12 +349,12 @@ export default function ProfileCreateForm({ token, userId, metaData }: ProfileCr
 
         {/* --- EXPERIENCE CHECKBOX LIST --- */}
         <div className="space-y-2 pt-2 border-t">
-          <label className="text-sm font-semibold text-foreground">Deneyimler</label>
+          <label className="text-sm font-semibold text-foreground">{t('experiences')}</label>
           {isLoading ? (
-            <div className="text-xs text-muted-foreground animate-pulse">Yükleniyor...</div>
+            <div className="text-xs text-muted-foreground animate-pulse">{t('loading')}</div>
           ) : !formData?.experience || formData.experience.length === 0 ? (
             <div className="text-xs text-muted-foreground bg-muted/10 p-4 border border-dashed rounded text-center flex flex-col items-center gap-2">
-              <span>Kayıtlı deneyim bulunamadı.</span>
+              <span>{t('noExperiences')}</span>
               <CreateExperienceModal token={token} userId={userId} />
             </div>
           ) : (
@@ -394,8 +395,8 @@ export default function ProfileCreateForm({ token, userId, metaData }: ProfileCr
             <div className="flex items-start gap-2.5 p-3.5 bg-amber-500/10 border border-amber-500/20 rounded-md text-amber-800 dark:text-amber-400 text-xs mt-2">
               <Info className="h-4 w-4 shrink-0 mt-0.5" />
               <div>
-                <span className="font-semibold block mb-0.5">💡 Tavsiye: İş tecrübeniz yok mu?</span>
-                Profilinize herhangi bir iş deneyimi bağlamadınız. Eğer henüz iş tecrübeniz yoksa, CV'nizi öne çıkarmak için projelerinizi ekleyip onları ön plana çıkarmayı düşünebilirsiniz!
+                <span className="font-semibold block mb-0.5">{t('noExpBannerTitle')}</span>
+                {t('noExpBannerDesc')}
               </div>
             </div>
           )}
@@ -403,12 +404,12 @@ export default function ProfileCreateForm({ token, userId, metaData }: ProfileCr
 
         {/* --- EDUCATION CHECKBOX LIST --- */}
         <div className="space-y-2 pt-2 border-t">
-          <label className="text-sm font-semibold text-foreground">Eğitimler</label>
+          <label className="text-sm font-semibold text-foreground">{t('educations')}</label>
           {isLoading ? (
-            <div className="text-xs text-muted-foreground animate-pulse">Yükleniyor...</div>
+            <div className="text-xs text-muted-foreground animate-pulse">{t('loading')}</div>
           ) : !formData?.education || formData.education.length === 0 ? (
             <div className="text-xs text-muted-foreground bg-muted/10 p-4 border border-dashed rounded text-center flex flex-col items-center gap-2">
-              <span>Kayıtlı eğitim bulunamadı.</span>
+              <span>{t('noEducations')}</span>
               <CreateEducationModal token={token} userId={userId} />
             </div>
           ) : (
@@ -449,11 +450,11 @@ export default function ProfileCreateForm({ token, userId, metaData }: ProfileCr
 
         {/* --- PROJECT CHECKBOX LIST --- */}
         <div className="space-y-2 pt-2 border-t">
-          <label className="text-sm font-semibold text-foreground">Projeler</label>
+          <label className="text-sm font-semibold text-foreground">{t('projects')}</label>
           {isLoading ? (
-            <div className="text-xs text-muted-foreground animate-pulse">Yükleniyor...</div>
+            <div className="text-xs text-muted-foreground animate-pulse">{t('loading')}</div>
           ) : !formData?.projects || formData.projects.length === 0 ? (
-            <div className="text-xs text-muted-foreground bg-muted/10 p-2 border border-dashed rounded text-center">Kayıtlı proje bulunamadı.</div>
+            <div className="text-xs text-muted-foreground bg-muted/10 p-2 border border-dashed rounded text-center">{t('noProjects')}</div>
           ) : (
             <div className="grid grid-cols-1 gap-2 max-h-40 overflow-y-auto border rounded-md p-3 bg-muted/20">
               {formData.projects.map((proj) => {
@@ -495,7 +496,7 @@ export default function ProfileCreateForm({ token, userId, metaData }: ProfileCr
           disabled={mutation.isPending}
           className="w-full bg-primary text-primary-foreground rounded-md px-4 py-2.5 text-sm font-medium hover:opacity-90 disabled:opacity-50 transition-opacity cursor-pointer shadow-sm mt-4"
         >
-          {mutation.isPending ? "Ekleniyor..." : "Profil Ekle"}
+          {mutation.isPending ? t('btnSubmitPending') : t('btnSubmit')}
         </button>
       </form>
     </div>

@@ -2,9 +2,11 @@ import ProfileListClient from "@/components/clientpages/ProfileListClient";
 import ProfileCreateForm from "@/components/clientpages/ProfileCreateForm"
 import { createClient } from "@/utils/supabase/server"
 import { redirect } from "next/navigation"
+import { getTranslations } from "next-intl/server";
 
 export default async function ProfilesPage() {
     const supabase = await createClient()
+    const t = await getTranslations("profiles")
     
     // Güvenlik odaklı server-side kimlik kontrolü
     const { data: { user }, error: userError } = await supabase.auth.getUser()
@@ -18,7 +20,7 @@ export default async function ProfilesPage() {
     return (
         <main className="flex w-full flex-1 flex-col gap-6 p-4">
             <div className="flex items-center justify-between border-b pb-4">
-                <h1 className="text-2xl font-bold tracking-tight">Profiles</h1>
+                <h1 className="text-2xl font-bold tracking-tight">{t('title')}</h1>
             </div>
             
             {/* İyimser güncelleme (optimistic update) destekli form */}

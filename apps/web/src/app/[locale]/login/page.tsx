@@ -1,8 +1,11 @@
+"use client"
 import GoogleLogin from "@/components/auth/GoogleLogin";
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
 
 export default function LoginPage(){
+    const t = useTranslations("login");
     return (
         <>
         <div className="flex min-h-screen items-center justify-center p-4 bg-background">
@@ -14,8 +17,8 @@ export default function LoginPage(){
     </div>
     
     <div className="p-8 border rounded-2xl bg-card">
-      <h1 className="text-center text-2xl font-bold mb-2">Hesabınıza Hoş Geldiniz</h1>
-      <p className="text-center text-muted-foreground mb-6">Devam etmek için giriş yapın</p>
+      <h1 className="text-center text-2xl font-bold mb-2">{t('welcome')}</h1>
+      <p className="text-center text-muted-foreground mb-6">{t('signInToContinue')}</p>
 
       {/* Google Login Butonu */}
       <div className="space-y-4">
@@ -25,7 +28,10 @@ export default function LoginPage(){
         {/* <EmailLogin /> */}
 
         <p className="text-center text-sm text-muted-foreground">
-          Hesabınız yok mu? <Link href="/register" className="text-primary font-medium">Kayıt olun</Link>
+          {t('dontHaveAccount')}{" "}
+          <Link href="/register" className="text-primary font-medium">
+            {t('signUp')}
+          </Link>
         </p>
       </div>
     </div>

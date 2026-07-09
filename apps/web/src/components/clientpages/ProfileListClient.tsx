@@ -2,7 +2,8 @@
 
 import { Profile } from "@/types"
 import { useQuery } from "@tanstack/react-query"
-import { fetchProfile } from "@/services/profileService"
+import { fetchProfiles } from "@/services/profileService"
+import { useTranslations } from "next-intl"
 
 interface ProfileListClientProps {
   token: string | undefined
@@ -10,24 +11,25 @@ interface ProfileListClientProps {
 }
 
 export default function ProfileListClient({ token, userId }: ProfileListClientProps) {
+  const t = useTranslations("profiles");
   const { data: profiles, isLoading, error } = useQuery({
     queryKey: ['profiles', userId], 
-    queryFn: () => fetchProfile(token).then(p => p ? [p] : []), // wrap in array since server endpoint returns single profile
+    queryFn: () => fetchProfiles(token),
     enabled: !!token && !!userId, 
   })
 
   if (isLoading) {
-    return <div className="text-sm text-muted-foreground">Profiller yükleniyor...</div>
+    return <div className="text-sm text-muted-foreground">{t('loading')}</div>
   }
 
   if (error) {
-    return <div className="text-sm text-destructive">Profiller yüklenirken hata oluştu.</div>
+    return <div className="text-sm text-destructive">{t('error')}</div>
   }
 
   if (!profiles || profiles.length === 0) {
     return (
       <div className="text-sm text-muted-foreground border border-dashed rounded-lg p-6 text-center">
-        Henüz bir profil oluşturmadınız.
+        {t('notFound')}
       </div>
     )
   }

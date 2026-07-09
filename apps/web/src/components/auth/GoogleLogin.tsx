@@ -3,9 +3,10 @@
 import { createClient } from "@/utils/supabase/client";
 import Image from "next/image";
 import { useState } from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 export default function GoogleLogin() {
+  const t = useTranslations("login");
   const [isLoading, setIsLoading] = useState(false);
   const supabase = createClient();
   const locale = useLocale();
@@ -22,7 +23,7 @@ export default function GoogleLogin() {
     });
 
     if (error) {
-      console.error("Google giriş hatası:", error.message);
+      console.error(t('googleError'), error.message);
       setIsLoading(false);
     }
   };
@@ -31,10 +32,10 @@ export default function GoogleLogin() {
     <button
       onClick={handleGoogleLogin}
       disabled={isLoading}
-      className="flex items-center justify-center gap-2 w-full px-4 py-2 border rounded-md shadow-sm bg-white text-gray-700 hover:bg-gray-50 transition-colors"
+      className="flex items-center justify-center gap-2 w-full px-4 py-2 border rounded-md shadow-sm bg-white text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
     >
       {/* İsterseniz buraya bir Google G logosu koyabilirsiniz */}
-      {isLoading ? "Yönlendiriliyor..." : <><Image src="/googleLogo.png" alt="Google Logo" width={20} height={20} /> <p>Google ile Giriş Yap</p></>}
+      {isLoading ? t('redirecting') : <><Image src="/googleLogo.png" alt="Google Logo" width={20} height={20} /> <p>{t('signInWithGoogle')}</p></>}
     </button>
   );
 }
