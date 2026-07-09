@@ -1,6 +1,7 @@
 
 using System.Security.Claims;
 using System.Text.RegularExpressions;
+using ResumeXCreator.Api.API.Filters;
 using ResumeXCreator.Services.Abstraction;
 using ResumeXCreator.Services.DTOs;
 
@@ -27,7 +28,9 @@ public static class UserEnpoints
       if (userId == null) return Results.Unauthorized();
       var user = await userService.UpdateUserAsync(dto, userId);
       return Results.Ok(user);
-    }).WithName("UpdateUser");
+    })
+    .WithValidation<UserUpdateDto>()
+    .WithName("UpdateUser");
 
   }
 }

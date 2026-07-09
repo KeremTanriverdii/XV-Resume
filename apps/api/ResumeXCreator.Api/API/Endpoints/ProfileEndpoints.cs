@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using ResumeXCreator.Api.API.Filters;
 using ResumeXCreator.Services.Abstraction;
 using ResumeXCreator.Services.DTOs;
 
@@ -42,6 +43,7 @@ public static class ProfileEndpoints
       var result = await profileService.CreateProfileAsync(dtoWithUser);
       return Results.Created($"/api/v1/profiles/{result.Id}", result);
     })
+    .WithValidation<CreateProfileDto>()
     .WithName("CreateProfile");
 
     // PUT /api/v1/profiles/{id}
@@ -53,6 +55,7 @@ public static class ProfileEndpoints
       var result = await profileService.UpdateProfileAsync(userId, id, dto);
       return result is not null ? Results.Ok(result) : Results.NotFound();
     })
+    .WithValidation<CreateProfileDto>()
     .WithName("UpdateProfile");
 
     // DELETE /api/v1/profiles/{id}

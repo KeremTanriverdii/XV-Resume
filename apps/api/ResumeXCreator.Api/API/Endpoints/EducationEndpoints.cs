@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using ResumeXCreator.Api.API.Filters;
 using ResumeXCreator.Services.Abstraction;
 using ResumeXCreator.Services.DTOs;
 
@@ -41,6 +42,7 @@ public static class EducationEndpoints
       var result = await educationService.CreateEducationAsync(userId, dto);
       return Results.Created($"/api/v1/education/{result.Id}", result);
     })
+    .WithValidation<CreateEducationDto>()
     .WithName("CreateEducation");
 
     // PUT /api/v1/education/{id}
@@ -52,6 +54,7 @@ public static class EducationEndpoints
       var result = await educationService.UpdateEducationAsync(userId, id, dto);
       return result is not null ? Results.Ok(result) : Results.NotFound();
     })
+    .WithValidation<CreateEducationDto>()
     .WithName("UpdateEducation");
 
     // DELETE /api/v1/education/{id}

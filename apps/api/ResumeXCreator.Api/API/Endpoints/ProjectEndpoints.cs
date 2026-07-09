@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using ResumeXCreator.Api.API.Filters;
 using ResumeXCreator.Services.Abstraction;
 using ResumeXCreator.Services.DTOs;
 
@@ -41,6 +42,7 @@ public static class ProjectEndpoints
       var result = await projectService.CreateProjectAsync(userId, dto);
       return Results.Created($"/api/v1/projects/{result.Id}", result);
     })
+    .WithValidation<CreateProjectDto>()
     .WithName("CreateProject");
 
     // PUT /api/v1/projects/{id}
@@ -52,6 +54,7 @@ public static class ProjectEndpoints
       var result = await projectService.UpdateProjectAsync(userId, id, dto);
       return result is not null ? Results.Ok(result) : Results.NotFound();
     })
+    .WithValidation<CreateProjectDto>()
     .WithName("UpdateProject");
 
     // DELETE /api/v1/projects/{id}

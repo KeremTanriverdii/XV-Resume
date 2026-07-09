@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using ResumeXCreator.Api.API.Filters;
 using ResumeXCreator.Services.Abstraction;
 using ResumeXCreator.Services.DTOs;
 
@@ -50,6 +51,7 @@ public static class ResumeEndpoints
         return Results.Json(new { error = ex.Message }, statusCode: 403);
       }
     })
+    .WithValidation<CreateResumeDto>()
     .WithName("GenerateResume");
   }
 }
