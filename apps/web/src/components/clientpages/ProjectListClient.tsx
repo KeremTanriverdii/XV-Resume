@@ -15,6 +15,7 @@ import { Trash2, Edit3, Plus, X, ExternalLink } from "lucide-react"
 import TagInput from "@/components/ui/tag-input"
 import { SKILLS } from "@/lib/autocomplete-data"
 import { useTranslations } from "next-intl"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface ProjectListClientProps {
   token: string | undefined
@@ -107,7 +108,28 @@ export default function ProjectListClient({ token, userId }: ProjectListClientPr
   }
 
   if (isLoading) {
-    return <div className="text-sm text-muted-foreground">{t("loading")}</div>
+    return (
+      <div className="space-y-6 animate-pulse">
+        <div className="text-3xl font-semibold">{t("loading")}</div>
+        <div className="grid gap-4 md:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="rounded-xl border bg-card p-5 flex flex-col justify-between shadow-xs">
+              <div className="space-y-3">
+                <Skeleton className="h-5 w-2/3 bg-muted/60" />
+                <div className="flex gap-1.5">
+                  <Skeleton className="h-4 w-12 rounded bg-muted/60" />
+                  <Skeleton className="h-4 w-16 rounded bg-muted/60" />
+                </div>
+                <div className="border-t pt-3 space-y-2">
+                  <Skeleton className="h-3.5 w-full bg-muted/60" />
+                  <Skeleton className="h-3.5 w-5/6 bg-muted/60" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
   }
 
   if (error) {

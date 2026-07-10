@@ -16,6 +16,7 @@ import AutocompleteInput from "@/components/ui/autocomplete-input"
 import { LOCATIONS, JOB_TITLES } from "@/lib/autocomplete-data"
 import { useTranslations } from "next-intl"
 import { formatDate } from "@/utils/date"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface ExperienceListClientProps {
   token: string | undefined
@@ -120,7 +121,24 @@ export default function ExperienceListClient({ token, userId }: ExperienceListCl
   }
 
   if (isLoading) {
-    return <div className="text-sm text-muted-foreground">{t("loading")}</div>
+    return (
+      <div className="space-y-6 animate-pulse">
+        <div className="text-3xl font-semibold">{t("loading")}</div>
+        <div className="space-y-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="p-5 border rounded-2xl bg-card flex gap-4 items-start shadow-xs">
+              <Skeleton className="h-12 w-12 rounded-full bg-muted/60 shrink-0" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-5 w-1/3 bg-muted/60" />
+                <Skeleton className="h-4 w-1/4 bg-muted/60" />
+                <Skeleton className="h-3 w-1/5 bg-muted/60" />
+                <Skeleton className="h-3 w-full bg-muted/60" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
   }
 
   if (error) {

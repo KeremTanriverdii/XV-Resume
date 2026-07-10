@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/sheet"
 import { useProfiles } from "@/hooks/useProfile"
 import { useState, useEffect } from "react"
-import { Check, Loader2, Mail, Phone, MapPin, Sparkles, FolderGit2, Link2, X } from "lucide-react"
+import { Loader2, Mail, Phone, MapPin, Sparkles, FolderGit2, Link2, X } from "lucide-react"
 import { Experience } from "@/types";
 import { useTranslations } from "next-intl"
 
@@ -56,7 +56,7 @@ export function SelectProfile({
   }
 
   const selectedProfile = profiles.find(p => p.id === selectedProfileId);
-
+console.log(profiles)
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -209,8 +209,8 @@ export function SelectProfile({
           </Button>
         )}
       </SheetTrigger>
-      <SheetContent className="flex flex-col h-full w-[400px] sm:w-[440px]">
-        <SheetHeader className="pb-4 border-b">
+      <SheetContent className="flex flex-col h-full w-full sm:max-w-2xl data-[state=open]:duration-700 data-[state=open]:delay-150">
+        <SheetHeader className="pb-4 border-b px-6 sm:px-8">
           <SheetTitle>{t('selectProfileForResume')}</SheetTitle>
           <SheetDescription>
             {t('selectProfileDesc')}
@@ -218,7 +218,7 @@ export function SelectProfile({
         </SheetHeader>
         
         {/* Scrollable list container */}
-        <div className="flex-1 overflow-y-auto my-6 pr-2 gap-4 flex flex-col min-h-0 p-1">
+        <div className="flex-1 overflow-y-auto my-3 px-6 sm:px-6 gap-4 grid grid-cols-1 sm:grid-cols-2 min-h-0 p-1 content-start">
           {profiles.map((profile) => {
             const isSelected = tempSelectedId === profile.id;
             return (
@@ -226,45 +226,74 @@ export function SelectProfile({
                 key={profile.id}
                 type="button"
                 onClick={() => setTempSelectedId(profile.id)}
-                className={`w-full text-left p-4 border rounded-2xl transition-all hover:bg-muted/50 cursor-pointer flex items-center justify-between group ${
+                className={`w-full text-left p-4 border rounded-2xl transition-all hover:bg-muted/50 cursor-pointer flex flex-col gap-2 group ${
                   isSelected 
                     ? "border-primary bg-primary/5 ring-1 ring-primary" 
                     : "border-border bg-card"
                 }`}
               >
-                <div className="flex-1 pr-4 overflow-hidden">
-                  <h4 className="font-semibold text-base truncate group-hover:text-primary transition-colors">
-                    {profile.profileName}
-                  </h4>
+                {/* Header Row: Title & Photo */}
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <h4 className="font-semibold text-base truncate group-hover:text-primary transition-colors">
+                      {profile.profileName}
+                    </h4>
+                  </div>
+                  {profile.showPhoto && profile.photoUrl && (
+                    <img 
+                      src={profile.photoUrl} 
+                      alt={profile.fullName} 
+                      className="h-10 w-10 rounded-md object-cover border border-border/80 shadow-xs shrink-0" 
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
+                    />
+                  )}
+                </div>
+
+                {/* Details Section */}
+                <div className="w-full">
                   {profile.fullName && (
-                    <p className="text-sm text-muted-foreground truncate mt-1">
+                    <p className="text-sm text-foreground/90 font-medium truncate">
                       {profile.fullName}
                     </p>
                   )}
                   {profile.title && (
-                    <p className="text-xs font-medium text-primary mt-1 truncate">
+                    <p className="text-xs text-muted-foreground mt-0.5 truncate">
                       {profile.title}
                     </p>
                   )}
-                  {profile.experiences?.map((exp: Experience, idx: number) => (
-                    <p key={idx} className="text-xs font-medium text-primary mt-1 truncate">
-                      {exp.companyName}
-                    </p>
-                  ))}
                   
-                  
+                  {/* Languages */}
+                  {profile.languages && profile.languages.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1 items-center">
+                      <span className="text-[9px] font-bold uppercase tracking-wider bg-secondary text-secondary-foreground px-1.5 py-0.5 rounded border border-border">
+                        Langs:
+                      </span>
+                      {profile.languages.map((lang) => (
+                        <span key={lang} className="text-[9px] font-bold uppercase tracking-wider bg-primary/10 text-primary px-1.5 py-0.5 rounded border border-primary/20">
+                          {lang}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Postponed Status if applicable */}
+                  {profile.militaryStatus === "Postponed" && profile.militaryPostponedUntil && (
+                    <div className="mt-2 text-[10px] text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20 py-0.5 px-2 rounded-full w-fit flex items-center gap-1">
+                      <span>🛡️</span>
+                      <span>
+                        {t('militaryStatus.Postponed') || "Postponed"}: {new Date(profile.militaryPostponedUntil).toLocaleDateString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit' })}
+                      </span>
+                    </div>
+                  )}
                 </div>
-                {isSelected && (
-                  <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center text-primary-foreground animate-in zoom-in-50 duration-200">
-                    <Check className="h-4 w-4" />
-                  </div>
-                )}
               </button>
             );
           })}
         </div>
 
-        <SheetFooter className="pt-4 border-t gap-2 sm:gap-0 mt-auto">
+        <SheetFooter className="pt-4 border-t gap-2 sm:gap-0 mt-auto px-6 sm:px-8">
           <SheetClose asChild>
             <Button 
               type="button" 

@@ -123,7 +123,7 @@ export default function TagInput({
         {value.map((tag) => (
           <span
             key={tag}
-            className="inline-flex items-center gap-1 rounded-md bg-primary/10 text-primary px-2 py-0.5 text-xs font-medium animate-in fade-in zoom-in-95 duration-150"
+            className="inline-flex items-center gap-1 rounded-md bg-primary/15 border border-primary/20 text-primary px-2.5 py-1.5 text-xs font-medium animate-in fade-in zoom-in-95 duration-150"
           >
             {tag}
             <button

@@ -16,6 +16,7 @@ import AutocompleteInput from "@/components/ui/autocomplete-input"
 import { SCHOOL_NAMES, DEGREES, FIELDS_OF_STUDY } from "@/lib/autocomplete-data"
 import { useTranslations } from "next-intl"
 import { formatDate } from "@/utils/date"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface EducationListClientProps {
   token: string | undefined
@@ -33,8 +34,8 @@ export default function EducationListClient({ token, userId }: EducationListClie
   const [fieldOfStudy, setFieldOfStudy] = useState("")
   const [startDate, setStartDate] = useState("")
   const [endDate, setEndDate] = useState("")
-  const [gpa, setGpa] = useState<string>("")
   const [isOngoing, setIsOngoing] = useState(false)
+  const [gpa, setGpa] = useState("")
   const [isFormOpen, setIsFormOpen] = useState(false)
 
   // Fetch Query
@@ -77,8 +78,8 @@ export default function EducationListClient({ token, userId }: EducationListClie
     setFieldOfStudy("")
     setStartDate("")
     setEndDate("")
-    setGpa("")
     setIsOngoing(false)
+    setGpa("")
     setIsFormOpen(false)
   }
 
@@ -90,8 +91,8 @@ export default function EducationListClient({ token, userId }: EducationListClie
     // Convert ISO string to YYYY-MM-DD for date inputs
     setStartDate(edu.startDate ? edu.startDate.split('T')[0] : "")
     setEndDate(edu.endDate ? edu.endDate.split('T')[0] : "")
+    setIsOngoing(edu.isOngoing)
     setGpa(edu.gpa || "")
-    setIsOngoing(!edu.endDate)
     setIsFormOpen(true)
   }
 
@@ -117,7 +118,23 @@ export default function EducationListClient({ token, userId }: EducationListClie
   }
 
   if (isLoading) {
-    return <div className="text-sm text-muted-foreground">{t("loading")}</div>
+    return (
+      <div className="space-y-6 animate-pulse">
+        <div className="text-3xl font-semibold">{t("loading")}</div>
+        <div className="space-y-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="p-5 border rounded-2xl bg-card flex gap-4 items-start shadow-xs">
+              <Skeleton className="h-10 w-10 rounded-lg bg-muted/60 shrink-0" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-5 w-1/2 bg-muted/60" />
+                <Skeleton className="h-4 w-1/3 bg-muted/60" />
+                <Skeleton className="h-3 w-1/4 bg-muted/60" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
   }
 
   if (error) {
