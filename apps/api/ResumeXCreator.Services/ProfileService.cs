@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using ResumeXCreator.Domain.Entities;
+using ResumeXCreator.Domain.Enums;
 using ResumeXCreator.Domain.Interfaces;
 using ResumeXCreator.Services.Abstraction;
 using ResumeXCreator.Services.DTOs;
@@ -13,12 +15,15 @@ public class ProfileService(
     IProfileRepository profileRepository,
     IExperienceRepository experienceRepository,
     IEducationRepository educationRepository,
-    IProjectRepository projectRepository) : IProfileService
+    IProjectRepository projectRepository,
+    IUserRepository userRepository
+    ) : IProfileService
 {
   private readonly IProfileRepository _profileRepository = profileRepository;
   private readonly IExperienceRepository _experienceRepository = experienceRepository;
   private readonly IEducationRepository _educationRepository = educationRepository;
   private readonly IProjectRepository _projectRepository = projectRepository;
+  private readonly IUserRepository _userRepository = userRepository;
 
   public async Task<IEnumerable<ProfileDto>> GetProfilesByUserIdAsync(string userId)
   {
@@ -35,16 +40,26 @@ public class ProfileService(
 
   public async Task<ProfileDto> CreateProfileAsync(CreateProfileDto dto)
   {
+    var user = !string.IsNullOrEmpty(dto.UserId) ? await _userRepository.GetByIdAsync(dto.UserId) : null;
     var profile = new Profile
     {
       Id = Guid.NewGuid(),
       UserId = dto.UserId,
       ProfileName = dto.ProfileName,
-      FullName = dto.FullName,
+      FullName = string.IsNullOrWhiteSpace(dto.FullName) ? (user?.Name ?? string.Empty) : dto.FullName,
+      Email = string.IsNullOrWhiteSpace(dto.Email) ? (user?.Email ?? string.Empty) : dto.Email,
+      Phone = string.IsNullOrWhiteSpace(dto.Phone) ? (user?.Phone ?? string.Empty) : dto.Phone,
+      Location = string.IsNullOrWhiteSpace(dto.Location) ? (user?.DistrictAndCityLocation ?? string.Empty) : dto.Location,
+      MilitaryStatus = dto.MilitaryStatus == null && user != null
+    ? user.MilitaryStatus
+    : (dto.MilitaryStatus ?? MilitaryStatus.None),
+      MilitaryPostponedUntil = dto.MilitaryStatus == null && user != null
+    ? user.MilitaryPostponedUntil
+    : dto.MilitaryPostponedUntil,
+
+      Languages = dto.Languages ?? [],
       Title = dto.Title,
       Summary = dto.Summary,
-      Email = dto.Email,
-      Phone = dto.Phone,
       ExperienceJson = dto.ExperienceJson,
       EducationJson = dto.EducationJson,
       Skills = dto.Skills,
@@ -216,6 +231,9 @@ public class ProfileService(
     profile.PhotoUrl = dto.PhotoUrl;
     profile.ShowPhoto = dto.ShowPhoto;
     profile.Location = dto.Location;
+    profile.Languages = dto.Languages ?? [];
+    profile.MilitaryStatus = dto.MilitaryStatus ?? MilitaryStatus.None;
+    profile.MilitaryPostponedUntil = dto.MilitaryPostponedUntil;
 
     // --- Update Projects ---
     if (dto.Projects != null)
@@ -470,6 +488,9 @@ public class ProfileService(
     ShowPhoto = p.ShowPhoto,
     CreatedAt = p.CreatedAt,
     Location = p.Location,
+    Languages = p.Languages,
+    MilitaryStatus = p.MilitaryStatus,
+    MilitaryPostponedUntil = p.MilitaryPostponedUntil,
     Projects = p.ProfileProjects?
       .OrderBy(pp => pp.SortOrder)
       .Select(pp => new ProjectDto

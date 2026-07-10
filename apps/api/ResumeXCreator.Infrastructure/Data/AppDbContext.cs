@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using ResumeXCreator.Domain.Entities;
+using ResumeXCreator.Domain.Enums;
 
 namespace ResumeXCreator.Infrastructure.Data;
 
@@ -27,6 +28,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
 v => v);
 
+    modelBuilder.Entity<Profile>(entity =>
+    {
+      entity.Property(e => e.MilitaryStatus).HasConversion<string>();
+      entity.Property(e => e.Languages).HasDefaultValueSql("'{}'");
+    });
+
     var nullableDateTimeConverter = new Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter<DateTime?, DateTime?>(
     v => !v.HasValue ? null : (v.Value.Kind == DateTimeKind.Utc ? v.Value : DateTime.SpecifyKind(v.Value, DateTimeKind.Utc)),
     v => v);
@@ -51,6 +58,7 @@ v => v);
       entity.HasKey(e => e.Id);
       entity.Property(e => e.Name).HasMaxLength(100);
       entity.Property(e => e.Email).IsRequired().HasMaxLength(150);
+      entity.Property(e => e.MilitaryStatus).HasConversion<string>();
     });
 
     // ── Profile ──

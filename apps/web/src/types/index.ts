@@ -84,6 +84,29 @@ export interface CreateProjectDto {
   repositoryUrl?: string;
 }
 
+export type MilitaryStatus = "None" | "Completed" | "Postponed" | "Exempt";
+
+export interface AccountUser {
+  id: string;
+  name: string;
+  email: string;
+  choosedLanguage: string;
+  country: string;
+  phone: string;
+  districtAndCityLocation: string;
+  militaryStatus: MilitaryStatus;
+  militaryPostponedUntil: string | null;
+}
+
+export interface UserUpdateDto {
+  choosedLanguage: string;
+  fullname: string;
+  phone: string;
+  districtAndCityLocation: string;
+  militaryStatus: MilitaryStatus;
+  militaryPostponedUntil: string | null;
+}
+
 // --- PROFILE TYPES ---
 export interface Profile {
   id: string;
@@ -102,6 +125,9 @@ export interface Profile {
   showPhoto: boolean;
   createdAt: string;
   location?: string;
+  languages: string[];
+  militaryStatus: MilitaryStatus;
+  militaryPostponedUntil: string | null;
   projects?: Project[];
   educations?: Education[];
   experiences?: Experience[];
@@ -119,4 +145,7 @@ export interface CreateProfileDto {
   photoUrl?: string;
   showPhoto?: boolean;
   location?: string;
+  languages?: string[];
+  militaryStatus?: MilitaryStatus;
+  militaryPostponedUntil?: string | null;
 }

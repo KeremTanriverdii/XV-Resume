@@ -53,11 +53,27 @@
     "logout": "Çıkış Yap"
   },
   "settings": {
-    "title": "Ayarlar",
-    "language": "Dil",
+    "title": "Hesap Ayarları",
+    "language": "Tercih Edilen Arayüz Dili",
     "theme": "Tema",
     "themeDesc": "Uygulama için bir tema seçin",
-    "logout": "Çıkış Yap"
+    "logout": "Çıkış Yap",
+    "personalInfo": "Kişisel Bilgiler",
+    "fullname": "Ad Soyad",
+    "phone": "Telefon Numarası",
+    "location": "Konum (İlçe ve İl)",
+    "locationPlaceholder": "Örn: Kadıköy, İstanbul",
+    "military": "Askerlik Durumu",
+    "militaryPostponed": "Tecil Tarihi",
+    "save": "Değişiklikleri Kaydet",
+    "success": "Ayarlar başarıyla güncellendi!",
+    "error": "Ayarlar güncellenirken hata oluştu.",
+    "militaryStatus": {
+      "None": "Belirtilmemiş",
+      "Completed": "Tamamlandı",
+      "Postponed": "Tecilli",
+      "Exempt": "Muaf"
+    }
   },
   "educations": {
     "title": "Eğitim Yönetimi",
@@ -180,7 +196,20 @@
     "btnSubmitPending": "Ekleniyor...",
     "noExpBannerTitle": "💡 Tavsiye: İş tecrübeniz yok mu?",
     "noExpBannerDesc": "Profilinize herhangi bir iş deneyimi bağlamadınız. Eğer henüz iş tecrübeniz yoksa, CV'nizi öne çıkarmak için projelerinizi ekleyip onları ön plana çıkarmayı düşünebilirsiniz!",
-    "more": "daha"
+    "more": "daha",
+    "showPhoto": "Fotoğraf Göster",
+    "photoUrl": "Fotoğraf URL'i",
+    "photoUrlPlaceholder": "Örn: https://example.com/resmim.jpg",
+    "photoPreview": "Profil Fotoğrafı Önizlemesi",
+    "military": "Askerlik Durumunu Göster?",
+    "militaryPostponed": "Tecil Tarihi",
+    "militaryStatus": {
+      "Default": "Hesap Varsayılanı",
+      "None": "Belirtilmemiş",
+      "Completed": "Tamamlandı",
+      "Postponed": "Tecilli",
+      "Exempt": "Muaf"
+    }
   },
   "login": {
     "welcome": "Hesabınıza Hoş Geldiniz",

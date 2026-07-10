@@ -21,7 +21,7 @@ public class UserUpdateDtoValidator : AbstractValidator<UserUpdateDto>
     RuleFor(x => x.DistrictAndCityLocation)
       .MaximumLength(200).WithMessage("District and city location must not exceed 200 characters.");
 
-    RuleFor(x => x.PostponedTitle)
-      .MaximumLength(100).WithMessage("Postponed title must not exceed 100 characters.");
+    RuleFor(x => x.MilitaryStatus)
+      .IsInEnum().WithMessage("Invalid Military Status.");
   }
 }

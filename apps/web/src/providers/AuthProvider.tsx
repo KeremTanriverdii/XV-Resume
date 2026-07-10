@@ -24,16 +24,26 @@ export function AuthProvider ({children}: {children:React.ReactNode}) {
         // Get session from supabase for first time
         const checkSession = async()=>{
             const {data:{session}} = await supabase.auth.getSession();
-            setUser(session?.user ?? null);
             setSession(session);
+            if (session) {
+                const {data:{user}} = await supabase.auth.getUser();
+                setUser(user);
+            } else {
+                setUser(null);
+            }
             setIsLoading(false);
         }
         checkSession();
 
         // Listen for auth changes
-        const {data: {subscription}} = supabase.auth.onAuthStateChange((_event,session) => {
+        const {data: {subscription}} = supabase.auth.onAuthStateChange(async (_event,session) => {
             setSession(session);
-            setUser(session?.user ?? null);
+            if (session) {
+                const {data:{user}} = await supabase.auth.getUser();
+                setUser(user);
+            } else {
+                setUser(null);
+            }
             setIsLoading(false);
         }
     );

@@ -5,6 +5,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { useState } from "react"
 import { Input } from "../ui/input"
 import { Plus } from "lucide-react"
+import AutocompleteInput from "@/components/ui/autocomplete-input"
+import { SCHOOL_NAMES, DEGREES, FIELDS_OF_STUDY } from "@/lib/autocomplete-data"
 import { createEducation } from "@/services/educationService"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { CreateEducationDto } from "@/types"
@@ -85,43 +87,40 @@ export default function CreateEducationModal({ token, userId }: CreateEducationM
         </DialogHeader>
         <form onSubmit={handleCreateEducation} className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
-            <label htmlFor="schoolName" className="text-right text-sm font-medium">Okul Adı</label>
-            <Input
-              type="text"
-              id="schoolName"
+            <label htmlFor="schoolName" className="text-right text-sm font-medium">Okul Adı <span className="text-destructive">*</span></label>
+            <AutocompleteInput
+              suggestions={SCHOOL_NAMES}
               className="col-span-3 bg-background"
               value={schoolName}
-              onChange={(e) => setSchoolName(e.target.value)}
+              onChange={setSchoolName}
               required
               placeholder="Örn: Boğaziçi Üniversitesi"
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <label htmlFor="degree" className="text-right text-sm font-medium">Derece</label>
-            <Input
-              type="text"
-              id="degree"
+            <label htmlFor="degree" className="text-right text-sm font-medium">Derece <span className="text-destructive">*</span></label>
+            <AutocompleteInput
+              suggestions={DEGREES}
               className="col-span-3 bg-background"
               value={degree}
-              onChange={(e) => setDegree(e.target.value)}
+              onChange={setDegree}
               required
               placeholder="Örn: Lisans, Yüksek Lisans"
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <label htmlFor="fieldOfStudy" className="text-right text-sm font-medium">Bölüm</label>
-            <Input
-              type="text"
-              id="fieldOfStudy"
+            <label htmlFor="fieldOfStudy" className="text-right text-sm font-medium">Bölüm <span className="text-destructive">*</span></label>
+            <AutocompleteInput
+              suggestions={FIELDS_OF_STUDY}
               className="col-span-3 bg-background"
               value={fieldOfStudy}
-              onChange={(e) => setFieldOfStudy(e.target.value)}
+              onChange={setFieldOfStudy}
               required
               placeholder="Örn: Bilgisayar Mühendisliği"
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <label htmlFor="startDate" className="text-right text-sm font-medium">Başlangıç</label>
+            <label htmlFor="startDate" className="text-right text-sm font-medium">Başlangıç <span className="text-destructive">*</span></label>
             <Input
               type="date"
               id="startDate"

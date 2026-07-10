@@ -57,7 +57,23 @@
     "language": "Langue",
     "theme": "Thème",
     "themeDesc": "Choisissez un thème pour l'application",
-    "logout": "Se déconnecter"
+    "logout": "Se déconnecter",
+    "personalInfo": "Personal Information",
+    "fullname": "Full Name",
+    "phone": "Phone Number",
+    "location": "Location (District & City)",
+    "locationPlaceholder": "e.g. Kadıköy, İstanbul",
+    "military": "Military Status",
+    "militaryPostponed": "Postponed Until",
+    "save": "Save Changes",
+    "success": "Settings updated successfully!",
+    "error": "Failed to update settings.",
+    "militaryStatus": {
+      "None": "Not Specified",
+      "Completed": "Completed",
+      "Postponed": "Postponed",
+      "Exempt": "Exempt"
+    }
   },
   "educations": {
     "title": "Gestion des Éducations",
@@ -180,7 +196,18 @@
     "btnSubmitPending": "Ajout...",
     "noExpBannerTitle": "💡 Recommandation : Aucune expérience professionnelle ?",
     "noExpBannerDesc": "Vous n'avez lié aucune expérience professionnelle à votre profil. Si vous n'avez pas encore d'expérience professionnelle, vous pouvez ajouter vos projets pour les mettre en valeur !",
-    "more": "de plus"
+    "more": "de plus",
+    "showPhoto": "Show Photo in Resume",
+    "photoUrl": "Photo URL",
+    "photoUrlPlaceholder": "e.g. https://example.com/photo.jpg",
+    "military": "Military Status",
+    "militaryPostponed": "Postponed Until",
+    "militaryStatus": {
+      "None": "Not Specified",
+      "Completed": "Completed",
+      "Postponed": "Postponed",
+      "Exempt": "Exempt"
+    }
   },
   "login": {
     "welcome": "Bon retour parmi nous",

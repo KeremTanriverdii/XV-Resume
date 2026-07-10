@@ -1,21 +1,37 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { CreateProfileDto, Profile } from "@/types"
+import { CreateProfileDto, Profile, MilitaryStatus } from "@/types"
 import { createProfile } from "@/services/profileService"
+import { fetchCurrentUser } from "@/services/userService"
 import { fetchEducations } from "@/services/educationService"
 import { fetchExperiences } from "@/services/experienceService"
 import { fetchProjects } from "@/services/projectService"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Plus, Trash2, Globe, Info } from "lucide-react"
+import AutocompleteInput from "@/components/ui/autocomplete-input"
+import TagInput from "@/components/ui/tag-input"
+import PhoneInput from "@/components/ui/phone-input"
+import { LOCATIONS, JOB_TITLES, SKILLS } from "@/lib/autocomplete-data"
 import Image from "next/image"
 import { UserMetadata } from "@supabase/supabase-js"
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuTrigger } from "../ui/dropdown-menu"
+import { createClient } from "@/utils/supabase/client"
+import {
+  Attachment,
+  AttachmentMedia,
+  AttachmentContent,
+  AttachmentTitle,
+  AttachmentDescription,
+  AttachmentActions,
+  AttachmentAction,
+} from "@/components/ui/attachment"
 import { useLocale, useTranslations } from "next-intl"
 import CreateExperienceModal from "./CreateExpreienceModal"
 import CreateEducationModal from "./CreateEducetionModal"
+import { Field, FieldLabel } from "../ui/field"
 
 export interface ProfileCreateFormProps {
   token: string | undefined
@@ -51,9 +67,32 @@ export default function ProfileCreateForm({ token, userId, metaData }: ProfileCr
   const [phone, setPhone] = useState(metaData?.phone || "")
   const [location, setLocation] = useState(metaData?.location || "")
   const [summary, setSummary] = useState("")
-  const [skillsInput, setSkillsInput] = useState("")
+  const [skillsTags, setSkillsTags] = useState<string[]>([])
   const [socialLinks, setSocialLinks] = useState<string[]>([])
-  const [photoBoolean, setPhotoBoolean] = useState(false)
+  const [showPhoto, setShowPhoto] = useState(false)
+  const [photoUrl, setPhotoUrl] = useState("")
+  const [uploadState, setUploadState] = useState<"idle" | "uploading" | "error" | "done">("idle")
+  const [selectedFileName, setSelectedFileName] = useState("")
+  const [selectedFileSize, setSelectedFileSize] = useState("")
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Fetch current user details from DB to pre-fill location and phone
+  const { data: userData } = useQuery({
+    queryKey: ["currentUser"],
+    queryFn: () => fetchCurrentUser(token),
+    enabled: !!token,
+  });
+
+  useEffect(() => {
+    if (userData) {
+      if (!fullName) setFullName(userData.name || "");
+      if (!phone) setPhone(userData.phone || "");
+      if (!location) setLocation(userData.districtAndCityLocation || "");
+    }
+  }, [userData]);
+
+  const [militaryStatus, setMilitaryStatus] = useState<string>("Default")
+  const [militaryPostponedUntil, setMilitaryPostponedUntil] = useState<string>("")
   const locale = useLocale();
   // Selection states typed correctly as string arrays
   const [experienceId, setExperienceId] = useState<string[]>([])
@@ -123,14 +162,69 @@ export default function ProfileCreateForm({ token, userId, metaData }: ProfileCr
       setPhone(metaData?.phone || "")
       setLocation(metaData?.location || "")
       setSummary("")
-      setSkillsInput("")
+      setSkillsTags([])
       setSocialLinks([])
       setExperienceId([])
       setEducationId([])
       setProjectId([])
       setSelectedLanguages([locale])
+      setShowPhoto(true)
+      setPhotoUrl("")
+      setUploadState("idle")
+      setSelectedFileName("")
+      setSelectedFileSize("")
+      setMilitaryStatus("None")
+      setMilitaryPostponedUntil("")
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ""
+      }
     }
   })
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setSelectedFileName(file.name)
+    const sizeInKb = (file.size / 1024).toFixed(1)
+    setSelectedFileSize(`${sizeInKb} KB`)
+    setUploadState("uploading")
+
+    try {
+      const supabase = createClient()
+      const fileExt = file.name.split(".").pop()
+      const pathName = `${userId}/${Date.now()}.${fileExt}`
+
+      const { data, error } = await supabase.storage
+        .from("profile-photos")
+        .upload(pathName, file, {
+          cacheControl: "3600",
+          upsert: true
+        })
+
+      if (error) throw error
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("profile-photos")
+        .getPublicUrl(pathName)
+
+      setPhotoUrl(publicUrl)
+      setUploadState("done")
+    } catch (err) {
+      console.error("Storage upload error:", err)
+      setUploadState("error")
+    }
+  }
+
+  const handleRemovePhoto = () => {
+    setPhotoUrl("")
+    setSelectedFileName("")
+    setSelectedFileSize("")
+    setUploadState("idle")
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
+    }
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -144,19 +238,25 @@ export default function ProfileCreateForm({ token, userId, metaData }: ProfileCr
       phone,
       location,
       summary,
-      skills: skillsInput.split(",").map(s => s.trim()).filter(Boolean),
+      skills: skillsTags,
       socialLinks: socialLinks.map(s => s.trim()).filter(Boolean),
-      photoBoolean,
+      showPhoto,
+      photoUrl: photoUrl.trim() || undefined,
+      militaryStatus: militaryStatus === "Default" ? undefined : (militaryStatus as MilitaryStatus),
+      militaryPostponedUntil: militaryStatus === "Postponed" && militaryPostponedUntil 
+        ? new Date(militaryPostponedUntil).toISOString()
+        : null,
       experienceId,
       educationId,
-      projectId
+      projectId,
+      languages: selectedLanguages
     }
 
     mutation.mutate(payload)
   }
 
   return (
-    <div className="space-y-4 border rounded-lg p-6 max-w-xl bg-card text-card-foreground shadow-sm">
+    <div className="w-full space-y-4 border rounded-lg p-6 bg-card text-card-foreground shadow-sm animate-in fade-in duration-200">
       <div className="flex items-center justify-between border-b pb-3">
         <h3 className="font-semibold text-lg tracking-wide text-foreground">
           {t('addProfile')}
@@ -172,7 +272,7 @@ export default function ProfileCreateForm({ token, userId, metaData }: ProfileCr
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="flex justify-between gap-2">
           <div className="space-y-2">
-          <label className="text-sm font-medium">{t('profileName')}</label>
+          <label className="text-sm font-medium">{t('profileName')} <span className="text-destructive">*</span></label>
           <Input
             className="w-full bg-background"
             placeholder={t('profileNamePlaceholder')}
@@ -221,7 +321,7 @@ export default function ProfileCreateForm({ token, userId, metaData }: ProfileCr
 
         
         <div className="space-y-2">
-          <label className="text-sm font-medium">{t('name')}</label>
+          <label className="text-sm font-medium">{t('name')} <span className="text-destructive">*</span></label>
           <Input
             className="w-full bg-background"
             placeholder={t('name')}
@@ -234,17 +334,18 @@ export default function ProfileCreateForm({ token, userId, metaData }: ProfileCr
 
         <div className="space-y-2">
           <label className="text-sm font-medium">{t('titleLabel')}</label>
-          <Input
+          <AutocompleteInput
+            suggestions={JOB_TITLES}
             className="w-full bg-background"
             placeholder={t('titlePlaceholder')}
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={setTitle}
           />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium">{t('email')}</label>
+            <label className="text-sm font-medium">{t('email')} <span className="text-destructive">*</span></label>
             <Input
               className="w-full bg-background"
               type="email"
@@ -255,23 +356,119 @@ export default function ProfileCreateForm({ token, userId, metaData }: ProfileCr
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium">{t('phone')}</label>
-            <Input
-              className="w-full bg-background"
-              placeholder={t('phonePlaceholder')}
+            <PhoneInput
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={setPhone}
             />
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium">{t('location')}</label>
-            <Input
+            <AutocompleteInput
+              suggestions={LOCATIONS}
               className="w-full bg-background"
               placeholder={t('locationPlaceholder')}
               value={location}
-              onChange={(e) => setLocation(e.target.value)}
+              onChange={setLocation}
             />
           </div>
         </div>
+
+        {/* Photo URL & Show Toggle */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium">{t('showPhoto')}</label>
+              <input
+                type="checkbox"
+                checked={showPhoto}
+                onChange={(e) => setShowPhoto(e.target.checked)}
+                className="h-4 w-4 rounded border-input text-primary focus:ring-ring cursor-pointer"
+              />
+            </div>
+            {showPhoto && (
+              <div className="space-y-2 mt-1 animate-in fade-in duration-200">
+                <Field>
+                  <Input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    accept="image/*"
+                    className="w-full bg-background cursor-pointer mt-3"
+                  />
+                  {uploadState !== "idle" && (
+                    <div className="pt-1.5 animate-in slide-in-from-top-1 duration-200">
+                      <Attachment state={uploadState}>
+                        <AttachmentMedia variant={uploadState === "done" ? "image" : "icon"}>
+                          {uploadState === "done" ? (
+                            <img 
+                              src={photoUrl} 
+                              alt="Profile Preview" 
+                              className="h-full w-full object-cover rounded-lg aspect-square"
+                              onError={(e) => {
+                                console.error("Profile image load failed. Make sure the 'profile-photos' bucket in Supabase Storage is configured as PUBLIC.", photoUrl);
+                              }}
+                            />
+                          ) : (
+                            <Globe className="h-4 w-4 animate-pulse text-muted-foreground" />
+                          )}
+                        </AttachmentMedia>
+                        <AttachmentContent>
+                          <AttachmentTitle className="truncate max-w-[180px]">
+                            {selectedFileName || "profile-photo.jpg"}
+                          </AttachmentTitle>
+                          <AttachmentDescription>
+                            {uploadState === "uploading" ? "Uploading..." : uploadState === "error" ? "Upload Failed" : selectedFileSize}
+                          </AttachmentDescription>
+                        </AttachmentContent>
+                        <AttachmentActions>
+                          <AttachmentAction onClick={handleRemovePhoto}>
+                            <Trash2 className="h-3 w-3" />
+                          </AttachmentAction>
+                        </AttachmentActions>
+                      </Attachment>
+                    </div>
+                  )}
+                </Field>
+              </div>
+            )}
+          </div>
+
+          {/* Military Status */}
+          <Field className="space-y-2">
+            <FieldLabel>{t('military')}</FieldLabel>
+            <select
+              value={militaryStatus}
+              onChange={(e) => {
+                const val = e.target.value;
+                setMilitaryStatus(val);
+                if (val !== "Postponed") {
+                  setMilitaryPostponedUntil("");
+                }
+              }}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <option value="None">{t('militaryStatus.None')}</option>
+              <option value="Default">{t('militaryStatus.Default')}</option>
+              <option value="Completed">{t('militaryStatus.Completed')}</option>
+              <option value="Postponed">{t('militaryStatus.Postponed')}</option>
+              <option value="Exempt">{t('militaryStatus.Exempt')}</option>
+            </select>
+        {/* Conditional Date Picker for Military Postponed */}
+        {militaryStatus === "Postponed" && (
+          <div className="space-y-2 animate-in fade-in duration-200 ">
+            <label className="text-sm font-medium">{t('militaryPostponed')}</label>
+            <Input
+              type="date"
+              className="w-full bg-background"
+              value={militaryPostponedUntil}
+              onChange={(e) => setMilitaryPostponedUntil(e.target.value)}
+              required={militaryStatus === "Postponed"}
+            />
+          </div>
+        )}
+          </Field>
+        </div>
+
 
         <div className="space-y-2">
           <label className="text-sm font-medium">{t('summary')}</label>
@@ -285,11 +482,11 @@ export default function ProfileCreateForm({ token, userId, metaData }: ProfileCr
 
         <div className="space-y-2">
           <label className="text-sm font-medium">{t('skills')}</label>
-          <Input
-            className="w-full bg-background"
+          <TagInput
+            suggestions={SKILLS}
+            value={skillsTags}
+            onChange={setSkillsTags}
             placeholder={t('skillsPlaceholder')}
-            value={skillsInput}
-            onChange={(e) => setSkillsInput(e.target.value)}
           />
         </div>
 

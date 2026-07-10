@@ -3,6 +3,8 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Plus } from "lucide-react"
+import AutocompleteInput from "@/components/ui/autocomplete-input"
+import { LOCATIONS, JOB_TITLES } from "@/lib/autocomplete-data"
 import { useState } from "react"
 import {
   Dialog,
@@ -97,7 +99,7 @@ export default function CreateExperienceModal({ token, userId }: CreateExperienc
         </DialogHeader>
         <form onSubmit={handleCreateExperience} className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
-            <label htmlFor="companyName" className="text-right text-sm font-medium">Şirket</label>
+            <label htmlFor="companyName" className="text-right text-sm font-medium">Şirket <span className="text-destructive">*</span></label>
             <Input
               type="text"
               id="companyName"
@@ -109,19 +111,18 @@ export default function CreateExperienceModal({ token, userId }: CreateExperienc
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <label htmlFor="role" className="text-right text-sm font-medium">Rol</label>
-            <Input
-              type="text"
-              id="role"
+            <label htmlFor="role" className="text-right text-sm font-medium">Rol <span className="text-destructive">*</span></label>
+            <AutocompleteInput
+              suggestions={JOB_TITLES}
               className="col-span-3 bg-background"
               value={role}
-              onChange={(e) => setRole(e.target.value)}
+              onChange={setRole}
               required
               placeholder="Örn: Software Engineer"
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <label htmlFor="startDate" className="text-right text-sm font-medium">Başlangıç</label>
+            <label htmlFor="startDate" className="text-right text-sm font-medium">Başlangıç <span className="text-destructive">*</span></label>
             <Input
               type="date"
               id="startDate"
@@ -159,12 +160,11 @@ export default function CreateExperienceModal({ token, userId }: CreateExperienc
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <label htmlFor="location" className="text-right text-sm font-medium">Konum</label>
-            <Input
-              type="text"
-              id="location"
+            <AutocompleteInput
+              suggestions={LOCATIONS}
               className="col-span-3 bg-background"
               value={location}
-              onChange={(e) => setLocation(e.target.value)}
+              onChange={setLocation}
               placeholder="Örn: İstanbul (Remote)"
             />
           </div>

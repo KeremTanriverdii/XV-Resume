@@ -12,6 +12,8 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Trash2, Edit3, Plus, X } from "lucide-react"
+import AutocompleteInput from "@/components/ui/autocomplete-input"
+import { LOCATIONS, JOB_TITLES } from "@/lib/autocomplete-data"
 import { useTranslations } from "next-intl"
 import { formatDate } from "@/utils/date"
 
@@ -152,7 +154,7 @@ export default function ExperienceListClient({ token, userId }: ExperienceListCl
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <label className="text-xs font-semibold text-muted-foreground">{t("companyName")}</label>
+                <label className="text-xs font-semibold text-muted-foreground">{t("companyName")} <span className="text-destructive">*</span></label>
                 <Input 
                   placeholder={t("companyPlaceholder")} 
                   value={companyName}
@@ -161,20 +163,22 @@ export default function ExperienceListClient({ token, userId }: ExperienceListCl
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-semibold text-muted-foreground">{t("role")}</label>
-                <Input 
+                <label className="text-xs font-semibold text-muted-foreground">{t("role")} <span className="text-destructive">*</span></label>
+                <AutocompleteInput 
+                  suggestions={JOB_TITLES}
                   placeholder={t("rolePlaceholder")} 
                   value={role}
-                  onChange={(e) => setRole(e.target.value)}
+                  onChange={setRole}
                   required 
                 />
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-muted-foreground">{t("location")}</label>
-                <Input 
+                <AutocompleteInput 
+                  suggestions={LOCATIONS}
                   placeholder={t("locationPlaceholder")} 
                   value={location}
-                  onChange={(e) => setLocation(e.target.value)}
+                  onChange={setLocation}
                 />
               </div>
               <div className="space-y-2">
@@ -186,7 +190,7 @@ export default function ExperienceListClient({ token, userId }: ExperienceListCl
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-semibold text-muted-foreground">{t("startDate")}</label>
+                <label className="text-xs font-semibold text-muted-foreground">{t("startDate")} <span className="text-destructive">*</span></label>
                 <Input 
                   type="date"
                   value={startDate}

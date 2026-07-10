@@ -8,7 +8,7 @@ import { Globe } from "lucide-react";
 import { Button } from "../ui/button";
 
 export default function Navbar() {
-  const { session, isLoading } = useAuth();
+  const { session, user, isLoading } = useAuth();
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
@@ -68,7 +68,7 @@ export default function Navbar() {
               Dashboard
             </Link>
             <div className="text-sm text-muted-foreground">
-              {session.user?.email}
+              {user?.email}
             </div>
             {/* TODO: Maybe added logout button */}
           </>

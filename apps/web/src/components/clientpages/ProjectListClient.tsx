@@ -12,6 +12,8 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Trash2, Edit3, Plus, X, ExternalLink } from "lucide-react"
+import TagInput from "@/components/ui/tag-input"
+import { SKILLS } from "@/lib/autocomplete-data"
 import { useTranslations } from "next-intl"
 
 interface ProjectListClientProps {
@@ -27,7 +29,7 @@ export default function ProjectListClient({ token, userId }: ProjectListClientPr
   const [editingId, setEditingId] = useState<string | null>(null)
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
-  const [techologiesUsed, setTechologiesUsed] = useState("")
+  const [techTags, setTechTags] = useState<string[]>([])
   const [links, setLinks] = useState("")
   const [repositoryUrl, setRepositoryUrl] = useState("")
   const [isFormOpen, setIsFormOpen] = useState(false)
@@ -69,7 +71,7 @@ export default function ProjectListClient({ token, userId }: ProjectListClientPr
     setEditingId(null)
     setTitle("")
     setDescription("")
-    setTechologiesUsed("")
+    setTechTags([])
     setLinks("")
     setRepositoryUrl("")
     setIsFormOpen(false)
@@ -79,7 +81,7 @@ export default function ProjectListClient({ token, userId }: ProjectListClientPr
     setEditingId(proj.id)
     setTitle(proj.title)
     setDescription(proj.description || "")
-    setTechologiesUsed(proj.techologiesUsed || "")
+    setTechTags(proj.techologiesUsed ? proj.techologiesUsed.split(",").map(s => s.trim()).filter(Boolean) : [])
     setLinks(proj.links || "")
     setRepositoryUrl(proj.repositoryUrl || "")
     setIsFormOpen(true)
@@ -92,7 +94,7 @@ export default function ProjectListClient({ token, userId }: ProjectListClientPr
     const payload = {
       title,
       description,
-      techologiesUsed,
+      techologiesUsed: techTags.join(", "),
       links,
       repositoryUrl
     }
@@ -139,7 +141,7 @@ export default function ProjectListClient({ token, userId }: ProjectListClientPr
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2 sm:col-span-2">
-                <label className="text-xs font-semibold text-muted-foreground">{t("projectTitle")}</label>
+                <label className="text-xs font-semibold text-muted-foreground">{t("projectTitle")} <span className="text-destructive">*</span></label>
                 <Input 
                   placeholder={t("projectTitlePlaceholder")} 
                   value={title}
@@ -165,14 +167,15 @@ export default function ProjectListClient({ token, userId }: ProjectListClientPr
               </div>
               <div className="space-y-2 sm:col-span-2">
                 <label className="text-xs font-semibold text-muted-foreground">{t("techUsed")}</label>
-                <Input 
-                  placeholder={t("techPlaceholder")} 
-                  value={techologiesUsed}
-                  onChange={(e) => setTechologiesUsed(e.target.value)}
+                <TagInput
+                  suggestions={SKILLS}
+                  value={techTags}
+                  onChange={setTechTags}
+                  placeholder={t("techPlaceholder")}
                 />
               </div>
               <div className="space-y-2 sm:col-span-2">
-                <label className="text-xs font-semibold text-muted-foreground">{t("description")}</label>
+                <label className="text-xs font-semibold text-muted-foreground">{t("description")} <span className="text-destructive">*</span></label>
                 <textarea
                   className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                   placeholder={t("descPlaceholder")}

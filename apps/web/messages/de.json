@@ -57,7 +57,23 @@
     "language": "Sprache",
     "theme": "Design",
     "themeDesc": "Wählen Sie ein Design für die App",
-    "logout": "Abmelden"
+    "logout": "Abmelden",
+    "personalInfo": "Personal Information",
+    "fullname": "Full Name",
+    "phone": "Phone Number",
+    "location": "Location (District & City)",
+    "locationPlaceholder": "e.g. Kadıköy, İstanbul",
+    "military": "Military Status",
+    "militaryPostponed": "Postponed Until",
+    "save": "Save Changes",
+    "success": "Settings updated successfully!",
+    "error": "Failed to update settings.",
+    "militaryStatus": {
+      "None": "Not Specified",
+      "Completed": "Completed",
+      "Postponed": "Postponed",
+      "Exempt": "Exempt"
+    }
   },
   "educations": {
     "title": "Bildungsverwaltung",
@@ -180,7 +196,18 @@
     "btnSubmitPending": "Hinzufügen...",
     "noExpBannerTitle": "💡 Empfehlung: Keine Berufserfahrung?",
     "noExpBannerDesc": "Sie haben keine Berufserfahrung mit Ihrem Profil verknüpft. Wenn Sie noch keine Berufserfahrung haben, können Sie Ihre Projekte hinzufügen, um sie hervorzuheben!",
-    "more": "mehr"
+    "more": "mehr",
+    "showPhoto": "Show Photo in Resume",
+    "photoUrl": "Photo URL",
+    "photoUrlPlaceholder": "e.g. https://example.com/photo.jpg",
+    "military": "Military Status",
+    "militaryPostponed": "Postponed Until",
+    "militaryStatus": {
+      "None": "Not Specified",
+      "Completed": "Completed",
+      "Postponed": "Postponed",
+      "Exempt": "Exempt"
+    }
   },
   "login": {
     "welcome": "Willkommen zurück",

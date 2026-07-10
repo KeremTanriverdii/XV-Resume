@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using ResumeXCreator.Domain.Enums;
 
 namespace ResumeXCreator.Services.DTOs;
 
@@ -21,6 +22,9 @@ public record ProfileDto
   public bool ShowPhoto { get; init; }
   public DateTime CreatedAt { get; init; }
   public string Location { get; init; } = string.Empty;
+  public List<string> Languages { get; init; } = [];
+  public MilitaryStatus? MilitaryStatus { get; init; }
+  public DateTime? MilitaryPostponedUntil { get; init; }
 
   public List<ProjectDto> Projects { get; init; } = [];
   public List<EducationDto> Educations { get; init; } = [];

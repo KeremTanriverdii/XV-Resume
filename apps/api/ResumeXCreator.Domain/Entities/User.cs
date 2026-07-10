@@ -1,4 +1,6 @@
 
+using ResumeXCreator.Domain.Enums;
+
 namespace ResumeXCreator.Domain.Entities
 {
   public class User
@@ -11,6 +13,7 @@ namespace ResumeXCreator.Domain.Entities
     public string Country { get; set; } = string.Empty;
     public string Phone { get; set; } = string.Empty;
     public string DistrictAndCityLocation { get; set; } = string.Empty;
-    public string? PostponedTitle { get; set; } = string.Empty;
+    public MilitaryStatus MilitaryStatus { get; set; } = MilitaryStatus.None;
+    public DateTime? MilitaryPostponedUntil { get; set; }
   }
 }

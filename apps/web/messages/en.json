@@ -53,11 +53,27 @@
     "logout": "Logout"
   },
   "settings": {
-    "title": "Settings",
-    "language": "Language",
+    "title": "Account Settings",
+    "language": "Chosen Interface Language",
     "theme": "Theme",
     "themeDesc": "Choose a theme for the app",
-    "logout": "Logout"
+    "logout": "Logout",
+    "personalInfo": "Personal Information",
+    "fullname": "Full Name",
+    "phone": "Phone Number",
+    "location": "Location (District & City)",
+    "locationPlaceholder": "e.g. Kadıköy, İstanbul",
+    "military": "Military Status",
+    "militaryPostponed": "Postponed Until",
+    "save": "Save Changes",
+    "success": "Settings updated successfully!",
+    "error": "Failed to update settings.",
+    "militaryStatus": {
+      "None": "Not Specified",
+      "Completed": "Completed",
+      "Postponed": "Postponed",
+      "Exempt": "Exempt"
+    }
   },
   "educations": {
     "title": "Education Management",
@@ -180,7 +196,20 @@
     "btnSubmitPending": "Adding...",
     "noExpBannerTitle": "💡 Recommendation: No work experience?",
     "noExpBannerDesc": "You have not linked any work experience to your profile. If you don't have work experience yet, you might consider adding your projects to highlight them!",
-    "more": "more"
+    "more": "more",
+    "showPhoto": "Show Photo in Resume",
+    "photoUrl": "Photo URL",
+    "photoUrlPlaceholder": "e.g. https://example.com/photo.jpg",
+    "photoPreview": "Profile Photo Preview",
+    "military": "Show Military Status?",
+    "militaryPostponed": "Postponed Until",
+    "militaryStatus": {
+      "Default": "Use Account Default",
+      "None": "Not Specified",
+      "Completed": "Completed",
+      "Postponed": "Postponed",
+      "Exempt": "Exempt"
+    }
   },
   "login": {
     "welcome": "Welcome back",

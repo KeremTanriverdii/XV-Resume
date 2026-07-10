@@ -10,7 +10,7 @@ export default async function LandingPage() {
 
   // fetch user profile data from supabase
   const {data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
+  const {data: { user } } = await supabase.auth.getUser();
   const token = session?.access_token;
 
 

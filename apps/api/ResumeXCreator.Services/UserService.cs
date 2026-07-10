@@ -26,7 +26,8 @@ public class UserService(IUserRepository userRepository) : IUserService
     existingUser.Name = userUpdateDto.Fullname;
     existingUser.Phone = userUpdateDto.Phone;
     existingUser.DistrictAndCityLocation = userUpdateDto.DistrictAndCityLocation;
-    existingUser.PostponedTitle = userUpdateDto.PostponedTitle;
+    existingUser.MilitaryStatus = userUpdateDto.MilitaryStatus;
+    existingUser.MilitaryPostponedUntil = userUpdateDto.MilitaryPostponedUntil;
     _userRepository.Update(existingUser);
     await _userRepository.SaveChangesAsync();
     return existingUser;

@@ -12,6 +12,8 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Trash2, Edit3, Plus, X } from "lucide-react"
+import AutocompleteInput from "@/components/ui/autocomplete-input"
+import { SCHOOL_NAMES, DEGREES, FIELDS_OF_STUDY } from "@/lib/autocomplete-data"
 import { useTranslations } from "next-intl"
 import { formatDate } from "@/utils/date"
 
@@ -149,29 +151,32 @@ export default function EducationListClient({ token, userId }: EducationListClie
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <label className="text-xs font-semibold text-muted-foreground">{t("schoolName")}</label>
-                <Input 
+                <label className="text-xs font-semibold text-muted-foreground">{t("schoolName")} <span className="text-destructive">*</span></label>
+                <AutocompleteInput 
+                  suggestions={SCHOOL_NAMES}
                   placeholder={t("schoolPlaceholder")} 
                   value={schoolName}
-                  onChange={(e) => setSchoolName(e.target.value)}
+                  onChange={setSchoolName}
                   required 
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-semibold text-muted-foreground">{t("degree")}</label>
-                <Input 
+                <label className="text-xs font-semibold text-muted-foreground">{t("degree")} <span className="text-destructive">*</span></label>
+                <AutocompleteInput 
+                  suggestions={DEGREES}
                   placeholder={t("degreePlaceholder")} 
                   value={degree}
-                  onChange={(e) => setDegree(e.target.value)}
+                  onChange={setDegree}
                   required 
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-semibold text-muted-foreground">{t("fieldOfStudy")}</label>
-                <Input 
+                <label className="text-xs font-semibold text-muted-foreground">{t("fieldOfStudy")} <span className="text-destructive">*</span></label>
+                <AutocompleteInput 
+                  suggestions={FIELDS_OF_STUDY}
                   placeholder={t("fieldPlaceholder")} 
                   value={fieldOfStudy}
-                  onChange={(e) => setFieldOfStudy(e.target.value)}
+                  onChange={setFieldOfStudy}
                   required 
                 />
               </div>
@@ -189,7 +194,7 @@ export default function EducationListClient({ token, userId }: EducationListClie
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-semibold text-muted-foreground">{t("startDate")}</label>
+                <label className="text-xs font-semibold text-muted-foreground">{t("startDate")} <span className="text-destructive">*</span></label>
                 <Input 
                   type="date"
                   value={startDate}

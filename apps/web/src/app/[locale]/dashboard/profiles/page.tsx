@@ -18,16 +18,17 @@ export default async function ProfilesPage() {
     const token = session?.access_token
 
     return (
-        <main className="flex w-full flex-1 flex-col gap-6 p-4">
-            <div className="flex items-center justify-between border-b pb-4">
-                <h1 className="text-2xl font-bold tracking-tight">{t('title')}</h1>
+        <main className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-4 md:p-6 w-full">
+            <div className="lg:col-span-7 space-y-6">
+                <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
+                {/* Optimistic form */}
+                <ProfileCreateForm token={token} userId={user.id} metaData={metaData} />
             </div>
             
-            {/* İyimser güncelleme (optimistic update) destekli form */}
-            <ProfileCreateForm token={token} userId={user.id} metaData={metaData} />
-            
-            {/* Server'dan gelen token ve userId prop olarak iletiliyor */}
+            <div className="lg:col-span-5 space-y-6">
+                {/* Profiles list */}
                 <ProfileListClient token={token} userId={user.id} />
+            </div>
         </main>
     )
 }

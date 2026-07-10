@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using ResumeXCreator.Domain.Enums;
 
 namespace ResumeXCreator.Domain.Entities;
 
@@ -21,7 +22,9 @@ public class Profile
   public bool ShowPhoto { get; set; }
   public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
   public string Location { get; set; } = string.Empty;
-
+  public List<string> Languages { get; set; } = [];
+  public MilitaryStatus MilitaryStatus { get; set; } = MilitaryStatus.None;
+  public DateTime? MilitaryPostponedUntil { get; set; }
   // Navigation Properties
   public User? User { get; set; }
   public ICollection<Resume> Resumes { get; set; } = [];
