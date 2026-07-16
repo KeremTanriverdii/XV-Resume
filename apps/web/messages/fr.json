@@ -10,6 +10,7 @@
     "createSubtitle": "Collez le lien vers la description du poste auquel vous postulez. Notre IA analysera les exigences et adaptera votre CV pour qu'il corresponde parfaitement.",
     "placeholderUrl": "https://linkedin.com/jobs/view/...",
     "btnStartAi": "Lancer l'IA",
+    "generating": "Génération...",
     "readyTitle": "Prêt à générer",
     "readySubtitle": "Une fois que vous aurez soumis un lien de poste ci-dessus, l'IA traitera les détails et commencera à construire votre CV personnalisé. Il apparaîtra automatiquement dans l'historique de la barre latérale.",
     "emptyState": {

@@ -10,6 +10,7 @@
     "createSubtitle": "Fügen Sie den Link zur Stellenbeschreibung ein, für die Sie sich bewerben. Unsere KI analysiert die Anforderungen und passt Ihren Lebenslauf perfekt an.",
     "placeholderUrl": "https://linkedin.com/jobs/view/...",
     "btnStartAi": "KI starten",
+    "generating": "Generiert...",
     "readyTitle": "Bereit zum Generieren",
     "readySubtitle": "Sobald Sie oben einen Link zur Stelle absenden, verarbeitet die KI die Details und beginnt mit der Erstellung Ihres maßgeschneiderten Lebenslaufs. Er wird automatisch in Ihrem Verlauf in der Seitenleiste angezeigt.",
     "emptyState": {

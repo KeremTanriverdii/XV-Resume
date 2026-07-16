@@ -10,6 +10,7 @@
     "createSubtitle": "応募する求人情報のリンクを貼り付けてください。当社のAIが要件を分析し、あなたの履歴書を完璧にマッチするように最適化します。",
     "placeholderUrl": "https://linkedin.com/jobs/view/...",
     "btnStartAi": "AIを開始",
+    "generating": "生成中...",
     "readyTitle": "作成の準備完了",
     "readySubtitle": "上の求人リンクを送信すると、AIが詳細を処理して最適化された履歴書の作成を開始します。サイドバーの履歴に自動的に表示されます。",
     "emptyState": {

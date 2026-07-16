@@ -10,6 +10,7 @@
     "createSubtitle": "Pega el enlace a la descripción del puesto al que aspiras. Nuestra IA analizará los requisitos y adaptará tu currículum para que encaje a la perfección.",
     "placeholderUrl": "https://linkedin.com/jobs/view/...",
     "btnStartAi": "Iniciar IA",
+    "generating": "Generando...",
     "readyTitle": "Listo para generar",
     "readySubtitle": "Una vez que envíes el enlace al puesto arriba, la IA procesará los detalles y comenzará a construir tu currículum personalizado. Aparecerá automáticamente en el historial de la barra lateral.",
     "emptyState": {

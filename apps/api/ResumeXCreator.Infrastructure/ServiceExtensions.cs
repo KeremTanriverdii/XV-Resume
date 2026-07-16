@@ -5,6 +5,7 @@ using ResumeXCreator.Domain.Entities;
 using ResumeXCreator.Domain.Interfaces;
 using ResumeXCreator.Infrastructure.Data;
 using ResumeXCreator.Infrastructure.Repositories;
+using ResumeXCreator.Infrastructure.Services;
 
 namespace ResumeXCreator.Infrastructure;
 
@@ -22,6 +23,10 @@ public static class ServiceExtensions
     services.AddScoped<IExperienceRepository, ExperienceRepository>();
     services.AddScoped<IProjectRepository, ProjectRepository>();
     services.AddScoped<IUserRepository, UserRepository>();
+    
+    // Register Gemini AI service with HttpClient
+    services.AddHttpClient<IAiService, GeminiAiService>();
+
     return services;
   }
 }

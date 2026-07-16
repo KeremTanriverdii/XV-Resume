@@ -10,6 +10,7 @@
     "createSubtitle": "Başvurduğunuz iş tanımının linkini yapıştırın. Yapay zekamız gereksinimleri analiz edecek ve özgeçmişinizi mükemmel şekilde eşleşecek şekilde uyarlayacaktır.",
     "placeholderUrl": "https://linkedin.com/jobs/view/...",
     "btnStartAi": "Yapay Zekayı Başlat",
+    "generating": "Oluşturuluyor...",
     "readyTitle": "Oluşturmaya Hazır",
     "readySubtitle": "Yukarıya bir iş ilanı bağlantısı gönderdiğinizde, yapay zeka ayrıntıları işleyecek ve özel özgeçmişinizi oluşturmaya başlayacaktır. Yan menü geçmişinizde otomatik olarak görünecektir.",
     "emptyState": {
@@ -219,5 +220,23 @@
     "dontHaveAccount": "Hesabınız yok mu?",
     "signUp": "Kayıt olun",
     "googleError": "Google giriş hatası:"
+  },
+  "resume": {
+    "title": "AI Özgeçmiş Önizleme",
+    "jobLink": "İş İlanı Bağlantısı",
+    "createdAt": "Oluşturulma Tarihi",
+    "version": "Sürüm",
+    "language": "Dil",
+    "regenerate": "Yeniden Oluştur (AI)",
+    "regenerating": "Yeniden Oluşturuluyor...",
+    "regenerateSuccess": "Yeni sürüm başarıyla oluşturuldu!",
+    "regenerateError": "Sürüm oluşturulurken bir hata oluştu.",
+    "preview": "Önizleme",
+    "summary": "Özet",
+    "experience": "İş Deneyimi",
+    "education": "Eğitim",
+    "skills": "Yetenekler",
+    "noTranslation": "Bu dil için oluşturulmuş içerik bulunmamaktadır.",
+    "backToDashboard": "Kontrol Paneline Dön"
   }
 }

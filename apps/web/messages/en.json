@@ -10,6 +10,7 @@
     "createSubtitle": "Paste the link to the job description you are applying for. Our AI will analyze the requirements and tailor your resume to perfectly match.",
     "placeholderUrl": "https://linkedin.com/jobs/view/...",
     "btnStartAi": "Start AI",
+    "generating": "Generating...",
     "readyTitle": "Ready to generate",
     "readySubtitle": "Once you submit a job link above, the AI will process the details and start building your tailored resume. It will automatically appear in your sidebar history.",
     "emptyState": {
@@ -219,5 +220,23 @@
     "dontHaveAccount": "Don't have an account?",
     "signUp": "Sign up",
     "googleError": "Google login error:"
+  },
+  "resume": {
+    "title": "AI Resume Preview",
+    "jobLink": "Job Link",
+    "createdAt": "Created At",
+    "version": "Version",
+    "language": "Language",
+    "regenerate": "Regenerate (AI)",
+    "regenerating": "Regenerating...",
+    "regenerateSuccess": "New version generated successfully!",
+    "regenerateError": "Error generating new version.",
+    "preview": "Preview",
+    "summary": "Summary",
+    "experience": "Work Experience",
+    "education": "Education",
+    "skills": "Skills",
+    "noTranslation": "No content generated for this language.",
+    "backToDashboard": "Back to Dashboard"
   }
 }

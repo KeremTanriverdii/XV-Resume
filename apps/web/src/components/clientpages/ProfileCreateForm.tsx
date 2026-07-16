@@ -453,7 +453,8 @@ export default function ProfileCreateForm({ token, userId, metaData }: ProfileCr
               <option value="Postponed">{t('militaryStatus.Postponed')}</option>
               <option value="Exempt">{t('militaryStatus.Exempt')}</option>
             </select>
-        {/* Conditional Date Picker for Military Postponed */}
+
+         {/* Conditional Date Picker for Military Postponed */}
         {militaryStatus === "Postponed" && (
           <div className="space-y-2 animate-in fade-in duration-200 ">
             <label className="text-sm font-medium">{t('militaryPostponed')}</label>
