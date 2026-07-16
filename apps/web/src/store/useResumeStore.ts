@@ -28,6 +28,7 @@ interface ResumeStore {
   // Actions
   addSession: (jobLink: string) => void;
   removeSession: (id: string) => void;
+  setSessions: (sessions: ResumeSession[]) => void;
 }
 
 export const useResumeStore = create<ResumeStore>()(
@@ -64,6 +65,7 @@ export const useResumeStore = create<ResumeStore>()(
       removeSession: (id) => set((state) => ({
         sessions: state.sessions.filter(s => s.id !== id)
       })),
+      setSessions: (sessions) => set({ sessions }),
     }),
     {
       name: 'resume-storage', // persists mock data to localStorage

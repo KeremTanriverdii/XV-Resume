@@ -15,7 +15,8 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { Link, useRouter, usePathname } from "@/i18n/routing"
-import { useResumeStore } from "@/store/useResumeStore"
+import { useResumeStore, ResumeSession } from "@/store/useResumeStore"
+import { fetchResumes } from "@/services/resumeService"
 import { 
   LayoutDashboard, 
   LayoutTemplate, 
@@ -46,9 +47,10 @@ import { useTheme } from "next-themes"
 import { useLocale, useTranslations } from "next-intl"
 
 export function AppSidebar() {
-  const { user } = useAuth()
+  const { user, session } = useAuth()
+  const token = session?.access_token
   const { theme, setTheme } = useTheme()
-  const { sessions } = useResumeStore()
+  const { sessions, setSessions } = useResumeStore()
   const router = useRouter()
   const pathname = usePathname()
   const locale = useLocale()
@@ -60,6 +62,24 @@ export function AppSidebar() {
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  useEffect(() => {
+    if (token) {
+      fetchResumes(token).then((resumes) => {
+        const mappedSessions: ResumeSession[] = resumes.map((r) => {
+          // Get the title from the first translation or use external link/fallback
+          const title = r.translations[0]?.title || r.externalJobLink || "Job Application";
+          return {
+            id: r.id,
+            jobTitle: title,
+            jobLink: r.externalJobLink,
+            createdAt: r.createdAt,
+          };
+        });
+        setSessions(mappedSessions);
+      });
+    }
+  }, [token, setSessions])
 
   const handleLogout = async () => {
     const supabase = createClient()

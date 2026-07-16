@@ -149,3 +149,35 @@ export interface CreateProfileDto {
   militaryStatus?: MilitaryStatus;
   militaryPostponedUntil?: string | null;
 }
+
+// --- RESUME TYPES ---
+export interface CreateResumeDto {
+  externalJobLink: string;
+  profileId?: string | null;
+  selectedLanguagesForGeneration?: string[];
+  resumeId?: string | null;
+}
+
+export interface ResumeTranslationDto {
+  id: string;
+  resumeId: string;
+  languageCode: string;
+  title: string;
+  summary: string;
+  experienceHtml: string;
+  educationHtml: string;
+  skillsHtml: string;
+  version: number;
+  createdAt: string;
+}
+
+export interface ResumeDto {
+  id: string;
+  profileId?: string | null;
+  externalJobLink: string;
+  jobDescription: string;
+  createdAt: string;
+  translations: ResumeTranslationDto[];
+  profile?: Profile | null;
+}
+

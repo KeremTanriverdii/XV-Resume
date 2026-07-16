@@ -9,10 +9,14 @@ using ResumeXCreator.Services.DTOs;
 
 namespace ResumeXCreator.Services;
 
-public class ResumeService(IResumeRepository resumeRepository, IProfileRepository profileRepository) : IResumeService
+public class ResumeService(
+    IResumeRepository resumeRepository,
+    IProfileRepository profileRepository,
+    IAiService aiService) : IResumeService
 {
   private readonly IResumeRepository _resumeRepository = resumeRepository;
   private readonly IProfileRepository _profileRepository = profileRepository;
+  private readonly IAiService _aiService = aiService;
 
   public async Task<IEnumerable<ResumeDto>> GetAllResumesAsync()
   {
@@ -44,12 +48,89 @@ public class ResumeService(IResumeRepository resumeRepository, IProfileRepositor
     return MapToDto(resume);
   }
 
+  private static AiProfileInput MapToAiProfileInput(Profile p) => new()
+  {
+    FullName = p.FullName,
+    Title = p.Title,
+    Summary = p.Summary,
+    Email = p.Email,
+    Phone = p.Phone,
+    Location = p.Location,
+    Skills = p.Skills ?? [],
+    Experiences = p.ProfileExperiences?
+        .OrderBy(pe => pe.SortOrder)
+        .Select(pe => new AiExperienceInput
+        {
+          CompanyName = pe.Experience?.CompanyName ?? string.Empty,
+          Role = pe.Experience?.Role ?? string.Empty,
+          StartDate = pe.Experience?.StartDate.ToString("yyyy-MM") ?? string.Empty,
+          EndDate = pe.Experience?.EndDate?.ToString("yyyy-MM") ?? (pe.Experience?.IsOngoing == true ? "Present" : string.Empty),
+          Description = pe.Experience?.Description ?? string.Empty
+        }).ToList() ?? [],
+    Educations = p.ProfileEducations?
+        .OrderBy(pe => pe.SortOrder)
+        .Select(pe => new AiEducationInput
+        {
+          SchoolName = pe.Education?.SchoolName ?? string.Empty,
+          Degree = pe.Education?.Degree ?? string.Empty,
+          FieldOfStudy = pe.Education?.FieldOfStudy ?? string.Empty,
+          StartDate = pe.Education?.StartDate.ToString("yyyy-MM") ?? string.Empty,
+          EndDate = pe.Education?.EndDate?.ToString("yyyy-MM") ?? (pe.Education?.IsOngoing == true ? "Present" : string.Empty),
+          GPA = pe.Education?.GPA ?? string.Empty
+        }).ToList() ?? [],
+    Projects = p.ProfileProjects?
+        .OrderBy(pp => pp.SortOrder)
+        .Select(pp => new AiProjectInput
+        {
+          Title = pp.Project?.ProjectTitle ?? string.Empty,
+          Description = pp.Project?.Description ?? string.Empty,
+          TechologiesUsed = string.IsNullOrWhiteSpace(pp.Project?.TechologiesUsed) ? [] : pp.Project.TechologiesUsed.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList()
+        }).ToList() ?? []
+  };
+
+  private static AiProfileInput MapManualToAiProfileInput(ManualProfileDataDto manual) => new()
+  {
+    FullName = manual.FullName,
+    Title = manual.Title,
+    Summary = manual.Summary,
+    Email = manual.Email,
+    Phone = manual.Phone,
+    Location = string.Empty,
+    Skills = manual.Skills ?? [],
+    Experiences = manual.Experiences?
+        .Select(de => new AiExperienceInput
+        {
+          CompanyName = de.CompanyName,
+          Role = de.Role,
+          StartDate = de.StartDate.ToString("yyyy-MM"),
+          EndDate = de.EndDate?.ToString("yyyy-MM") ?? (de.IsOngoing ? "Present" : string.Empty),
+          Description = de.Description
+        }).ToList() ?? [],
+    Educations = manual.Educations?
+        .Select(de => new AiEducationInput
+        {
+          SchoolName = de.SchoolName,
+          Degree = de.Degree,
+          FieldOfStudy = de.FieldOfStudy,
+          StartDate = de.StartDate.ToString("yyyy-MM"),
+          EndDate = de.EndDate?.ToString("yyyy-MM") ?? (de.IsOngoing ? "Present" : string.Empty),
+          GPA = de.GPA ?? string.Empty
+        }).ToList() ?? [],
+    Projects = manual.Projects?
+        .Select(de => new AiProjectInput
+        {
+          Title = de.Title,
+          Description = de.Description,
+          TechologiesUsed = string.IsNullOrWhiteSpace(de.TechologiesUsed) ? [] : de.TechologiesUsed.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList()
+        }).ToList() ?? []
+  };
+
   /// <summary>
   /// CV Generation Process:
   /// 1. Validation (ExternalJobLink required, exactly 1 profile source)
   /// 2. Profile resolution (existing / new / manual)
   /// 3. Authorization check (if ProfileId is given, is it owned?)
-  /// 4. AI integration (TODO: read job description + generate CV)
+  /// 4. AI integration (read job description + generate CV)
   /// 5. Save Resume + ResumeTranslation and return
   /// </summary>
   public async Task<ResumeDto> GenerateResumeAsync(CreateResumeDto dto, string authenticatedUserId)
@@ -73,8 +154,19 @@ public class ResumeService(IResumeRepository resumeRepository, IProfileRepositor
           ? dto.SelectedLanguagesForGeneration
           : ["en"];
 
-      var existingFullName = existingResume.Profile?.FullName ?? "User";
-      var existingTitle = existingResume.Profile?.Title ?? "Resume";
+      Profile? detailedProfile = null;
+      if (existingResume.ProfileId.HasValue)
+      {
+        detailedProfile = await _profileRepository.GetWithDetailsByIdAsync(existingResume.ProfileId.Value);
+      }
+
+      AiProfileInput aiProfile = detailedProfile != null
+          ? MapToAiProfileInput(detailedProfile)
+          : new AiProfileInput
+          {
+            FullName = existingResume.Profile?.FullName ?? "User",
+            Title = existingResume.Profile?.Title ?? "Professional"
+          };
 
       foreach (var lang in langs)
       {
@@ -86,17 +178,19 @@ public class ResumeService(IResumeRepository resumeRepository, IProfileRepositor
 
         var nextVersion = currentMaxVersion + 1;
 
-        // TODO(AI-Integration): Mevcut CV oturumuna bağlı olarak revizyon üretimi
+        // Generate customized CV using Gemini API
+        var aiResult = await _aiService.GenerateResumeTranslationAsync(existingResume.ExternalJobLink, aiProfile, lang);
+
         existingResume.Translations.Add(new ResumeTranslation
         {
           ResumeId = existingResume.Id,
           LanguageCode = lang,
           Version = nextVersion,
-          Title = $"{existingFullName} - {existingTitle} v{nextVersion} ({lang.ToUpper()})",
-          Summary = $"[AI-PLACEHOLDER] Generated summary v{nextVersion} in {lang} for {existingFullName}",
-          ExperienceHtml = $"<p>[AI-PLACEHOLDER] Experience HTML v{nextVersion} in {lang}</p>",
-          EducationHtml = $"<p>[AI-PLACEHOLDER] Education HTML v{nextVersion} in {lang}</p>",
-          SkillsHtml = $"<p>[AI-PLACEHOLDER] Skills HTML v{nextVersion} in {lang}</p>",
+          Title = aiResult.Title,
+          Summary = aiResult.Summary,
+          ExperienceHtml = aiResult.ExperienceHtml,
+          EducationHtml = aiResult.EducationHtml,
+          SkillsHtml = aiResult.SkillsHtml,
           CreatedAt = DateTime.UtcNow
         });
       }
@@ -122,8 +216,6 @@ public class ResumeService(IResumeRepository resumeRepository, IProfileRepositor
     // ── 2. Profile Resolution ──
     Profile? profile = null;
     Guid? savedProfileId = null;
-    string profileTitle;
-    string profileFullName;
 
     if (dto.ProfileId.HasValue)
     {
@@ -137,8 +229,6 @@ public class ResumeService(IResumeRepository resumeRepository, IProfileRepositor
         throw new UnauthorizedAccessException("You do not have permission to access this profile.");
 
       savedProfileId = profile.Id;
-      profileTitle = profile.Title;
-      profileFullName = profile.FullName;
     }
     else if (dto.NewProfile != null)
     {
@@ -168,16 +258,6 @@ public class ResumeService(IResumeRepository resumeRepository, IProfileRepositor
       await _profileRepository.SaveChangesAsync();
 
       savedProfileId = profile.Id;
-      profileTitle = profile.Title;
-      profileFullName = profile.FullName;
-    }
-    else
-    {
-      // Scenario C: Manual Data
-      var manual = dto.ManualProfileData!;
-      savedProfileId = null; // Profile is not saved to DB.
-      profileTitle = manual.Title;
-      profileFullName = manual.FullName;
     }
 
     // ── 4. Create Resume ──
@@ -186,33 +266,33 @@ public class ResumeService(IResumeRepository resumeRepository, IProfileRepositor
       Id = Guid.NewGuid(),
       ProfileId = savedProfileId,
       ExternalJobLink = dto.ExternalJobLink,
-      JobDescription = "Pending AI processing", // TODO(AI-Integration): Will be updated later.
+      JobDescription = "Pending AI processing",
       CreatedAt = DateTime.UtcNow
     };
 
-    // ── 5. AI Generation (TODO) ──
+    // ── 5. AI Generation ──
     var targetLanguages = dto.SelectedLanguagesForGeneration?.Count > 0
         ? dto.SelectedLanguagesForGeneration
         : ["en"];
 
+    AiProfileInput aiProfileInput = profile != null
+        ? MapToAiProfileInput(profile)
+        : MapManualToAiProfileInput(dto.ManualProfileData!);
+
     foreach (var lang in targetLanguages)
     {
-      // TODO(AI-Integration): 
-      //   1. Parse job description from ExternalJobLink (scraping/API)
-      //   2. Send job description + profile data (experience/education/skills) to AI
-      //   3. Save AI-generated CV content to ResumeTranslation
-      //
-      // Placeholder data is currently used:
+      var aiResult = await _aiService.GenerateResumeTranslationAsync(dto.ExternalJobLink, aiProfileInput, lang);
+
       resume.Translations.Add(new ResumeTranslation
       {
         ResumeId = resume.Id,
         LanguageCode = lang,
         Version = 1,
-        Title = $"{profileFullName} - {profileTitle} ({lang.ToUpper()})",
-        Summary = $"[AI-PLACEHOLDER] Generated summary in {lang} for {profileFullName}",
-        ExperienceHtml = $"<p>[AI-PLACEHOLDER] Experience HTML in {lang}</p>",
-        EducationHtml = $"<p>[AI-PLACEHOLDER] Education HTML in {lang}</p>",
-        SkillsHtml = $"<p>[AI-PLACEHOLDER] Skills HTML in {lang}</p>",
+        Title = aiResult.Title,
+        Summary = aiResult.Summary,
+        ExperienceHtml = aiResult.ExperienceHtml,
+        EducationHtml = aiResult.EducationHtml,
+        SkillsHtml = aiResult.SkillsHtml,
         CreatedAt = DateTime.UtcNow
       });
     }
