@@ -13,7 +13,9 @@ export default function LoginPage(){
     {/* Logo veya Başlık */}
     <div className="flex items-center justify-center gap-3 mb-8">
         <Image src="/logo.png" alt="Logo" width={40} height={40} className="rounded-full border" />
-        <span className="font-bold text-3xl tracking-tight">ResumeXCreator</span>
+        <span className="font-extrabold text-3xl tracking-tight text-zinc-900 dark:text-zinc-100">
+          XV<span className="text-emerald-500 font-medium">Resume</span>
+        </span>
     </div>
     
     <div className="p-8 border rounded-2xl bg-card">

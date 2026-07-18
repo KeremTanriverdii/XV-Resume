@@ -7,8 +7,8 @@ import { Providers } from '../providers';
 import { AuthProvider } from '@/providers/AuthProvider';
 
 export const metadata = {
-  title: 'Welcome to ResumeXCreator',
-  description: 'AI powered resume creator',
+  title: 'XV Resume - AI Powered Resume Creator',
+  description: 'Create your professional ATS-optimized resume per job post using AI.',
 }
 
 export default async function RootLayout({

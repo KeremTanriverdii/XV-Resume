@@ -11,4 +11,5 @@ public record ResumeDto
   public string JobDescription { get; init; } = string.Empty;
   public DateTime CreatedAt { get; init; }
   public List<ResumeTranslationDto> Translations { get; init; } = [];
+  public ProfileDto? Profile { get; init; }
 }

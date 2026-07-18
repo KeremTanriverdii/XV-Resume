@@ -37,7 +37,13 @@ export default function DashboardPage() {
       
       if (result) {
         // Add to Zustand store to sync immediately (the sidebar mount effect will also sync)
-        addSession(jobLink);
+        const title = result.translations[0]?.title || result.externalJobLink || 'Job Application';
+        addSession({
+          id: result.id,
+          jobTitle: title,
+          jobLink: result.externalJobLink,
+          createdAt: result.createdAt,
+        });
         setJobLink('');
         setSelectedProfileId(null);
         // Navigate to the newly generated resume session

@@ -1,5 +1,5 @@
-"use client";
-import { Button } from "@/components/ui/button"
+'use client';
+import { Button } from '@/components/ui/button';
 import {
   Sheet,
   SheetClose,
@@ -9,25 +9,36 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@/components/ui/sheet"
-import { useProfiles } from "@/hooks/useProfile"
-import { useState, useEffect } from "react"
-import { Loader2, Mail, Phone, MapPin, Sparkles, FolderGit2, Link2, X } from "lucide-react"
-import { Experience } from "@/types";
-import { useTranslations } from "next-intl"
+} from '@/components/ui/sheet';
+import { useProfiles } from '@/hooks/useProfile';
+import { useState, useEffect } from 'react';
+import {
+  Loader2,
+  Mail,
+  Phone,
+  MapPin,
+  Sparkles,
+  FolderGit2,
+  Link2,
+  X,
+} from 'lucide-react';
+import { Experience } from '@/types';
+import { useTranslations } from 'next-intl';
 
 export function SelectProfile({
   token,
   selectedProfileId,
-  onSelect
+  onSelect,
 }: {
-  token: string | undefined
-  selectedProfileId: string | null
-  onSelect: (id: string | null) => void
+  token: string | undefined;
+  selectedProfileId: string | null;
+  onSelect: (id: string | null) => void;
 }) {
-  const t = useTranslations("profiles");
+  const t = useTranslations('profiles');
   const { data: profiles, isLoading, error } = useProfiles(token!);
-  const [tempSelectedId, setTempSelectedId] = useState<string | null>(selectedProfileId);
+  const [tempSelectedId, setTempSelectedId] = useState<string | null>(
+    selectedProfileId,
+  );
 
   // Keep state in sync with external changes
   useEffect(() => {
@@ -36,42 +47,52 @@ export function SelectProfile({
 
   if (isLoading) {
     return (
-      <Button variant="outline" disabled className="w-full max-w-xl gap-2 rounded-full py-6">
+      <Button
+        variant="outline"
+        disabled
+        className="w-full max-w-xl gap-2 rounded-full py-6"
+      >
         <Loader2 className="h-4 w-4 animate-spin" />
         {t('loading')}
       </Button>
-    )
+    );
   }
 
   if (error) {
-    return <div className="text-sm text-destructive font-medium w-full max-w-xl text-center py-4 border border-dashed rounded-2xl">{t('error')}</div>
+    return (
+      <div className="text-sm text-destructive font-medium w-full max-w-xl text-center py-4 border border-dashed rounded-2xl">
+        {t('error')}
+      </div>
+    );
   }
 
   if (!profiles || profiles.length === 0) {
     return (
-      <Button variant="outline" disabled className="w-full max-w-xl rounded-full py-6">
+      <Button
+        variant="outline"
+        disabled
+        className="w-full max-w-xl rounded-full py-6"
+      >
         {t('notFound')}
       </Button>
-    )
+    );
   }
 
-  const selectedProfile = profiles.find(p => p.id === selectedProfileId);
-console.log(profiles)
+  const selectedProfile = profiles.find((p) => p.id === selectedProfileId);
   return (
     <Sheet>
       <SheetTrigger asChild>
         {selectedProfile ? (
           <div className="w-full max-w-xl cursor-pointer group/card text-left">
             <div className="relative flex flex-col border border-border/80 rounded-2xl p-6 bg-card hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300">
-              
               {/* Deselect / Reset Button */}
-              <Button 
-                variant="ghost" 
-                size="icon" 
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={(e) => {
                   e.stopPropagation(); // Prevent opening the sheet
                   onSelect(null);
-                }} 
+                }}
                 className="absolute top-4 right-4 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full transition-colors cursor-pointer"
                 title={t('notFound')}
               >
@@ -132,8 +153,8 @@ console.log(profiles)
                     <span>{t('skills')}</span>
                   </div>
                   {selectedProfile.skills.slice(0, 6).map((skill, idx) => (
-                    <span 
-                      key={idx} 
+                    <span
+                      key={idx}
                       className="px-2 py-0.5 bg-muted text-muted-foreground text-[10px] font-medium rounded-md border border-border/60"
                     >
                       {skill}
@@ -148,54 +169,62 @@ console.log(profiles)
               )}
 
               {/* Projects Summary */}
-              {selectedProfile.projects && selectedProfile.projects.length > 0 && (
-                <div className="mt-4 flex flex-wrap gap-1.5">
-                  <div className="flex items-center gap-1 text-[10px] uppercase tracking-wider font-semibold text-muted-foreground w-full mb-1">
-                    <FolderGit2 className="h-3 w-3 text-blue-500" />
-                    <span>{t('projects')}</span>
+              {selectedProfile.projects &&
+                selectedProfile.projects.length > 0 && (
+                  <div className="mt-4 flex flex-wrap gap-1.5">
+                    <div className="flex items-center gap-1 text-[10px] uppercase tracking-wider font-semibold text-muted-foreground w-full mb-1">
+                      <FolderGit2 className="h-3 w-3 text-blue-500" />
+                      <span>{t('projects')}</span>
+                    </div>
+                    {selectedProfile.projects
+                      .slice(0, 3)
+                      .map((project: any, idx: number) => (
+                        <span
+                          key={idx}
+                          className="px-2 py-0.5 bg-blue-500/5 text-blue-600 dark:text-blue-400 text-[10px] font-medium rounded-md border border-blue-500/10"
+                        >
+                          {project.title}
+                        </span>
+                      ))}
+                    {selectedProfile.projects.length > 3 && (
+                      <span className="text-[10px] text-muted-foreground font-medium pl-1 self-center">
+                        +{selectedProfile.projects.length - 3} {t('more')}
+                      </span>
+                    )}
                   </div>
-                  {selectedProfile.projects.slice(0, 3).map((project: any, idx: number) => (
-                    <span 
-                      key={idx} 
-                      className="px-2 py-0.5 bg-blue-500/5 text-blue-600 dark:text-blue-400 text-[10px] font-medium rounded-md border border-blue-500/10"
-                    >
-                      {project.title}
-                    </span>
-                  ))}
-                  {selectedProfile.projects.length > 3 && (
-                    <span className="text-[10px] text-muted-foreground font-medium pl-1 self-center">
-                      +{selectedProfile.projects.length - 3} {t('more')}
-                    </span>
-                  )}
-                </div>
-              )}
+                )}
 
               {/* Social Links Summary */}
-              {selectedProfile.socialLinks && selectedProfile.socialLinks.length > 0 && (
-                <div className="mt-4 flex flex-wrap gap-1.5">
-                  <div className="flex items-center gap-1 text-[10px] uppercase tracking-wider font-semibold text-muted-foreground w-full mb-1">
-                    <Link2 className="h-3 w-3 text-cyan-500" />
-                    <span>{t('links')}</span>
+              {selectedProfile.socialLinks &&
+                selectedProfile.socialLinks.length > 0 && (
+                  <div className="mt-4 flex flex-wrap gap-1.5">
+                    <div className="flex items-center gap-1 text-[10px] uppercase tracking-wider font-semibold text-muted-foreground w-full mb-1">
+                      <Link2 className="h-3 w-3 text-cyan-500" />
+                      <span>{t('links')}</span>
+                    </div>
+                    {selectedProfile.socialLinks.map(
+                      (link: string, idx: number) => {
+                        let label = link;
+                        try {
+                          const url = new URL(
+                            link.startsWith('http') ? link : `https://${link}`,
+                          );
+                          label = url.hostname.replace('www.', '');
+                        } catch {}
+                        return (
+                          <span
+                            key={idx}
+                            className="px-2 py-0.5 bg-cyan-500/5 text-cyan-600 dark:text-cyan-400 text-[10px] font-medium rounded-md border border-cyan-500/10 max-w-[120px] truncate"
+                            title={link}
+                          >
+                            {label}
+                          </span>
+                        );
+                      },
+                    )}
                   </div>
-                  {selectedProfile.socialLinks.map((link: string, idx: number) => {
-                    let label = link;
-                    try {
-                      const url = new URL(link.startsWith('http') ? link : `https://${link}`);
-                      label = url.hostname.replace('www.', '');
-                    } catch {}
-                    return (
-                      <span 
-                        key={idx} 
-                        className="px-2 py-0.5 bg-cyan-500/5 text-cyan-600 dark:text-cyan-400 text-[10px] font-medium rounded-md border border-cyan-500/10 max-w-[120px] truncate"
-                        title={link}
-                      >
-                        {label}
-                      </span>
-                    );
-                  })}
-                </div>
-              )}
-              
+                )}
+
               <div className="mt-5 text-right w-full">
                 <span className="text-[10px] font-semibold text-primary group-hover/card:underline">
                   {t('changeProfile')} &rarr;
@@ -204,7 +233,10 @@ console.log(profiles)
             </div>
           </div>
         ) : (
-          <Button variant="outline" className="w-full max-w-xl rounded-full py-6 border-dashed border-2 hover:border-primary/50 hover:bg-primary/5 transition-all text-base cursor-pointer">
+          <Button
+            variant="outline"
+            className="w-full max-w-xl rounded-full py-6 border-dashed border-2 hover:border-primary/50 hover:bg-primary/5 transition-all text-base cursor-pointer"
+          >
             + {t('selectProfileForResume')}
           </Button>
         )}
@@ -212,11 +244,9 @@ console.log(profiles)
       <SheetContent className="flex flex-col h-full w-full sm:max-w-2xl data-[state=open]:duration-700 data-[state=open]:delay-150">
         <SheetHeader className="pb-4 border-b px-6 sm:px-8">
           <SheetTitle>{t('selectProfileForResume')}</SheetTitle>
-          <SheetDescription>
-            {t('selectProfileDesc')}
-          </SheetDescription>
+          <SheetDescription>{t('selectProfileDesc')}</SheetDescription>
         </SheetHeader>
-        
+
         {/* Scrollable list container */}
         <div className="flex-1 overflow-y-auto my-3 px-6 sm:px-6 gap-4 grid grid-cols-1 sm:grid-cols-2 min-h-0 p-1 content-start">
           {profiles.map((profile) => {
@@ -227,9 +257,9 @@ console.log(profiles)
                 type="button"
                 onClick={() => setTempSelectedId(profile.id)}
                 className={`w-full text-left p-4 border rounded-2xl transition-all hover:bg-muted/50 cursor-pointer flex flex-col gap-2 group ${
-                  isSelected 
-                    ? "border-primary bg-primary/5 ring-1 ring-primary" 
-                    : "border-border bg-card"
+                  isSelected
+                    ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                    : 'border-border bg-card'
                 }`}
               >
                 {/* Header Row: Title & Photo */}
@@ -240,12 +270,12 @@ console.log(profiles)
                     </h4>
                   </div>
                   {profile.showPhoto && profile.photoUrl && (
-                    <img 
-                      src={profile.photoUrl} 
-                      alt={profile.fullName} 
-                      className="h-10 w-10 rounded-md object-cover border border-border/80 shadow-xs shrink-0" 
+                    <img
+                      src={profile.photoUrl}
+                      alt={profile.fullName}
+                      className="h-10 w-10 rounded-md object-cover border border-border/80 shadow-xs shrink-0"
                       onError={(e) => {
-                        e.currentTarget.style.display = "none";
+                        e.currentTarget.style.display = 'none';
                       }}
                     />
                   )}
@@ -263,7 +293,7 @@ console.log(profiles)
                       {profile.title}
                     </p>
                   )}
-                  
+
                   {/* Languages */}
                   {profile.languages && profile.languages.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-1 items-center">
@@ -271,7 +301,10 @@ console.log(profiles)
                         Langs:
                       </span>
                       {profile.languages.map((lang) => (
-                        <span key={lang} className="text-[9px] font-bold uppercase tracking-wider bg-primary/10 text-primary px-1.5 py-0.5 rounded border border-primary/20">
+                        <span
+                          key={lang}
+                          className="text-[9px] font-bold uppercase tracking-wider bg-primary/10 text-primary px-1.5 py-0.5 rounded border border-primary/20"
+                        >
                           {lang}
                         </span>
                       ))}
@@ -279,14 +312,22 @@ console.log(profiles)
                   )}
 
                   {/* Postponed Status if applicable */}
-                  {profile.militaryStatus === "Postponed" && profile.militaryPostponedUntil && (
-                    <div className="mt-2 text-[10px] text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20 py-0.5 px-2 rounded-full w-fit flex items-center gap-1">
-                      <span>🛡️</span>
-                      <span>
-                        {t('militaryStatus.Postponed') || "Postponed"}: {new Date(profile.militaryPostponedUntil).toLocaleDateString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit' })}
-                      </span>
-                    </div>
-                  )}
+                  {profile.militaryStatus === 'Postponed' &&
+                    profile.militaryPostponedUntil && (
+                      <div className="mt-2 text-[10px] text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20 py-0.5 px-2 rounded-full w-fit flex items-center gap-1">
+                        <span>🛡️</span>
+                        <span>
+                          {t('militaryStatus.Postponed') || 'Postponed'}:{' '}
+                          {new Date(
+                            profile.militaryPostponedUntil,
+                          ).toLocaleDateString(undefined, {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                          })}
+                        </span>
+                      </div>
+                    )}
                 </div>
               </button>
             );
@@ -295,8 +336,8 @@ console.log(profiles)
 
         <SheetFooter className="pt-4 border-t gap-2 sm:gap-0 mt-auto px-6 sm:px-8">
           <SheetClose asChild>
-            <Button 
-              type="button" 
+            <Button
+              type="button"
               onClick={() => onSelect(tempSelectedId)}
               className="w-full sm:w-auto"
             >
@@ -306,5 +347,5 @@ console.log(profiles)
         </SheetFooter>
       </SheetContent>
     </Sheet>
-  )
+  );
 }

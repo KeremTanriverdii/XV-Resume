@@ -56,6 +56,11 @@ public class ResumeService(
     Email = p.Email,
     Phone = p.Phone,
     Location = p.Location,
+    MilitaryStatus = p.MilitaryStatus.ToString(),
+    PostponedUntil = p.MilitaryPostponedUntil?.ToString("yyyy-MM-dd"),
+    PhotoUrl = p.ShowPhoto ? p.PhotoUrl : null,
+    Languages = p.Languages ?? [],
+    SocialLinks = string.Join("\n", p.SocialLinks ?? []),
     Skills = p.Skills ?? [],
     Experiences = p.ProfileExperiences?
         .OrderBy(pe => pe.SortOrder)
@@ -84,7 +89,9 @@ public class ResumeService(
         {
           Title = pp.Project?.ProjectTitle ?? string.Empty,
           Description = pp.Project?.Description ?? string.Empty,
-          TechologiesUsed = string.IsNullOrWhiteSpace(pp.Project?.TechologiesUsed) ? [] : pp.Project.TechologiesUsed.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList()
+          TechologiesUsed = string.IsNullOrWhiteSpace(pp.Project?.TechologiesUsed) ? [] : pp.Project.TechologiesUsed.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList(),
+          Links = pp.Project?.Links,
+          RepositoryUrl = pp.Project?.RepositoryUrl
         }).ToList() ?? []
   };
 
@@ -96,6 +103,11 @@ public class ResumeService(
     Email = manual.Email,
     Phone = manual.Phone,
     Location = string.Empty,
+    MilitaryStatus = string.Empty,
+    PostponedUntil = string.Empty,
+    PhotoUrl = string.Empty,
+    Languages = [],
+    SocialLinks = manual.SocialLinks ?? string.Empty,
     Skills = manual.Skills ?? [],
     Experiences = manual.Experiences?
         .Select(de => new AiExperienceInput
@@ -180,6 +192,7 @@ public class ResumeService(
 
         // Generate customized CV using Gemini API
         var aiResult = await _aiService.GenerateResumeTranslationAsync(existingResume.ExternalJobLink, aiProfile, lang);
+        existingResume.JobDescription = aiResult.ScrapedJobDescription;
 
         existingResume.Translations.Add(new ResumeTranslation
         {
@@ -191,6 +204,10 @@ public class ResumeService(
           ExperienceHtml = aiResult.ExperienceHtml,
           EducationHtml = aiResult.EducationHtml,
           SkillsHtml = aiResult.SkillsHtml,
+          LanguagesHtml = aiResult.LanguagesHtml,
+          ProjectsHtml = aiResult.ProjectsHtml,
+          MatchPercentage = aiResult.MatchPercentage,
+          AtsFeedback = aiResult.AtsFeedback,
           CreatedAt = DateTime.UtcNow
         });
       }
@@ -251,7 +268,11 @@ public class ResumeService(
         SocialLinks = newProfile.SocialLinks,
         PhotoUrl = newProfile.PhotoUrl,
         ShowPhoto = newProfile.ShowPhoto,
-        CreatedAt = DateTime.UtcNow
+        CreatedAt = DateTime.UtcNow,
+        Location = newProfile.Location,
+        Languages = newProfile.Languages,
+        MilitaryStatus = newProfile.MilitaryStatus ?? Domain.Enums.MilitaryStatus.None,
+        MilitaryPostponedUntil = newProfile.MilitaryPostponedUntil
       };
 
       await _profileRepository.AddAsync(profile);
@@ -282,6 +303,7 @@ public class ResumeService(
     foreach (var lang in targetLanguages)
     {
       var aiResult = await _aiService.GenerateResumeTranslationAsync(dto.ExternalJobLink, aiProfileInput, lang);
+      resume.JobDescription = aiResult.ScrapedJobDescription;
 
       resume.Translations.Add(new ResumeTranslation
       {
@@ -293,6 +315,10 @@ public class ResumeService(
         ExperienceHtml = aiResult.ExperienceHtml,
         EducationHtml = aiResult.EducationHtml,
         SkillsHtml = aiResult.SkillsHtml,
+        LanguagesHtml = aiResult.LanguagesHtml,
+        ProjectsHtml = aiResult.ProjectsHtml,
+        MatchPercentage = aiResult.MatchPercentage,
+        AtsFeedback = aiResult.AtsFeedback,
         CreatedAt = DateTime.UtcNow
       });
     }
@@ -311,6 +337,7 @@ public class ResumeService(
     ExternalJobLink = r.ExternalJobLink,
     JobDescription = r.JobDescription,
     CreatedAt = r.CreatedAt,
+    Profile = MapProfileToDto(r.Profile),
     Translations = [.. r.Translations.Select(t => new ResumeTranslationDto
     {
       Id = t.Id,
@@ -321,8 +348,78 @@ public class ResumeService(
       ExperienceHtml = t.ExperienceHtml,
       EducationHtml = t.EducationHtml,
       SkillsHtml = t.SkillsHtml,
+      LanguagesHtml = t.LanguagesHtml,
+      ProjectsHtml = t.ProjectsHtml,
+      MatchPercentage = t.MatchPercentage,
+      AtsFeedback = t.AtsFeedback,
       Version = t.Version,
       CreatedAt = t.CreatedAt
     })]
   };
+
+  private static ProfileDto? MapProfileToDto(Profile? p)
+  {
+    if (p == null) return null;
+    return new ProfileDto
+    {
+      Id = p.Id,
+      UserId = p.UserId,
+      ProfileName = p.ProfileName,
+      FullName = p.FullName,
+      Title = p.Title,
+      Summary = p.Summary,
+      Email = p.Email,
+      Phone = p.Phone,
+      ExperienceJson = p.ExperienceJson,
+      EducationJson = p.EducationJson,
+      Skills = p.Skills,
+      SocialLinks = p.SocialLinks,
+      PhotoUrl = p.PhotoUrl,
+      ShowPhoto = p.ShowPhoto,
+      CreatedAt = p.CreatedAt,
+      Location = p.Location,
+      Languages = p.Languages,
+      MilitaryStatus = p.MilitaryStatus,
+      MilitaryPostponedUntil = p.MilitaryPostponedUntil,
+      Projects = p.ProfileProjects?
+        .OrderBy(pp => pp.SortOrder)
+        .Select(pp => new ProjectDto
+        {
+          Id = pp.ProjectId,
+          ProfileId = pp.ProfileId,
+          Title = pp.Project?.ProjectTitle ?? string.Empty,
+          Description = pp.Project?.Description ?? string.Empty,
+          TechologiesUsed = pp.Project?.TechologiesUsed,
+          Links = pp.Project?.Links,
+          RepositoryUrl = pp.Project?.RepositoryUrl
+        }).ToList() ?? [],
+      Educations = p.ProfileEducations?
+        .OrderBy(pe => pe.SortOrder)
+        .Select(pe => new EducationDto
+        {
+          Id = pe.EducationId,
+          ProfileId = pe.ProfileId,
+          SchoolName = pe.Education?.SchoolName ?? string.Empty,
+          Degree = pe.Education?.Degree ?? string.Empty,
+          FieldOfStudy = pe.Education?.FieldOfStudy ?? string.Empty,
+          StartDate = pe.Education?.StartDate ?? DateTime.MinValue,
+          EndDate = pe.Education?.EndDate ?? DateTime.MinValue,
+          GPA = pe.Education?.GPA
+        }).ToList() ?? [],
+      Experiences = p.ProfileExperiences?
+        .OrderBy(pe => pe.SortOrder)
+        .Select(pe => new ExperienceDto
+        {
+          Id = pe.ExperienceId,
+          ProfileId = pe.ProfileId,
+          CompanyName = pe.Experience?.CompanyName ?? string.Empty,
+          Role = pe.Experience?.Role ?? string.Empty,
+          StartDate = pe.Experience?.StartDate ?? DateTime.MinValue,
+          EndDate = pe.Experience?.EndDate ?? DateTime.MinValue,
+          Description = pe.Experience?.Description ?? string.Empty,
+          LogoUrl = pe.Experience?.LogoUrl,
+          Location = pe.Experience?.Location
+        }).ToList() ?? []
+    };
+  }
 }

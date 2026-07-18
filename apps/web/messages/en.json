@@ -1,6 +1,6 @@
 {
   "Index": {
-    "title": "ResumeXCreator"
+    "title": "XV Resume"
   },
   "Dashboard": {
     "title": "My Resumes",
@@ -26,7 +26,7 @@
     "heroSubtitle": "Stand out from the crowd. Our AI-powered resume builder tailors your experience to perfectly match the job description.",
     "ctaCreate": "Create Resume Now",
     "ctaSecondary": "View Templates",
-    "featuresTitle": "Why Choose ResumeXCreator?",
+    "featuresTitle": "Why Choose XV Resume?",
     "feature1Title": "AI Tailoring",
     "feature1Desc": "Automatically align your skills with the job description.",
     "feature2Title": "ATS Friendly",
@@ -236,6 +236,15 @@
     "experience": "Work Experience",
     "education": "Education",
     "skills": "Skills",
+    "projects": "Projects",
+    "languages": "Languages",
+    "military": "Military Status",
+    "militaryStatus": {
+      "None": "Not Specified",
+      "Completed": "Completed",
+      "Postponed": "Postponed",
+      "Exempt": "Exempt"
+    },
     "noTranslation": "No content generated for this language.",
     "backToDashboard": "Back to Dashboard"
   }

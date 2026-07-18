@@ -65,9 +65,13 @@ public class GeminiAiService : IAiService
             summary = new { type = "STRING" },
             experienceHtml = new { type = "STRING" },
             educationHtml = new { type = "STRING" },
-            skillsHtml = new { type = "STRING" }
+            skillsHtml = new { type = "STRING" },
+            languagesHtml = new { type = "STRING" },
+            projectsHtml = new { type = "STRING" },
+            matchPercentage = new { type = "INTEGER" },
+            atsFeedback = new { type = "STRING" }
           },
-          required = new[] { "title", "summary", "experienceHtml", "educationHtml", "skillsHtml" }
+          required = new[] { "title", "summary", "experienceHtml", "educationHtml", "skillsHtml", "languagesHtml", "projectsHtml", "matchPercentage", "atsFeedback" }
         }
       }
     };
@@ -113,7 +117,7 @@ public class GeminiAiService : IAiService
         throw new Exception("Failed to deserialize generated content to AiGeneratedResumeResult.");
       }
 
-      return result;
+      return result with { ScrapedJobDescription = jobDescription };
     }
     catch (Exception ex)
     {
@@ -166,7 +170,12 @@ Candidate Profile Information:
 - Current Title: {profile.Title}
 - Summary: {profile.Summary}
 - Location: {profile.Location}
+- Military Status: {profile.MilitaryStatus} (Postponed until: {profile.PostponedUntil}) // Military status is optional ,if it is empty, do not include it in the resume
+- Languages: {string.Join(", ", profile.Languages)}
+- Portfolio / Social Links: {string.Join(", ", profile.SocialLinks)}
 - Skills: {string.Join(", ", profile.Skills)}
+- Profile picture url: {profile.PhotoUrl} // profile picture is optional ,if it is empty, do not include it in the resume
+
 
 Experiences:
 {JsonSerializer.Serialize(profile.Experiences)}
@@ -177,9 +186,17 @@ Educations:
 Projects:
 {JsonSerializer.Serialize(profile.Projects)}
 
+CRITICAL CORE RULES - DATA INTEGRITY:
+- You MUST preserve the candidate's actual name, email, phone, location, photo, and social links. Do NOT modify them.
+- You MUST preserve the EXACT names of the companies, roles/positions, dates, and locations provided in the 'Experiences' list. Do NOT change, combine, or fabricate companies (e.g., do NOT change internship companies like 'Dimscorp Yazılım Danışmanlığı' or 'Phyix technologies' to generic ones, and do NOT fabricate freelance work if it was not in the input).
+- You MUST preserve the EXACT school names, degrees, fields of study, and GPAs provided in the 'Educations' list (e.g., if the candidate has 'Anadolu Üniversitesi' with 'Yönetim Bilişim Sistemleri (YBS)', you MUST include 'Anadolu Üniversitesi' and 'Yönetim Bilişim Sistemleri (YBS)' in the education HTML). Do NOT invent, generalize, or change school names.
+- You MUST preserve the candidate's exact projects, project titles, description details, and any links (e.g., repository or live demo links) provided in the 'Projects' list. If a project has links, you MUST render them in the projects HTML.
+- STRICTLY PROHIBITED: Do NOT invent/hallucinate any fictional experiences, educations, or projects if the input sections are empty or contain different details. If a section (like 'Projects') has no data, output an empty string for that field.
+
 Instructions for the Output Fields (Tailor them to match the target job requirements):
-1. 'title': Determine the most suitable, optimized job title the candidate should target for this job.2. 'summary': Write a compelling, ATS-friendly professional summary (2-4 sentences) that highlights how the candidate's skills and experience match the job.3. 'experienceHtml': Rewrite and format the experiences as clean, professional HTML.- For each experience, output semantic HTML elements. Use standard Tailwind Typography tags:
-     - Wrap each role in an <h3> with company and dates (e.g. `<h3><strong>{{Role}}</strong> at {{Company}} ({{StartDate}} - {{EndDate}})</h3>`).- Wrap descriptions and achievements in `<p>` or `<ul>` with `<li>` tags for bullet points.- Optimize the achievements to emphasize matching skills and keywords from the job description.4. 'educationHtml': Rewrite and format the education history as clean, professional HTML.- Use headings like `<h3>` for school and degree, and `<p>` for dates/GPA.5. 'skillsHtml': Rewrite and format the skills as a clean list in HTML.- Group them logically if possible, or display them as a list of bullet points or inline bold list.Requirements:
+1. 'title': Determine the company name and the target job title (position) from the job description. The output format MUST be ""Company Name - Job Title"" (e.g. ""Google - Senior Frontend Developer""). If the company name is not available, just use the job title.2. 'summary': Write a compelling, ATS-friendly professional summary (2-4 sentences) that highlights how the candidate's skills and experience match the job.3. 'experienceHtml': Rewrite and format the experiences as clean, professional HTML.- For each experience, output semantic HTML elements. Use standard Tailwind Typography tags:
+     - Wrap each role in an <h3> with company and dates (e.g. `<h3><strong>{{Role}}</strong> at {{Company}} ({{StartDate}} - {{EndDate}})</h3>`).- Wrap descriptions and achievements in `<p>` or `<ul>` with `<li>` tags for bullet points.- Optimize the achievements to emphasize matching skills and keywords from the job description.4. 'educationHtml': Rewrite and format the education history as clean, professional HTML.- Use headings like `<h3>` for school and degree, and `<p>` for dates/GPA.5. 'skillsHtml': Rewrite and format the skills as a clean list in HTML.- Group them logically if possible, or display them as a list of bullet points or inline bold list.6. 'languagesHtml': Rewrite and format the candidate's languages as a clean inline bold list or list of bullet points in HTML.7. 'projectsHtml': Rewrite and format the candidate's projects as a clean list in HTML, highlighting achievements and technologies used. If a project has a live link ('Links') or repository URL ('RepositoryUrl'), you MUST render them as clickable semantic HTML links (e.g. `<a href=""{{URL}}"" target=""_blank"" rel=""noopener noreferrer"">Live Demo</a>` or `<a href=""{{URL}}"" target=""_blank"" rel=""noopener noreferrer"">GitHub Repo</a>`). If the candidate has no projects, output an empty string.8. 'matchPercentage': Rate the ATS compatibility match score between the tailored resume and the job description as an integer percentage from 0 to 100 based on keyword overlap, experience alignment, skills, and target role requirements.9. 'atsFeedback': Provide a detailed text feedback and analysis of the match. First, list critical/important requirements and skills specified in the job description. For each critical point, write a brief, clear explanation (in markdown bullet format) detailing what was written/tailored in the CV to meet this requirement, why it matches, and highlight key sections that were optimized. If there are any critical gaps or recommendations for the candidate, mention them. Use the specified language: '{languageCode}'. Do not include HTML tags in this field; write it in clean Markdown.
+Requirements:
 - Output MUST be valid JSON matching the specified response schema.- Do NOT wrap the JSON inside markdown code blocks (e.g. do NOT write ```json ... ```) in the text parts, as the output must be raw JSON.- The output language must be exactly '{languageCode}'.- All HTML output must be clean, semantic, and safe. Do not use ad-hoc CSS classes or inline style attributes. Standard HTML tags (h3, strong, p, ul, li, em) are styling-compatible with the frontend container.";
   }
 }
