@@ -14,6 +14,7 @@ public record ManualProfileDataDto
   public string Summary { get; init; } = string.Empty;
   public string Email { get; init; } = string.Empty;
   public string Phone { get; init; } = string.Empty;
+  public string SocialLinks { get; init; } = string.Empty;
   public List<string> Skills { get; init; } = [];
   public List<ExperienceDto>? Experiences { get; init; }
   public List<EducationDto>? Educations { get; init; }

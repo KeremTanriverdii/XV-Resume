@@ -26,7 +26,7 @@ interface ResumeStore {
   sessions: ResumeSession[];
   
   // Actions
-  addSession: (jobLink: string) => void;
+  addSession: (session: ResumeSession) => void;
   removeSession: (id: string) => void;
   setSessions: (sessions: ResumeSession[]) => void;
 }
@@ -47,20 +47,8 @@ export const useResumeStore = create<ResumeStore>()(
           createdAt: new Date().toISOString(),
         }
       ],
-      addSession: (jobLink) => set((state) => {
-        // Mock job title generation (AI will replace this later)
-        const mockTitle = jobLink.includes('linkedin') 
-          ? 'LinkedIn Job Application' 
-          : 'Software Engineer Application';
-        
-        const newSession: ResumeSession = {
-          id: Math.random().toString(36).substring(2, 9),
-          jobTitle: mockTitle,
-          jobLink,
-          createdAt: new Date().toISOString(),
-        };
-        
-        return { sessions: [newSession, ...state.sessions] };
+      addSession: (session) => set((state) => {
+        return { sessions: [session, ...state.sessions] };
       }),
       removeSession: (id) => set((state) => ({
         sessions: state.sessions.filter(s => s.id !== id)

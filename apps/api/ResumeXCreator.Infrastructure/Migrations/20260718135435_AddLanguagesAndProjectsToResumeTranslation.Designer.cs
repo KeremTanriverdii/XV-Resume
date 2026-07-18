@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ResumeXCreator.Infrastructure.Data;
@@ -12,9 +13,11 @@ using ResumeXCreator.Infrastructure.Data;
 namespace ResumeXCreator.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260718135435_AddLanguagesAndProjectsToResumeTranslation")]
+    partial class AddLanguagesAndProjectsToResumeTranslation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -320,9 +323,6 @@ namespace ResumeXCreator.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("AtsFeedback")
-                        .HasColumnType("text");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -344,9 +344,6 @@ namespace ResumeXCreator.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("text")
                         .HasDefaultValue("");
-
-                    b.Property<int?>("MatchPercentage")
-                        .HasColumnType("integer");
 
                     b.Property<string>("ProjectsHtml")
                         .HasColumnType("text");

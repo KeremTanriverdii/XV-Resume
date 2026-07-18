@@ -19,7 +19,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           <SidebarTrigger/>
           {/* Header Mobile / Top Nav if needed */}
           <header className="flex h-14 gap-4 border-b bg-background/95 backdrop-blur px-4 lg:px-6 md:hidden">
-            <span className="font-semibold">ResumeXCreator</span>
+            <span className="font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100">
+              XV<span className="text-emerald-500 font-medium">Resume</span>
+            </span>
           </header>
           <div className="p-2 md:p-5 w-full">
             {children}

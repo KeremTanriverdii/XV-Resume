@@ -187,6 +187,8 @@ v => v);
       entity.Property(e => e.ExperienceHtml).IsRequired();
       entity.Property(e => e.EducationHtml).IsRequired();
       entity.Property(e => e.SkillsHtml).IsRequired();
+      entity.Property(e => e.LanguagesHtml).IsRequired().HasDefaultValue(string.Empty);
+      entity.Property(e => e.ProjectsHtml);
       entity.Property(e => e.Version).IsRequired().HasDefaultValue(1);
       entity.Property(e => e.CreatedAt).IsRequired();
 

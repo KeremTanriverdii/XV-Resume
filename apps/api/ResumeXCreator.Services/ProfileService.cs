@@ -207,6 +207,48 @@ public class ProfileService(
       }
     }
 
+    if (dto.ProjectId != null)
+    {
+      int sortOrder = 0;
+      foreach (var projId in dto.ProjectId)
+      {
+        profile.ProfileProjects.Add(new ProfileProject
+        {
+          ProfileId = profile.Id,
+          ProjectId = projId,
+          SortOrder = sortOrder++
+        });
+      }
+    }
+
+    if (dto.EducationId != null)
+    {
+      int sortOrder = 0;
+      foreach (var eduId in dto.EducationId)
+      {
+        profile.ProfileEducations.Add(new ProfileEducation
+        {
+          ProfileId = profile.Id,
+          EducationId = eduId,
+          SortOrder = sortOrder++
+        });
+      }
+    }
+
+    if (dto.ExperienceId != null)
+    {
+      int sortOrder = 0;
+      foreach (var expId in dto.ExperienceId)
+      {
+        profile.ProfileExperiences.Add(new ProfileExperience
+        {
+          ProfileId = profile.Id,
+          ExperienceId = expId,
+          SortOrder = sortOrder++
+        });
+      }
+    }
+
     await _profileRepository.AddAsync(profile);
     await _profileRepository.SaveChangesAsync();
 
@@ -448,6 +490,99 @@ public class ProfileService(
           {
             ProfileId = profile.Id,
             ExperienceId = experience.Id,
+            SortOrder = sortOrder++
+          });
+        }
+      }
+    }
+
+    // --- Update Project IDs ---
+    if (dto.ProjectId != null)
+    {
+      var linksToRemove = profile.ProfileProjects
+          .Where(pp => !dto.ProjectId.Contains(pp.ProjectId))
+          .ToList();
+      foreach (var link in linksToRemove)
+      {
+        profile.ProfileProjects.Remove(link);
+      }
+
+      int sortOrder = 0;
+      foreach (var projId in dto.ProjectId)
+      {
+        var existingLink = profile.ProfileProjects.FirstOrDefault(pp => pp.ProjectId == projId);
+        if (existingLink != null)
+        {
+          existingLink.SortOrder = sortOrder++;
+        }
+        else
+        {
+          profile.ProfileProjects.Add(new ProfileProject
+          {
+            ProfileId = profile.Id,
+            ProjectId = projId,
+            SortOrder = sortOrder++
+          });
+        }
+      }
+    }
+
+    // --- Update Education IDs ---
+    if (dto.EducationId != null)
+    {
+      var linksToRemove = profile.ProfileEducations
+          .Where(pe => !dto.EducationId.Contains(pe.EducationId))
+          .ToList();
+      foreach (var link in linksToRemove)
+      {
+        profile.ProfileEducations.Remove(link);
+      }
+
+      int sortOrder = 0;
+      foreach (var eduId in dto.EducationId)
+      {
+        var existingLink = profile.ProfileEducations.FirstOrDefault(pe => pe.EducationId == eduId);
+        if (existingLink != null)
+        {
+          existingLink.SortOrder = sortOrder++;
+        }
+        else
+        {
+          profile.ProfileEducations.Add(new ProfileEducation
+          {
+            ProfileId = profile.Id,
+            EducationId = eduId,
+            SortOrder = sortOrder++
+          });
+        }
+      }
+    }
+
+    // --- Update Experience IDs ---
+    if (dto.ExperienceId != null)
+    {
+      var linksToRemove = profile.ProfileExperiences
+          .Where(pe => !dto.ExperienceId.Contains(pe.ExperienceId))
+          .ToList();
+      foreach (var link in linksToRemove)
+      {
+        profile.ProfileExperiences.Remove(link);
+      }
+
+      int sortOrder = 0;
+      foreach (var expId in dto.ExperienceId)
+      {
+        var existingLink = profile.ProfileExperiences.FirstOrDefault(pe => pe.ExperienceId == expId);
+        if (existingLink != null)
+        {
+          existingLink.SortOrder = sortOrder++;
+        }
+        else
+        {
+          profile.ProfileExperiences.Add(new ProfileExperience
+          {
+            ProfileId = profile.Id,
+            ExperienceId = expId,
             SortOrder = sortOrder++
           });
         }

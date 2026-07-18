@@ -10,7 +10,12 @@ public class ResumeTranslation
   public string ExperienceHtml { get; set; } = default!;
   public string EducationHtml { get; set; } = default!;
   public string SkillsHtml { get; set; } = default!;
+  public string LanguagesHtml { get; set; } = string.Empty;
+  public string? ProjectsHtml { get; set; } = string.Empty;
+  public int? MatchPercentage { get; set; }
+  public string? AtsFeedback { get; set; }
   public int Version { get; set; } = 1;
   public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
   public Resume? Resume { get; set; }
 }
+

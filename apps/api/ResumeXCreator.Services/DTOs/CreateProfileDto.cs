@@ -27,4 +27,8 @@ public record CreateProfileDto
   public List<ProjectDto>? Projects { get; init; }
   public List<EducationDto>? Educations { get; init; }
   public List<ExperienceDto>? Experiences { get; init; }
+
+  public List<Guid>? ExperienceId { get; init; }
+  public List<Guid>? EducationId { get; init; }
+  public List<Guid>? ProjectId { get; init; }
 }

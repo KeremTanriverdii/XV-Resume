@@ -167,6 +167,10 @@ export interface ResumeTranslationDto {
   experienceHtml: string;
   educationHtml: string;
   skillsHtml: string;
+  languagesHtml: string;
+  projectsHtml?: string | null;
+  matchPercentage?: number | null;
+  atsFeedback?: string | null;
   version: number;
   createdAt: string;
 }
@@ -180,4 +184,7 @@ export interface ResumeDto {
   translations: ResumeTranslationDto[];
   profile?: Profile | null;
 }
+
+export * from "./landing";
+
 

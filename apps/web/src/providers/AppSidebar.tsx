@@ -108,7 +108,17 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="p-2">
-        <span className="font-semibold text-lg text-primary">ResumeXCreator</span>
+        <div className="flex items-center gap-2 px-1 py-1.5">
+          <div className="h-7 w-7 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
+            <svg className="h-4 w-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 4.5L10 19.5L13.5 11" />
+              <path d="M20 4.5L14 19.5" />
+            </svg>
+          </div>
+          <span className="font-black text-base tracking-tight text-zinc-900 dark:text-zinc-100">
+            XV<span className="text-emerald-500 font-medium">Resume</span>
+          </span>
+        </div>
       </SidebarHeader>
 
       <SidebarContent>

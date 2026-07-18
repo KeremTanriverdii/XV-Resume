@@ -1,6 +1,6 @@
 {
   "Index": {
-    "title": "ResumeXCreator"
+    "title": "XV Resume"
   },
   "Dashboard": {
     "title": "Özgeçmişlerim",
@@ -26,7 +26,7 @@
     "heroSubtitle": "Rakiplerinizin önüne geçin. Yapay zeka destekli özgeçmiş oluşturucumuz, deneyimlerinizi tam olarak iş tanımına uyacak şekilde özelleştirir.",
     "ctaCreate": "Hemen Özgeçmiş Oluştur",
     "ctaSecondary": "Şablonları İncele",
-    "featuresTitle": "Neden ResumeXCreator'ı Seçmelisiniz?",
+    "featuresTitle": "Neden XV Resume'u Seçmelisiniz?",
     "feature1Title": "Yapay Zeka Özelleştirmesi",
     "feature1Desc": "Yeteneklerinizi iş tanımıyla otomatik olarak hizalayın.",
     "feature2Title": "ATS Uyumlu",
@@ -236,6 +236,15 @@
     "experience": "İş Deneyimi",
     "education": "Eğitim",
     "skills": "Yetenekler",
+    "projects": "Projeler",
+    "languages": "Yabancı Diller",
+    "military": "Askerlik Durumu",
+    "militaryStatus": {
+      "None": "Belirtilmemiş",
+      "Completed": "Tamamlandı",
+      "Postponed": "Tecilli",
+      "Exempt": "Muaf"
+    },
     "noTranslation": "Bu dil için oluşturulmuş içerik bulunmamaktadır.",
     "backToDashboard": "Kontrol Paneline Dön"
   }
