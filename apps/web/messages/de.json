@@ -195,6 +195,11 @@
     "noProjects": "Keine gespeicherten Projekte gefunden.",
     "btnSubmit": "Profil erstellen",
     "btnSubmitPending": "Hinzufügen...",
+    "btnUpdate": "Profil aktualisieren",
+    "btnUpdatePending": "Wird aktualisiert...",
+    "cancelEdit": "Abbrechen",
+    "deleteProfile": "Löschen",
+    "confirmDelete": "Möchten Sie dieses Profil wirklich löschen?",
     "noExpBannerTitle": "💡 Empfehlung: Keine Berufserfahrung?",
     "noExpBannerDesc": "Sie haben keine Berufserfahrung mit Ihrem Profil verknüpft. Wenn Sie noch keine Berufserfahrung haben, können Sie Ihre Projekte hinzufügen, um sie hervorzuheben!",
     "more": "mehr",
@@ -208,6 +213,29 @@
       "Completed": "Completed",
       "Postponed": "Postponed",
       "Exempt": "Exempt"
+    },
+    "foreignLanguagesTitle": "Sprachen & Sprachniveau",
+    "addLanguage": "Hinzufügen",
+    "langList": {
+      "en": "Englisch",
+      "de": "Deutsch",
+      "fr": "Französisch",
+      "es": "Spanisch",
+      "it": "Italienisch",
+      "ru": "Russisch",
+      "ar": "Arabisch",
+      "zh": "Chinesisch",
+      "ja": "Japanisch",
+      "tr": "Türkisch"
+    },
+    "levels": {
+      "c2": "C2 (Exzellent)",
+      "c1": "C1 (Fortgeschritten)",
+      "b2": "B2 (Gute Kenntnisse)",
+      "b1": "B1 (Mittelstufe)",
+      "a2": "A2 (Grundkenntnisse)",
+      "a1": "A1 (Anfänger)",
+      "native": "Muttersprache"
     }
   },
   "login": {
@@ -218,5 +246,53 @@
     "dontHaveAccount": "Haben Sie noch kein Konto?",
     "signUp": "Registrieren",
     "googleError": "Google Login Fehler:"
+  },
+  "resume": {
+    "title": "KI-Lebenslauf Vorschau",
+    "jobLink": "Stellenlink",
+    "createdAt": "Erstellt am",
+    "version": "Version",
+    "language": "Sprache",
+    "regenerate": "Neu generieren (KI)",
+    "regenerating": "Wird generiert...",
+    "regenerateSuccess": "Neue Version erfolgreich generiert!",
+    "regenerateError": "Fehler beim Generieren der Version.",
+    "preview": "Vorschau",
+    "summary": "Zusammenfassung",
+    "experience": "Berufserfahrung",
+    "education": "Ausbildung",
+    "skills": "Fähigkeiten",
+    "projects": "Projekte",
+    "languages": "Sprachen",
+    "military": "Militärstatus",
+    "militaryStatus": {
+      "None": "Nicht angegeben",
+      "Completed": "Abgeschlossen",
+      "Postponed": "Zurückgestellt",
+      "Exempt": "Befreit"
+    },
+    "noTranslation": "Kein Inhalt für diese Sprache vorhanden.",
+    "backToDashboard": "Zurück zum Dashboard",
+    "downloadPdf": "PDF Herunterladen",
+    "downloadingPdf": "PDF wird erstellt...",
+    "template": "Lebenslauf Vorlage",
+    "colorTheme": "Farbthema",
+    "templates": {
+      "modern": "Klassisch Modern",
+      "modernDesc": "Ausgewogenes 1-Spalten-Layout mit modernen Farbakzenten.",
+      "executive": "Executive / Business",
+      "executiveDesc": "Edles Design für Führungskräfte mit Serif-Schriftart.",
+      "sidebar": "Linke Seitenleiste",
+      "sidebarDesc": "Zweispaltiges Layout mit Foto, Kontakt und Skills links.",
+      "minimal": "Minimalistisch",
+      "minimalDesc": "Schlichtes Design mit höchster Lesbarkeit."
+    },
+    "colors": {
+      "blue": "Saphirblau",
+      "emerald": "Smaragdgrün",
+      "indigo": "Indigoblau",
+      "purple": "Dunkelviolett",
+      "slate": "Dunkelgrau / Slate"
+    }
   }
 }

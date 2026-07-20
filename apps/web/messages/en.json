@@ -195,6 +195,11 @@
     "noProjects": "No saved projects found.",
     "btnSubmit": "Create Profile",
     "btnSubmitPending": "Adding...",
+    "btnUpdate": "Update Profile",
+    "btnUpdatePending": "Updating...",
+    "cancelEdit": "Cancel",
+    "deleteProfile": "Delete",
+    "confirmDelete": "Are you sure you want to delete this profile?",
     "noExpBannerTitle": "💡 Recommendation: No work experience?",
     "noExpBannerDesc": "You have not linked any work experience to your profile. If you don't have work experience yet, you might consider adding your projects to highlight them!",
     "more": "more",
@@ -210,6 +215,29 @@
       "Completed": "Completed",
       "Postponed": "Postponed",
       "Exempt": "Exempt"
+    },
+    "foreignLanguagesTitle": "Languages & Proficiency Levels",
+    "addLanguage": "Add",
+    "langList": {
+      "en": "English",
+      "de": "German",
+      "fr": "French",
+      "es": "Spanish",
+      "it": "Italian",
+      "ru": "Russian",
+      "ar": "Arabic",
+      "zh": "Chinese",
+      "ja": "Japanese",
+      "tr": "Turkish"
+    },
+    "levels": {
+      "c2": "C2 (Fluent / Proficient)",
+      "c1": "C1 (Advanced)",
+      "b2": "B2 (Upper Intermediate)",
+      "b1": "B1 (Intermediate)",
+      "a2": "A2 (Elementary)",
+      "a1": "A1 (Beginner)",
+      "native": "Native"
     }
   },
   "login": {
@@ -246,6 +274,27 @@
       "Exempt": "Exempt"
     },
     "noTranslation": "No content generated for this language.",
-    "backToDashboard": "Back to Dashboard"
+    "backToDashboard": "Back to Dashboard",
+    "downloadPdf": "Download PDF",
+    "downloadingPdf": "Generating PDF...",
+    "template": "CV Template",
+    "colorTheme": "Color Theme",
+    "templates": {
+      "modern": "Modern Classic",
+      "modernDesc": "Balanced 1-column modern layout with crisp badges and highlights.",
+      "executive": "Executive / Corporate",
+      "executiveDesc": "Prestigious corporate look with serif typography and formal headers.",
+      "sidebar": "Left Sidebar / Two-Column",
+      "sidebarDesc": "Two-column design featuring avatar, contact, and skills on left sidebar.",
+      "minimal": "Minimalist / Clean",
+      "minimalDesc": "Ultra-clean layout emphasizing maximum legibility and whitespace."
+    },
+    "colors": {
+      "blue": "Sapphire Blue",
+      "emerald": "Emerald Green",
+      "indigo": "Indigo Violet",
+      "purple": "Deep Purple",
+      "slate": "Dark Slate"
+    }
   }
 }

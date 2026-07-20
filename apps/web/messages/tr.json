@@ -195,6 +195,11 @@
     "noProjects": "Kayıtlı proje bulunamadı.",
     "btnSubmit": "Profil Ekle",
     "btnSubmitPending": "Ekleniyor...",
+    "btnUpdate": "Profili Güncelle",
+    "btnUpdatePending": "Güncelleniyor...",
+    "cancelEdit": "İptal Et",
+    "deleteProfile": "Sil",
+    "confirmDelete": "Bu profili silmek istediğinize emin misiniz?",
     "noExpBannerTitle": "💡 Tavsiye: İş tecrübeniz yok mu?",
     "noExpBannerDesc": "Profilinize herhangi bir iş deneyimi bağlamadınız. Eğer henüz iş tecrübeniz yoksa, CV'nizi öne çıkarmak için projelerinizi ekleyip onları ön plana çıkarmayı düşünebilirsiniz!",
     "more": "daha",
@@ -210,6 +215,29 @@
       "Completed": "Tamamlandı",
       "Postponed": "Tecilli",
       "Exempt": "Muaf"
+    },
+    "foreignLanguagesTitle": "Yabancı Diller ve Seviyeleri",
+    "addLanguage": "Ekle",
+    "langList": {
+      "en": "İngilizce",
+      "de": "Almanca",
+      "fr": "Fransızca",
+      "es": "İspanyolca",
+      "it": "İtalyanca",
+      "ru": "Rusça",
+      "ar": "Arapça",
+      "zh": "Çince",
+      "ja": "Japonca",
+      "tr": "Türkçe"
+    },
+    "levels": {
+      "c2": "C2 (Yetkin)",
+      "c1": "C1 (İleri Seviye)",
+      "b2": "B2 (İleri Orta)",
+      "b1": "B1 (Orta Seviye)",
+      "a2": "A2 (Temel Seviye)",
+      "a1": "A1 (Başlangıç)",
+      "native": "Ana Dil"
     }
   },
   "login": {
@@ -246,6 +274,27 @@
       "Exempt": "Muaf"
     },
     "noTranslation": "Bu dil için oluşturulmuş içerik bulunmamaktadır.",
-    "backToDashboard": "Kontrol Paneline Dön"
+    "backToDashboard": "Kontrol Paneline Dön",
+    "downloadPdf": "PDF İndir",
+    "downloadingPdf": "PDF Hazırlanıyor...",
+    "template": "CV Şablonu",
+    "colorTheme": "Renk Teması",
+    "templates": {
+      "modern": "Modern Klasik",
+      "modernDesc": "Rozetler ve renkli vurgular içeren dengeli 1 sütunlu modern düzen.",
+      "executive": "Yönetici / Kurumsal",
+      "executiveDesc": "Serif fontlar ve resmi çift çizgiler içeren prestijli kurumsal görünüm.",
+      "sidebar": "Sol Menülü / Çift Sütun",
+      "sidebarDesc": "Sol sütunda profil resmi, iletişim ve yetenekler olan çift sütunlu yapı.",
+      "minimal": "Minimalist / Sade",
+      "minimalDesc": "Maksimum okunabilirlik sağlayan yüksek netlikte sade tasarım."
+    },
+    "colors": {
+      "blue": "Safir Mavi",
+      "emerald": "Zümrüt Yeşil",
+      "indigo": "İndigo Mor",
+      "purple": "Gece Moru",
+      "slate": "Koyu Gri / Slate"
+    }
   }
 }

@@ -74,3 +74,77 @@
         }
     }
 }
+
+/* Print Styles: Isolate ONLY the CV document container and hide all outer UI elements */
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+  #cv-document-container,
+  #cv-document-container * {
+    visibility: visible !important;
+  }
+  #cv-document-container {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+}
+
+/* Document Typography Spacing Overrides for tight headings and gentle item gaps */
+#cv-document-container .prose h1,
+#cv-document-container .prose h2,
+#cv-document-container .prose h3,
+#cv-document-container .prose h4 {
+  margin-top: 0.6rem !important;
+  margin-bottom: 0.25rem !important;
+}
+
+#cv-document-container .prose p {
+  margin-top: 0.2rem !important;
+  margin-bottom: 0.35rem !important;
+}
+
+#cv-document-container .prose ul {
+  margin-top: 0.2rem !important;
+  margin-bottom: 0.35rem !important;
+}
+
+#cv-document-container .prose li {
+  margin-top: 0.15rem !important;
+  margin-bottom: 0.15rem !important;
+}
+
+/* CV Document — Link Hitbox & Cursor Fix
+   prose adds margin, padding and transforms on <a> which shift the clickable area.
+   Reset everything so the visual position matches the hit target exactly. */
+#cv-document-container a,
+#cv-document-container .prose a {
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  position: static !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  transform: none !important;
+  vertical-align: baseline !important;
+  line-height: inherit !important;
+  display: inline !important;
+}
+
+/* Skills / Languages — make sure strong labels sit on their own line */
+#cv-document-container .prose strong {
+  display: inline !important;
+}
+
+#cv-document-container .prose br {
+  display: block !important;
+  content: '' !important;
+  margin-top: 0.25rem !important;
+}

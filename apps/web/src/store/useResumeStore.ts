@@ -29,6 +29,7 @@ interface ResumeStore {
   addSession: (session: ResumeSession) => void;
   removeSession: (id: string) => void;
   setSessions: (sessions: ResumeSession[]) => void;
+  updateSessionTitle: (id: string, jobTitle: string) => void;
 }
 
 export const useResumeStore = create<ResumeStore>()(
@@ -39,21 +40,30 @@ export const useResumeStore = create<ResumeStore>()(
         email: 'kerem@example.com',
         avatarUrl: 'https://github.com/shadcn.png', // Fallback Shadcn avatar
       },
-      sessions: [
-        {
-          id: '1',
-          jobTitle: 'Senior Frontend Developer',
-          jobLink: 'https://linkedin.com/jobs/view/12345',
-          createdAt: new Date().toISOString(),
-        }
-      ],
-      addSession: (session) => set((state) => {
-        return { sessions: [session, ...state.sessions] };
-      }),
-      removeSession: (id) => set((state) => ({
-        sessions: state.sessions.filter(s => s.id !== id)
-      })),
+      sessions: [],
+      addSession: (session) =>
+        set((state) => {
+          const exists = state.sessions.some((s) => s.id === session.id);
+          if (exists) {
+            return {
+              sessions: state.sessions.map((s) =>
+                s.id === session.id ? { ...s, ...session } : s,
+              ),
+            };
+          }
+          return { sessions: [session, ...state.sessions] };
+        }),
+      removeSession: (id) =>
+        set((state) => ({
+          sessions: state.sessions.filter((s) => s.id !== id),
+        })),
       setSessions: (sessions) => set({ sessions }),
+      updateSessionTitle: (id, jobTitle) =>
+        set((state) => ({
+          sessions: state.sessions.map((s) =>
+            s.id === id ? { ...s, jobTitle } : s,
+          ),
+        })),
     }),
     {
       name: 'resume-storage', // persists mock data to localStorage
