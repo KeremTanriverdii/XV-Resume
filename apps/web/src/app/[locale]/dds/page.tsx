@@ -1,5 +1,4 @@
 import { Metadata } from "next";
-import DdsDashboardClient from "@/components/clientpages/DdsDashboardClient";
 
 export const metadata: Metadata = {
   title: "XV Resume - Sandbox Workspace",
@@ -7,6 +6,10 @@ export const metadata: Metadata = {
 };
 
 export default function DdsDashboardPage() {
-  // Render the client component for handling workspace layout and state CRUD
-  return <DdsDashboardClient />;
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-8">
+      <h1 className="text-2xl font-bold mb-2">Sandbox Workspace</h1>
+      <p className="text-sm text-muted-foreground">This workspace is currently under development.</p>
+    </div>
+  );
 }

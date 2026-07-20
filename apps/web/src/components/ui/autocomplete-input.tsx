@@ -1,13 +1,14 @@
-"use client"
+'use client';
 
-import { useState, useRef, useEffect, useCallback } from "react"
-import { cn } from "@/utils/cn"
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { cn } from '@/utils/cn';
 
-interface AutocompleteInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange"> {
-  suggestions: string[]
-  value: string
-  onChange: (value: string) => void
-  maxResults?: number
+interface AutocompleteInputProps
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
+  suggestions: string[];
+  value: string;
+  onChange: (value: string) => void;
+  maxResults?: number;
 }
 
 export default function AutocompleteInput({
@@ -18,68 +19,79 @@ export default function AutocompleteInput({
   className,
   ...props
 }: AutocompleteInputProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const [highlightedIndex, setHighlightedIndex] = useState(-1)
-  const containerRef = useRef<HTMLDivElement>(null)
-  const listRef = useRef<HTMLUListElement>(null)
+  const [isOpen, setIsOpen] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
 
-  const filtered = value.trim().length >= 1
-    ? suggestions
-        .filter((s) => s.toLowerCase().includes(value.toLowerCase()))
-        .slice(0, maxResults)
-    : []
+  const filtered =
+    value.trim().length >= 1
+      ? suggestions
+          .filter((s) => s.toLowerCase().includes(value.toLowerCase()))
+          .slice(0, maxResults)
+      : [];
 
-  const showDropdown = isOpen && filtered.length > 0
+  const showDropdown = isOpen && filtered.length > 0;
 
   // Close on outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setIsOpen(false)
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
+        setIsOpen(false);
       }
-    }
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [])
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Scroll highlighted item into view
   useEffect(() => {
     if (highlightedIndex >= 0 && listRef.current) {
-      const items = listRef.current.querySelectorAll("li")
-      items[highlightedIndex]?.scrollIntoView({ block: "nearest" })
+      const items = listRef.current.querySelectorAll('li');
+      items[highlightedIndex]?.scrollIntoView({ block: 'nearest' });
     }
-  }, [highlightedIndex])
+  }, [highlightedIndex]);
 
-  const handleSelect = useCallback((item: string) => {
-    onChange(item)
-    setIsOpen(false)
-    setHighlightedIndex(-1)
-  }, [onChange])
+  const handleSelect = useCallback(
+    (item: string) => {
+      onChange(item);
+      setIsOpen(false);
+      setHighlightedIndex(-1);
+    },
+    [onChange],
+  );
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!showDropdown) return
+    if (!showDropdown) return;
 
     switch (e.key) {
-      case "ArrowDown":
-        e.preventDefault()
-        setHighlightedIndex((prev) => (prev < filtered.length - 1 ? prev + 1 : 0))
-        break
-      case "ArrowUp":
-        e.preventDefault()
-        setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : filtered.length - 1))
-        break
-      case "Enter":
-        e.preventDefault()
+      case 'ArrowDown':
+        e.preventDefault();
+        setHighlightedIndex((prev) =>
+          prev < filtered.length - 1 ? prev + 1 : 0,
+        );
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setHighlightedIndex((prev) =>
+          prev > 0 ? prev - 1 : filtered.length - 1,
+        );
+        break;
+      case 'Enter':
+        e.preventDefault();
         if (highlightedIndex >= 0 && highlightedIndex < filtered.length) {
-          handleSelect(filtered[highlightedIndex])
+          handleSelect(filtered[highlightedIndex]);
         }
-        break
-      case "Escape":
-        setIsOpen(false)
-        setHighlightedIndex(-1)
-        break
+        break;
+      case 'Escape':
+        setIsOpen(false);
+        setHighlightedIndex(-1);
+        break;
     }
-  }
+  };
 
   return (
     <div ref={containerRef} className="relative w-full">
@@ -87,18 +99,18 @@ export default function AutocompleteInput({
         type="text"
         value={value}
         onChange={(e) => {
-          onChange(e.target.value)
-          setIsOpen(true)
-          setHighlightedIndex(-1)
+          onChange(e.target.value);
+          setIsOpen(true);
+          setHighlightedIndex(-1);
         }}
         onFocus={() => setIsOpen(true)}
         onKeyDown={handleKeyDown}
         autoComplete="off"
         className={cn(
-          "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background",
-          "placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-          "disabled:cursor-not-allowed disabled:opacity-50",
-          className
+          'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background',
+          'placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+          'disabled:cursor-not-allowed disabled:opacity-50',
+          className,
         )}
         {...props}
       />
@@ -109,9 +121,9 @@ export default function AutocompleteInput({
         >
           {filtered.map((item, idx) => {
             // Highlight matching substring
-            const lowerItem = item.toLowerCase()
-            const lowerValue = value.toLowerCase()
-            const matchIndex = lowerItem.indexOf(lowerValue)
+            const lowerItem = item.toLowerCase();
+            const lowerValue = value.toLowerCase();
+            const matchIndex = lowerItem.indexOf(lowerValue);
 
             return (
               <li
@@ -119,15 +131,15 @@ export default function AutocompleteInput({
                 role="option"
                 aria-selected={idx === highlightedIndex}
                 className={cn(
-                  "cursor-pointer select-none px-3 py-2 text-sm transition-colors",
+                  'cursor-pointer select-none px-3 py-2 text-sm transition-colors',
                   idx === highlightedIndex
-                    ? "bg-accent text-accent-foreground"
-                    : "hover:bg-accent/50"
+                    ? 'bg-blue-500/20 text-accent-foreground'
+                    : 'hover:bg-red-500/20',
                 )}
                 onMouseEnter={() => setHighlightedIndex(idx)}
                 onMouseDown={(e) => {
-                  e.preventDefault() // Prevent blur before selection
-                  handleSelect(item)
+                  e.preventDefault(); // Prevent blur before selection
+                  handleSelect(item);
                 }}
               >
                 {matchIndex >= 0 ? (
@@ -142,10 +154,10 @@ export default function AutocompleteInput({
                   item
                 )}
               </li>
-            )
+            );
           })}
         </ul>
       )}
     </div>
-  )
+  );
 }

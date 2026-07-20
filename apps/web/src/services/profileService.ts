@@ -19,3 +19,20 @@ export const createProfile = async (
     if (!token) return null;
     return api.post<Profile>("/profiles", data, token).catch(() => null);
 };
+
+export const updateProfile = async (
+    id: string,
+    data: CreateProfileDto,
+    token: string | undefined
+): Promise<Profile | null> => {
+    if (!token) return null;
+    return api.put<Profile>(`/profiles/${id}`, data, token).catch(() => null);
+};
+
+export const deleteProfile = async (
+    id: string,
+    token: string | undefined
+): Promise<boolean> => {
+    if (!token) return false;
+    return api.delete(`/profiles/${id}`, token).then(() => true).catch(() => false);
+};

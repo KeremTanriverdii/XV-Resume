@@ -46,6 +46,8 @@ import {
 import { useTheme } from "next-themes"
 import { useLocale, useTranslations } from "next-intl"
 
+import { formatCompanyAndRole } from "@/utils/formatTitle"
+
 export function AppSidebar() {
   const { user, session } = useAuth()
   const token = session?.access_token
@@ -66,12 +68,25 @@ export function AppSidebar() {
   useEffect(() => {
     if (token) {
       fetchResumes(token).then((resumes) => {
+        const currentSessions = useResumeStore.getState().sessions;
         const mappedSessions: ResumeSession[] = resumes.map((r) => {
-          // Get the title from the first translation or use external link/fallback
-          const title = r.translations[0]?.title || r.externalJobLink || "Job Application";
+          const prefTrans =
+            r.translations.find((t) => t.languageCode === locale) ||
+            r.translations[0];
+          const calculatedTitle = formatCompanyAndRole(
+            prefTrans?.title,
+            r.externalJobLink,
+          );
+
+          const existing = currentSessions.find((s) => s.id === r.id);
+          const finalTitle =
+            existing?.jobTitle && existing.jobTitle.includes(' - ')
+              ? existing.jobTitle
+              : calculatedTitle;
+
           return {
             id: r.id,
-            jobTitle: title,
+            jobTitle: finalTitle,
             jobLink: r.externalJobLink,
             createdAt: r.createdAt,
           };
@@ -79,7 +94,7 @@ export function AppSidebar() {
         setSessions(mappedSessions);
       });
     }
-  }, [token, setSessions])
+  }, [token, locale, setSessions])
 
   const handleLogout = async () => {
     const supabase = createClient()

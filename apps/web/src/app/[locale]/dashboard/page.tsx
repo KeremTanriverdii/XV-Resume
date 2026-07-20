@@ -7,14 +7,20 @@ import { Button } from '@/components/ui/button';
 import { Briefcase, ArrowRight, Loader2 } from 'lucide-react';
 import { useRouter } from '../../../i18n/routing';
 import { SelectProfile } from '@/components/clientpages/SelectProfile';
+import { TemplateSelector } from '@/components/resume/TemplateSelectorModal';
+import { TemplateId, ColorThemeId } from '@/components/resume/ResumeTemplates';
 import { useAuth } from '@/providers/AuthProvider';
 import { useTranslations } from 'next-intl';
 import { generateResume } from '@/services/resumeService';
+import { formatCompanyAndRole } from '@/utils/formatTitle';
 
 export default function DashboardPage() {
   const t = useTranslations('Dashboard');
+  const tResume = useTranslations('resume');
   const [jobLink, setJobLink] = useState('');
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateId>('modern');
+  const [selectedColor, setSelectedColor] = useState<ColorThemeId>('blue');
   const [isGenerating, setIsGenerating] = useState(false);
   
   const addSession = useResumeStore((state) => state.addSession);
@@ -36,8 +42,8 @@ export default function DashboardPage() {
       }, token);
       
       if (result) {
-        // Add to Zustand store to sync immediately (the sidebar mount effect will also sync)
-        const title = result.translations[0]?.title || result.externalJobLink || 'Job Application';
+        // Add to Zustand store to sync immediately
+        const title = formatCompanyAndRole(result.translations[0]?.title, result.externalJobLink);
         addSession({
           id: result.id,
           jobTitle: title,
@@ -46,8 +52,8 @@ export default function DashboardPage() {
         });
         setJobLink('');
         setSelectedProfileId(null);
-        // Navigate to the newly generated resume session
-        router.push(`/dashboard/resume/${result.id}`);
+        // Navigate to the newly generated resume session with selected template & color
+        router.push(`/dashboard/resume/${result.id}?template=${selectedTemplate}&color=${selectedColor}`);
       }
     } catch (err) {
       console.error("AI CV Generation error:", err);
@@ -57,8 +63,8 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="flex flex-1 flex-col h-full gap-8 mt-12 lg:mt-20">
-      <div className="flex flex-col items-center text-center gap-4 max-w-2xl mx-auto w-full">
+    <div className="flex flex-1 flex-col h-full gap-8 mt-8 lg:mt-12">
+      <div className="flex flex-col items-center text-center gap-4 max-w-3xl mx-auto w-full">
         <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary mb-2 shadow-inner">
           <Briefcase className="h-8 w-8" />
         </div>
@@ -67,7 +73,7 @@ export default function DashboardPage() {
           {t('createSubtitle')}
         </p>
         
-        <form onSubmit={handleStartResume} className="mt-8 flex flex-col w-full max-w-xl items-center gap-3">
+        <form onSubmit={handleStartResume} className="mt-6 flex flex-col w-full max-w-2xl items-center gap-4">
           <div className="relative flex-1 w-full">
             <Input 
               type="url" 
@@ -79,12 +85,22 @@ export default function DashboardPage() {
               className="w-full px-5 py-6 text-base rounded-full border-muted-foreground/30 shadow-sm focus-visible:ring-primary/50"
             />
           </div>
+
           <SelectProfile token={token} selectedProfileId={selectedProfileId} onSelect={setSelectedProfileId} />
+          
+          <TemplateSelector
+            selectedTemplate={selectedTemplate}
+            onSelectTemplate={setSelectedTemplate}
+            selectedColor={selectedColor}
+            onSelectColor={setSelectedColor}
+            tTemplates={tResume.raw('templates')}
+            tColors={tResume.raw('colors')}
+          />
           
           <Button 
             type="submit" 
             size="lg" 
-            className="w-full sm:w-auto rounded-full py-6 px-8 shadow-md group transition-all hover:scale-105 active:scale-95 cursor-pointer"
+            className="w-full sm:w-auto rounded-full py-6 px-10 shadow-md group transition-all hover:scale-105 active:scale-95 cursor-pointer mt-2"
             disabled={!jobLink.trim() || !selectedProfileId || isGenerating}
           >
             {isGenerating ? (
@@ -103,11 +119,11 @@ export default function DashboardPage() {
       </div>
       
       {/* Decorative Empty State Container */}
-      <div className="mt-16 flex-1 rounded-3xl border-2 border-dashed border-border bg-muted/10 flex flex-col items-center justify-center p-12 text-center max-w-4xl mx-auto w-full">
-         <div className="h-20 w-20 bg-muted rounded-full flex items-center justify-center mb-4">
-            <span className="text-2xl">✨</span>
+      <div className="mt-8 flex-1 rounded-3xl border-2 border-dashed border-border bg-muted/10 flex flex-col items-center justify-center p-8 text-center max-w-4xl mx-auto w-full">
+         <div className="h-16 w-16 bg-muted rounded-full flex items-center justify-center mb-3">
+            <span className="text-xl">✨</span>
          </div>
-         <h3 className="font-semibold text-xl mb-2">{t('readyTitle')}</h3>
+         <h3 className="font-semibold text-lg mb-1">{t('readyTitle')}</h3>
          <p className="text-sm text-muted-foreground max-w-md">
             {t('readySubtitle')}
          </p>
