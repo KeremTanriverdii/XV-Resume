@@ -73,6 +73,32 @@
             transform: translateY(0);
         }
     }
+
+    @keyframes orbFloat {
+        0%, 100% { transform: translateY(0) scale(1); }
+        33% { transform: translateY(-30px) scale(1.04); }
+        66% { transform: translateY(15px) scale(0.97); }
+    }
+
+    @keyframes orbFloat2 {
+        0%, 100% { transform: translateY(0) scale(1); }
+        40% { transform: translateY(25px) scale(1.06); }
+        75% { transform: translateY(-20px) scale(0.95); }
+    }
+
+    @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+    }
+
+    @keyframes loginSlideUp {
+        from { opacity: 0; transform: translateY(24px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
 }
 
 /* Print Styles: Isolate ONLY the CV document container and hide all outer UI elements */
