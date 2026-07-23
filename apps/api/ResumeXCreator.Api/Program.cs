@@ -1,6 +1,9 @@
+using System.Net;
 using System.Text;
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using ResumeXCreator.Api.API.Endpoints;
@@ -9,6 +12,13 @@ using ResumeXCreator.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Cloud Port configuration (e.g., Render, Railway, Heroku setting PORT env var)
+var portVar = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrEmpty(portVar) && int.TryParse(portVar, out var port))
+{
+  builder.WebHost.UseUrls($"http://+:{port}");
+}
+
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
   options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
@@ -16,6 +26,7 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 
 // Add services to the container.
 builder.Services.AddOpenApi();
+builder.Services.AddHealthChecks();
 
 // Infrastructure Services (DbContext & Repositories)
 builder.Services.AddDatabaseServices(builder.Configuration);
@@ -43,12 +54,38 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
-// CORS
+// Rate Limiting Policy
+var permitLimit = builder.Configuration.GetValue<int>("RateLimiting:PermitLimit", 100);
+var windowMinutes = builder.Configuration.GetValue<int>("RateLimiting:WindowInMinutes", 1);
+var queueLimit = builder.Configuration.GetValue<int>("RateLimiting:QueueLimit", 10);
+
+builder.Services.AddRateLimiter(options =>
+{
+  options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+  options.AddPolicy("fixed-ip", httpContext =>
+  {
+    var ipAddress = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+    return RateLimitPartition.GetFixedWindowLimiter(
+      partitionKey: ipAddress,
+      factory: _ => new FixedWindowRateLimiterOptions
+      {
+        AutoReplenishment = true,
+        PermitLimit = permitLimit,
+        QueueLimit = queueLimit,
+        Window = TimeSpan.FromMinutes(windowMinutes)
+      });
+  });
+});
+
+// Dynamic CORS Configuration
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+  ?? new[] { "http://localhost:3000", "http://localhost:8080" };
+
 builder.Services.AddCors(options =>
 {
   options.AddPolicy("AllowFrontend", policy =>
   {
-    policy.WithOrigins("http://localhost:3000")
+    policy.WithOrigins(allowedOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -79,8 +116,13 @@ else
 app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
 
+app.UseRateLimiter();
+
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Health Check Endpoint
+app.MapHealthChecks("/health");
 
 // ── Endpoints ──
 app.MapProfileEndpoints();
