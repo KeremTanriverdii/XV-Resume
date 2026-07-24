@@ -12,10 +12,12 @@ namespace ResumeXCreator.Services;
 public class ResumeService(
     IResumeRepository resumeRepository,
     IProfileRepository profileRepository,
+    IUserRepository userRepository,
     IAiService aiService) : IResumeService
 {
   private readonly IResumeRepository _resumeRepository = resumeRepository;
   private readonly IProfileRepository _profileRepository = profileRepository;
+  private readonly IUserRepository _userRepository = userRepository;
   private readonly IAiService _aiService = aiService;
 
   public async Task<IEnumerable<ResumeDto>> GetAllResumesAsync()
@@ -147,6 +149,30 @@ public class ResumeService(
   /// </summary>
   public async Task<ResumeDto> GenerateResumeAsync(CreateResumeDto dto, string authenticatedUserId)
   {
+    // ── Check Trial & Subscription Status ──
+    var userObj = await _userRepository.GetByIdAsync(authenticatedUserId);
+    if (userObj == null)
+    {
+      userObj = new User
+      {
+        Id = authenticatedUserId,
+        SubscriptionsStatus = "Trial",
+        TrialsEndsAt = DateTime.UtcNow.AddDays(14)
+      };
+      await _userRepository.AddAsync(userObj);
+      await _userRepository.SaveChangesAsync();
+    }
+    else if (!userObj.TrialsEndsAt.HasValue && userObj.SubscriptionsStatus == "Trial")
+    {
+      userObj.TrialsEndsAt = DateTime.UtcNow.AddDays(14);
+      await _userRepository.SaveChangesAsync();
+    }
+
+    if (!userObj.CanGenerateResume)
+    {
+      throw new InvalidOperationException("Your 14-day free trial or subscription has expired. Please subscribe to Pro to continue generating resumes.");
+    }
+
     // ── 0. Version Update (Adding a new version to the existing CV session) ──
     if (dto.ResumeId.HasValue)
     {

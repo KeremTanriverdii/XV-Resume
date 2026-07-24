@@ -25,7 +25,6 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 });
 
 // Add services to the container.
-builder.Services.AddOpenApi();
 builder.Services.AddHealthChecks();
 
 // Infrastructure Services (DbContext & Repositories)
@@ -97,7 +96,6 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-  app.MapOpenApi();
   app.UseDeveloperExceptionPage();
 }
 else
@@ -131,5 +129,6 @@ app.MapEducationEndpoints();
 app.MapProjectEndpoints();
 app.MapResumeEndpoints();
 app.MapUserEndpoints();
+app.MapPaymentEndpoints();
 
 app.Run();

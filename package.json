@@ -11,9 +11,9 @@
   },
   "private": true,
   "devDependencies": {
-    "@nx/js": "23.0.1",
-    "@nx/next": "^23.0.1",
-    "@nx/workspace": "23.0.1",
+    "@nx/js": "^22.6.3",
+    "@nx/next": "^22.6.3",
+    "@nx/workspace": "^22.6.3",
     "@swc-node/register": "~1.11.1",
     "@swc/cli": "~0.8.0",
     "@swc/core": "~1.15.5",
@@ -23,13 +23,15 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "babel-plugin-react-compiler": "^1.0.0",
-    "nx": "23.0.1",
+    "nx": "^22.6.3",
     "prettier": "~3.6.2",
     "tslib": "^2.3.0",
-    "typescript": "~5.9.2"
+    "typescript": "~5.9.2",
+    "yaml": "^2.9.0"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.74",
+    "@paddle/paddle-js": "^1.6.4",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.45.0",
     "@tanstack/react-query": "^5.101.1",

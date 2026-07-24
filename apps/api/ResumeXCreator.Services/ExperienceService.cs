@@ -19,7 +19,7 @@ public class ExperienceService(IExperienceRepository expRepository, IProfileRepo
     if (dto.ProfileId.HasValue && dto.ProfileId.Value != Guid.Empty)
     {
       var profile = await _profileRepository.GetByIdAsync(dto.ProfileId.Value);
-      userId = profile?.UserId;
+      userId = profile?.UserId ?? userId;
     }
 
     var experience = new Experience

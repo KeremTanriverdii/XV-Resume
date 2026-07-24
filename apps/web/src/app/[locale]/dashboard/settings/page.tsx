@@ -52,6 +52,61 @@ export default function SettingsPage() {
   const [militaryPostponedUntil, setMilitaryPostponedUntil] = useState<string>("");
   const [chosenLanguage, setChosenLanguage] = useState(locale);
 
+  // Billing portal redirection state
+  const [billingLoading, setBillingLoading] = useState(false);
+  const [subStatus, setSubStatus] = useState<string>("Trial");
+  const [trialEnds, setTrialEnds] = useState<string | null>(null);
+  const [subEnds, setSubEnds] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!token) return;
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/payment/status`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+    .then((res) => res.json())
+    .then((data) => {
+      setSubStatus(data.status);
+      setTrialEnds(data.trialsEndsAt);
+      setSubEnds(data.subscriptionEndsAt);
+    })
+    .catch((err) => console.error("Error loading subscription in settings:", err));
+  }, [token]);
+
+  const handleManageBilling = async () => {
+    if (!token) return;
+    setBillingLoading(true);
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/payment/portal-session`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        alert(errorData.error || 'Failed to generate billing portal session.');
+        return;
+      }
+
+      const data = await response.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert('Invalid response from billing portal API.');
+      }
+    } catch (err) {
+      console.error('Billing redirect error:', err);
+      alert('Failed to redirect to billing portal.');
+    } finally {
+      setBillingLoading(false);
+    }
+  };
+
   // Status banners
   const [notification, setNotification] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
@@ -286,6 +341,46 @@ export default function SettingsPage() {
           )}
         </Button>
       </form>
+
+      {/* Billing & Subscription Section */}
+      <div className="bg-card border border-border/55 rounded-3xl p-6 md:p-8 shadow-sm flex flex-col gap-4 mt-4">
+        <div className="flex flex-col gap-1">
+          <h3 className="text-lg font-bold text-foreground">Billing & Subscription</h3>
+          <p className="text-xs text-muted-foreground">Manage your payment methods, view invoices, and change your subscription plan.</p>
+        </div>
+        <Separator className="opacity-50" />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-sm font-semibold">Current Plan: {subStatus || 'Trial'}</span>
+            {subEnds && (
+              <span className="text-xs text-muted-foreground">
+                Next renewal date: {new Date(subEnds).toLocaleDateString()}
+              </span>
+            )}
+            {subStatus === 'Trial' && trialEnds && (
+              <span className="text-xs text-indigo-500 font-medium">
+                Trial ends on: {new Date(trialEnds).toLocaleDateString()}
+              </span>
+            )}
+          </div>
+          <Button
+            type="button"
+            onClick={handleManageBilling}
+            disabled={billingLoading}
+            variant="outline"
+            className="rounded-full py-5 px-6 font-semibold border-muted-foreground/30 hover:bg-accent text-sm cursor-pointer"
+          >
+            {billingLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Please wait...
+              </>
+            ) : (
+              'Manage Billing →'
+            )}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
