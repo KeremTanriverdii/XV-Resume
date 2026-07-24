@@ -61,7 +61,7 @@ export default function WelcomePage() {
 
       {/* Premium Background Soft Glowing Blobs */}
       <div className="absolute top-0 left-1/4 w-[400px] h-[400px] bg-emerald-500/10 rounded-full blur-[100px] -z-10 animate-pulse-glow" />
-      <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-teal-500/10 rounded-full blur-[100px] -z-10 animate-pulse-glow" style={{ animationDelay: '-6s' }} />
+      <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-teal-500/10 rounded-full blur-[100px] -z-10 animate-pulse-glow [animation-delay:-6s]" />
 
       <div className="max-w-4xl mx-auto w-full flex flex-col items-center">
         {/* Animated Check Ring */}
