@@ -80,6 +80,7 @@ export const SECTION_LABELS_BY_LANG: Record<
     projects: string;
     languages: string;
     military: string;
+    contact: string;
     militaryStatus: Record<string, string>;
   }
 > = {
@@ -91,6 +92,7 @@ export const SECTION_LABELS_BY_LANG: Record<
     projects: "PROJECTS",
     languages: "LANGUAGES",
     military: "MILITARY SERVICE",
+    contact: "CONTACT",
     militaryStatus: {
       Completed: "Completed",
       Postponed: "Postponed",
@@ -106,6 +108,7 @@ export const SECTION_LABELS_BY_LANG: Record<
     projects: "PROJELER",
     languages: "YABANCI DİLLER",
     military: "ASKERLİK DURUMU",
+    contact: "İLETİŞİM",
     militaryStatus: {
       Completed: "Yapıldı",
       Postponed: "Tecilli",
@@ -121,6 +124,7 @@ export const SECTION_LABELS_BY_LANG: Record<
     projects: "PROJEKTE",
     languages: "SPRACHEN",
     military: "WEHRDIENST",
+    contact: "KONTAKT",
     militaryStatus: {
       Completed: "Abgeleistet",
       Postponed: "Zurückgestellt",
@@ -136,6 +140,7 @@ export const SECTION_LABELS_BY_LANG: Record<
     projects: "PROJETS",
     languages: "LANGUES",
     military: "SERVICE MILITAIRE",
+    contact: "CONTACT",
     militaryStatus: {
       Completed: "Effectué",
       Postponed: "Reporté",
@@ -151,6 +156,7 @@ export const SECTION_LABELS_BY_LANG: Record<
     projects: "PROYECTOS",
     languages: "IDIOMAS",
     military: "SERVICIO MILITAR",
+    contact: "CONTACTO",
     militaryStatus: {
       Completed: "Completado",
       Postponed: "Aplazado",
@@ -166,6 +172,7 @@ export const SECTION_LABELS_BY_LANG: Record<
     projects: "PROGETTI",
     languages: "LINGUE",
     military: "SERVIZIO MILITARE",
+    contact: "CONTATTI",
     militaryStatus: {
       Completed: "Completato",
       Postponed: "Rinviato",
@@ -237,7 +244,7 @@ export const ResumeTemplates: React.FC<ResumeTemplatesProps> = ({
   const renderSectionHeader = (label: string, styleVariant: "modern" | "executive" | "sidebar" | "minimal") => {
     if (styleVariant === "executive") {
       return (
-        <div className="border-b-2 border-t border-zinc-900 dark:border-zinc-100 py-1 my-4">
+        <div className="border-b-2 border-t border-zinc-900 dark:border-zinc-100 py-1 my-4 [break-after:avoid] [page-break-after:avoid]">
           <h3 className="text-xs font-serif uppercase tracking-widest text-zinc-900 dark:text-zinc-100 font-bold text-center">
             {label}
           </h3>
@@ -247,7 +254,7 @@ export const ResumeTemplates: React.FC<ResumeTemplatesProps> = ({
 
     if (styleVariant === "minimal") {
       return (
-        <div className="mb-2 border-b border-zinc-200 dark:border-zinc-800 pb-1">
+        <div className="mb-2 border-b border-zinc-200 dark:border-zinc-800 pb-1 [break-after:avoid] [page-break-after:avoid]">
           <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
             // {label}
           </h3>
@@ -257,7 +264,7 @@ export const ResumeTemplates: React.FC<ResumeTemplatesProps> = ({
 
     if (styleVariant === "sidebar") {
       return (
-        <h3 className={`text-xs font-bold uppercase tracking-wider ${theme.textClass} border-b ${theme.borderClass} pb-1 mb-3`}>
+        <h3 className={`text-xs font-bold uppercase tracking-wider ${theme.textClass} border-b ${theme.borderClass} pb-1 mb-3 [break-after:avoid] [page-break-after:avoid]`}>
           {label}
         </h3>
       );
@@ -265,7 +272,7 @@ export const ResumeTemplates: React.FC<ResumeTemplatesProps> = ({
 
     // Default: Modern
     return (
-      <h3 className={`text-xs font-extrabold uppercase tracking-widest ${theme.primaryClass} border-b ${theme.borderClass}/30 pb-1.5 mb-3`}>
+      <h3 className={`text-xs font-extrabold uppercase tracking-widest ${theme.primaryClass} border-b ${theme.borderClass}/30 pb-1.5 mb-3 [break-after:avoid] [page-break-after:avoid]`}>
         {label}
       </h3>
     );
@@ -276,7 +283,12 @@ export const ResumeTemplates: React.FC<ResumeTemplatesProps> = ({
     return htmlContent
       .replace(/(<\/strong>)\s+at\s+/gi, "$1 | ")
       .replace(/(\b\w+)\s+at\s+([A-Z])/g, "$1 | $2")
-      .replace(/\bTechologies\b/gi, "Technologies");
+      .replace(/\bTechologies\b/gi, "Technologies")
+      .replace(/^<p>\s*(Teknik Yetkinlikler|Yetenekler|Skills|Technical Skills|İş Deneyimi|Work Experience|Eğitim|Education)\s*:?\s*<\/p>/gi, "")
+      .replace(/^<(h[1-4])>\s*(Teknik Yetkinlikler|Yetenekler|Skills|Technical Skills|İş Deneyimi|Work Experience|Eğitim|Education)\s*:?\s*<\/\1>/gi, "")
+      .replace(/^<strong>\s*(Teknik Yetkinlikler|Yetenekler|Skills|Technical Skills)\s*:?\s*<\/strong>\s*(<br\s*\/?>)?/gi, "")
+      .replace(/<p>\s*(&nbsp;|<br\s*\/?>|\s*)*<\/p>/gi, "")
+      .replace(/(<br\s*\/?>\s*){2,}/gi, "<br />");
   };
 
   const renderSocialLinks = (socialLinks?: string[], textClass: string = `${theme.primaryClass} hover:underline`) => {
@@ -311,7 +323,7 @@ export const ResumeTemplates: React.FC<ResumeTemplatesProps> = ({
       <div className="flex flex-col gap-1 mb-4 last:mb-0">
         {label && renderSectionHeader(label, styleVariant)}
         <div
-          className="prose prose-zinc dark:prose-invert prose-sm max-w-none prose-headings:mt-2 prose-headings:mb-1 prose-h3:mt-2 prose-h3:mb-1 prose-h3:text-sm prose-h3:font-bold prose-headings:text-zinc-800 dark:prose-headings:text-zinc-200 prose-p:my-1 prose-p:text-zinc-650 dark:prose-p:text-zinc-300 prose-ul:my-1 prose-ul:list-disc prose-ul:pl-5 prose-li:my-0.5"
+          className="prose prose-zinc dark:prose-invert prose-xs sm:prose-sm max-w-none prose-headings:mt-1.5 prose-headings:mb-1 prose-h3:mt-2 prose-h3:mb-1 prose-h3:text-xs sm:prose-h3:text-sm prose-h3:font-bold prose-h3:[break-after:avoid] prose-h3:[page-break-after:avoid] prose-headings:text-zinc-900 dark:prose-headings:text-zinc-100 prose-p:my-0.5 prose-p:leading-snug prose-p:text-zinc-700 dark:prose-p:text-zinc-300 prose-p:[break-inside:avoid] prose-ul:my-1 prose-ul:list-disc prose-ul:pl-4 prose-li:my-0.5 prose-li:leading-snug prose-li:[break-inside:avoid]"
           dangerouslySetInnerHTML={{ __html: cleanedHtml }}
         />
       </div>
@@ -450,12 +462,12 @@ export const ResumeTemplates: React.FC<ResumeTemplatesProps> = ({
 
           {/* Contact Details Box */}
           <div className="space-y-2 text-xs font-medium text-zinc-650 dark:text-zinc-300 border-t border-border/60 pt-4">
-            <h4 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-2">İletişim</h4>
-            {profile?.email && <p className="truncate">📧 {profile.email}</p>}
-            {profile?.phone && <p>📞 {profile.phone}</p>}
-            {profile?.location && <p>📍 {formattedLocation(profile.location)}</p>}
+            <h4 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-2">{labels.contact}</h4>
+            {profile?.email && <p className="truncate">{profile.email}</p>}
+            {profile?.phone && <p>{profile.phone}</p>}
+            {profile?.location && <p>{formattedLocation(profile.location)}</p>}
             {profile?.militaryStatus && profile.militaryStatus !== "None" && (
-              <p>🪖 {labels.militaryStatus[profile.militaryStatus] || profile.militaryStatus}</p>
+              <p>{labels.military}: {labels.militaryStatus[profile.militaryStatus] || profile.militaryStatus}</p>
             )}
             {renderSocialLinks(profile?.socialLinks, `${theme.textClass} hover:underline`)}
           </div>
@@ -465,8 +477,8 @@ export const ResumeTemplates: React.FC<ResumeTemplatesProps> = ({
             <div className="space-y-2 border-t border-border/60 pt-4">
               {renderSectionHeader(labels.skills, "sidebar")}
               <div
-                className="prose prose-xs max-w-none text-zinc-700 dark:text-zinc-300 prose-li:my-0.5"
-                dangerouslySetInnerHTML={{ __html: translation.skillsHtml }}
+                className="prose prose-xs max-w-none text-zinc-700 dark:text-zinc-300 prose-ul:my-1 prose-ul:list-disc prose-ul:pl-4 prose-li:my-0.5 prose-p:my-0.5"
+                dangerouslySetInnerHTML={{ __html: cleanExperienceHtml(translation.skillsHtml) }}
               />
             </div>
           )}
@@ -476,8 +488,8 @@ export const ResumeTemplates: React.FC<ResumeTemplatesProps> = ({
             <div className="space-y-2 border-t border-border/60 pt-4">
               {renderSectionHeader(labels.languages, "sidebar")}
               <div
-                className="prose prose-xs max-w-none text-zinc-700 dark:text-zinc-300"
-                dangerouslySetInnerHTML={{ __html: translation.languagesHtml }}
+                className="prose prose-xs max-w-none text-zinc-700 dark:text-zinc-300 prose-ul:my-1 prose-ul:list-disc prose-ul:pl-4 prose-li:my-0.5 prose-p:my-0.5"
+                dangerouslySetInnerHTML={{ __html: cleanExperienceHtml(translation.languagesHtml) }}
               />
             </div>
           )}
