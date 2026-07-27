@@ -33,6 +33,12 @@ import {
   COLOR_THEMES,
 } from '@/components/resume/ResumeTemplates';
 import { exportToPdf } from '@/utils/pdfExport';
+import { StepFormSidebar, StepItem } from '@/components/resume/StepFormSidebar';
+import { StepFormFields } from '@/components/resume/StepFormFields';
+import { AtsMatcherTab } from '@/components/resume/AtsMatcherTab';
+import { ProtectedPreviewOverlay } from '@/components/resume/ProtectedPreviewOverlay';
+import { AuthModal } from '@/components/auth/AuthModal';
+import { User, GraduationCap, Wrench, Edit3 } from 'lucide-react';
 
 const parseBold = (text: string) => {
   const parts = text.split(/\*\*([^*]+)\*\*/g);
@@ -189,9 +195,30 @@ export default function ResumeSessionPage() {
     useState<ColorThemeId>(initialColor);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'preview' | 'jobDesc' | 'ats'>(
+  const [activeTab, setActiveTab] = useState<'preview' | 'builder' | 'jobDesc' | 'ats'>(
     'preview',
   );
+  const [currentStep, setCurrentStep] = useState<number>(0);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
+  const [authActionTitle, setAuthActionTitle] = useState<string>('Save & Export Your CV');
+
+  const handleActionTrigger = (action: 'download' | 'email' | 'save') => {
+    if (!session) {
+      setAuthActionTitle(
+        action === 'download'
+          ? 'Sign in to Download High-Res PDF'
+          : action === 'email'
+          ? 'Sign in to Email Your CV'
+          : 'Save Your CV Progress'
+      );
+      setIsAuthModalOpen(true);
+      return;
+    }
+
+    if (action === 'download') {
+      handleDownloadPdf();
+    }
+  };
 
   // Fetch Resume details
   const loadResumeData = async (selectLatest = false) => {
@@ -575,7 +602,7 @@ export default function ResumeSessionPage() {
                 }`}
               >
                 <FileText className="h-3.5 w-3.5" />
-                Tailored CV
+                Tailored CV Preview
               </button>
               <button
                 onClick={() => setActiveTab('jobDesc')}
@@ -598,20 +625,6 @@ export default function ResumeSessionPage() {
               >
                 <Sparkles className="h-3.5 w-3.5" />
                 ATS Analysis
-                {activeTranslation?.matchPercentage !== undefined &&
-                  activeTranslation?.matchPercentage !== null && (
-                    <span
-                      className={`ml-1 px-1.5 py-0.5 rounded-md text-[10px] font-extrabold leading-none ${
-                        activeTranslation.matchPercentage >= 80
-                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                          : activeTranslation.matchPercentage >= 50
-                            ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
-                            : 'bg-destructive/10 text-destructive'
-                      }`}
-                    >
-                      {activeTranslation.matchPercentage}%
-                    </span>
-                  )}
               </button>
             </div>
 
@@ -626,25 +639,30 @@ export default function ResumeSessionPage() {
           {activeTranslation ? (
             <>
               {activeTab === 'preview' && (
-                <ResumeTemplates
-                  resume={resume}
-                  translation={activeTranslation}
-                  templateId={selectedTemplate}
-                  colorThemeId={selectedColor}
-                  tLabels={{
-                    summary: t('summary'),
-                    experience: t('experience'),
-                    education: t('education'),
-                    skills: t('skills'),
-                    projects: t('projects'),
-                    languages: t('languages'),
-                    military: t('military'),
-                    militaryStatus: t.raw('militaryStatus') as Record<
-                      string,
-                      string
-                    >,
-                  }}
-                />
+                <ProtectedPreviewOverlay
+                  isAuthenticated={!!session}
+                  onActionTrigger={handleActionTrigger}
+                >
+                  <ResumeTemplates
+                    resume={resume}
+                    translation={activeTranslation}
+                    templateId={selectedTemplate}
+                    colorThemeId={selectedColor}
+                    tLabels={{
+                      summary: t('summary'),
+                      experience: t('experience'),
+                      education: t('education'),
+                      skills: t('skills'),
+                      projects: t('projects'),
+                      languages: t('languages'),
+                      military: t('military'),
+                      militaryStatus: t.raw('militaryStatus') as Record<
+                        string,
+                        string
+                      >,
+                    }}
+                  />
+                </ProtectedPreviewOverlay>
               )}
 
               {activeTab === 'jobDesc' && (
@@ -674,128 +692,28 @@ export default function ResumeSessionPage() {
               )}
 
               {activeTab === 'ats' && (
-                <div className="rounded-2xl border border-border/80 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 shadow-xl p-8 sm:p-12 font-sans min-h-[800px] flex flex-col gap-8 transition-colors duration-300">
-                  <div className="border-b-2 border-primary/20 pb-4">
-                    <h2 className="text-2xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
-                      ATS Match & Compatibility Analysis
-                    </h2>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      AI-driven evaluation comparing your CV achievements with
-                      the job posting requirements.
-                    </p>
-                  </div>
-
-                  {/* Match Score Card */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center bg-zinc-50 dark:bg-zinc-900/20 p-6 rounded-2xl border border-border/50">
-                    <div className="flex flex-col items-center justify-center text-center p-4 bg-background rounded-xl shadow-xs border">
-                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                        ATS Score
-                      </span>
-                      <div className="relative flex items-center justify-center mt-3 mb-1">
-                        {activeTranslation.matchPercentage !== undefined &&
-                        activeTranslation.matchPercentage !== null ? (
-                          <>
-                            <svg className="w-24 h-24 transform -rotate-90">
-                              <circle
-                                cx="48"
-                                cy="48"
-                                r="40"
-                                stroke="currentColor"
-                                strokeWidth="8"
-                                className="text-zinc-200 dark:text-zinc-800"
-                                fill="transparent"
-                              />
-                              <circle
-                                cx="48"
-                                cy="48"
-                                r="40"
-                                stroke="currentColor"
-                                strokeWidth="8"
-                                className={
-                                  activeTranslation.matchPercentage >= 80
-                                    ? 'text-emerald-500'
-                                    : activeTranslation.matchPercentage >= 50
-                                      ? 'text-amber-500'
-                                      : 'text-destructive'
-                                }
-                                strokeDasharray={2 * Math.PI * 40}
-                                strokeDashoffset={
-                                  2 *
-                                  Math.PI *
-                                  40 *
-                                  (1 - activeTranslation.matchPercentage / 100)
-                                }
-                                strokeLinecap="round"
-                                fill="transparent"
-                              />
-                            </svg>
-                            <span className="absolute text-2xl font-black">
-                              {activeTranslation.matchPercentage}%
-                            </span>
-                          </>
-                        ) : (
-                          <div className="h-24 w-24 flex items-center justify-center rounded-full border-4 border-dashed text-sm font-semibold text-muted-foreground">
-                            N/A
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="md:col-span-2 space-y-2">
-                      <h3 className="font-semibold text-sm sm:text-md text-zinc-900 dark:text-white flex items-center gap-1.5">
-                        <TrendingUp className="h-4 w-4 text-primary animate-pulse" />
-                        Compatibility Rating:{' '}
-                        {activeTranslation.matchPercentage === undefined ||
-                        activeTranslation.matchPercentage === null
-                          ? 'Pending'
-                          : activeTranslation.matchPercentage >= 85
-                            ? 'Excellent Match / Harika Uyum'
-                            : activeTranslation.matchPercentage >= 70
-                              ? 'Very Good Match / Çok İyi Uyum'
-                              : activeTranslation.matchPercentage >= 50
-                                ? 'Good Match / İyi Uyum'
-                                : 'Needs Refinement / Geliştirilmeli'}
-                      </h3>
-                      <p className="text-xs text-zinc-650 dark:text-zinc-400 leading-relaxed">
-                        This AI assessment evaluates keyword density (core
-                        technologies, methodologies), experience relevance
-                        matching, and structural ATS compliance of the tailored
-                        resume relative to the parsed requirements.
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Feedback Critique */}
-                  <div className="space-y-4">
-                    <h3 className="text-sm font-extrabold uppercase tracking-widest text-primary border-b border-zinc-200 dark:border-zinc-800 pb-1.5 flex items-center gap-1.5">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                      Critical Point Identifications & Optimization Details
-                    </h3>
-                    <div className="bg-zinc-55 dark:bg-zinc-900/10 border rounded-xl p-5 shadow-xs">
-                      {activeTranslation.atsFeedback ? (
-                        <div className="space-y-3">
-                          {renderMarkdown(activeTranslation.atsFeedback)}
-                        </div>
-                      ) : (
-                        <p className="text-xs text-muted-foreground italic flex items-center gap-1">
-                          <AlertTriangle className="h-4 w-4 text-amber-500" />
-                          No feedback is available for this version. Please
-                          regenerate the CV to generate ATS feedback.
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                <AtsMatcherTab
+                  resume={resume}
+                  translation={activeTranslation}
+                  onApplyTailoredTranslation={(updatedTranslation) => {
+                    const updatedTranslations = resume.translations.map((tr) =>
+                      tr.id === activeTranslation.id ? { ...tr, ...updatedTranslation } : tr
+                    );
+                    setResume({ ...resume, translations: updatedTranslations } as ResumeDto);
+                  }}
+                />
               )}
             </>
-          ) : (
-            <div className="rounded-2xl border border-dashed border-border/80 bg-card p-12 text-center text-muted-foreground flex flex-col items-center justify-center gap-3">
-              <span className="text-2xl">📭</span>
-              <p className="text-sm font-medium">{t('noTranslation')}</p>
-            </div>
-          )}
+          ) : null}
         </div>
       </div>
+
+      {/* Auth Gate Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        title={authActionTitle}
+      />
     </div>
   );
 }

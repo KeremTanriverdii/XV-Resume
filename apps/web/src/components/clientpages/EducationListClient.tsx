@@ -87,11 +87,11 @@ export default function EducationListClient({ token, userId }: EducationListClie
     setEditingId(edu.id)
     setSchoolName(edu.schoolName)
     setDegree(edu.degree)
-    setFieldOfStudy(edu.fieldOfStudy)
+    setFieldOfStudy(edu.fieldOfStudy || "")
     // Convert ISO string to YYYY-MM-DD for date inputs
     setStartDate(edu.startDate ? edu.startDate.split('T')[0] : "")
     setEndDate(edu.endDate ? edu.endDate.split('T')[0] : "")
-    setIsOngoing(edu.isOngoing)
+    setIsOngoing(!!edu.isOngoing)
     setGpa(edu.gpa || "")
     setIsFormOpen(true)
   }

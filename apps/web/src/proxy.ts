@@ -49,22 +49,22 @@ export async function proxy(request: NextRequest) {
   // Match dashboard routes (e.g. /dashboard, /en/dashboard, /tr/dashboard, and subpaths)
   const isDashboard = pathname.match(/^\/(?:en|tr)\/dashboard(?:\/|$)/) || pathname === '/dashboard' || pathname.startsWith('/dashboard/');
   
-  if (isDashboard && !user) {
-    // Extract current locale from pathname or fallback to default
-    const localeMatch = pathname.match(/^\/(en|tr)(?:\/|$)/);
-    const locale = localeMatch ? localeMatch[1] : routing.defaultLocale;
-    const loginUrl = new URL(`/${locale}/login`, request.url);
+  // if (isDashboard && !user) {
+  //   // Extract current locale from pathname or fallback to default
+  //   const localeMatch = pathname.match(/^\/(en|tr)(?:\/|$)/);
+  //   const locale = localeMatch ? localeMatch[1] : routing.defaultLocale;
+  //   const loginUrl = new URL(`/${locale}/login`, request.url);
     
-    // Create redirect response
-    const redirectResponse = NextResponse.redirect(loginUrl);
+  //   // Create redirect response
+  //   const redirectResponse = NextResponse.redirect(loginUrl);
     
-    // Copy updated cookies (like refreshed auth session or delete-cookie directives) to the redirect response
-    response.cookies.getAll().forEach((cookie) => {
-      redirectResponse.cookies.set(cookie.name, cookie.value);
-    });
+  //   // Copy updated cookies (like refreshed auth session or delete-cookie directives) to the redirect response
+  //   response.cookies.getAll().forEach((cookie) => {
+  //     redirectResponse.cookies.set(cookie.name, cookie.value);
+  //   });
     
-    return redirectResponse;
-  }
+  //   return redirectResponse;
+  // }
 
   return response;
 }

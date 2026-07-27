@@ -21,22 +21,24 @@ export interface Education {
   id: string;
   profileId?: string;
   schoolName: string;
+  institutionName?: string;
   degree: string;
-  fieldOfStudy: string;
+  fieldOfStudy?: string;
   startDate: string;
   endDate: string | null;
-  isOngoing: boolean;
-  gpa: string | null;
+  isOngoing?: boolean;
+  gpa?: string | null;
 }
 
 export interface CreateEducationDto {
   schoolName: string;
+  institutionName?: string;
   degree: string;
-  fieldOfStudy: string;
+  fieldOfStudy?: string;
   startDate: string;
   endDate: string | null;
-  isOngoing: boolean;
-  gpa: string | null;
+  isOngoing?: boolean;
+  gpa?: string | null;
 }
 
 // --- EXPERIENCE TYPES ---
@@ -45,9 +47,10 @@ export interface Experience {
   profileId?: string;
   companyName: string;
   role: string;
+  jobTitle?: string;
   startDate: string;
   endDate: string | null;
-  isOngoing: boolean;
+  isOngoing?: boolean;
   description: string;
   logoUrl?: string;
   location?: string;
@@ -57,9 +60,10 @@ export interface CreateExperienceDto {
   profileId?: string;
   companyName: string;
   role: string;
+  jobTitle?: string;
   startDate: string;
   endDate: string | null;
-  isOngoing: boolean;
+  isOngoing?: boolean;
   description: string;
   logoUrl?: string;
   location?: string;
@@ -70,21 +74,29 @@ export interface Project {
   id: string;
   userId?: string;
   title: string;
+  projectName?: string;
   description: string;
   techologiesUsed?: string;
+  skills?: string[];
+  projectUrl?: string;
   links?: string;
   repositoryUrl?: string;
+  repoUrl?: string;
 }
 
 export interface CreateProjectDto {
   title: string;
+  projectName?: string;
   description: string;
   techologiesUsed?: string;
+  skills?: string[];
+  projectUrl?: string;
   links?: string;
   repositoryUrl?: string;
+  repoUrl?: string;
 }
 
-export type MilitaryStatus = "None" | "Completed" | "Postponed" | "Exempt";
+export type MilitaryStatus = "None" | "Default" | "Completed" | "Postponed" | "Exempt" | "Tecilli" | "Yapıldı" | string;
 
 export interface AccountUser {
   id: string;

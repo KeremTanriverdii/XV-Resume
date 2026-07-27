@@ -96,7 +96,7 @@ export async function exportToPdf({ filename = "Resume.pdf", elementId, element 
     // Sanitize modern CSS color functions (lab, oklch, oklab) to standard RGB for html2canvas
     sanitizeColorsForCanvas(clone);
 
-    const marginTuple: [number, number, number, number] = [8, 8, 8, 8];
+    const marginTuple: [number, number, number, number] = [4, 4, 4, 4];
 
     const opt = {
       margin: marginTuple,
@@ -112,6 +112,7 @@ export async function exportToPdf({ filename = "Resume.pdf", elementId, element 
         onclone: (clonedDoc: Document) => {
           const clonedElement = clonedDoc.getElementById("cv-document-container") || clonedDoc.body;
           if (clonedElement) {
+            (clonedElement as HTMLElement).style.minHeight = "auto";
             sanitizeColorsForCanvas(clonedElement as HTMLElement);
           }
         }
@@ -121,7 +122,10 @@ export async function exportToPdf({ filename = "Resume.pdf", elementId, element 
         format: "a4" as const, 
         orientation: "portrait" as const 
       },
-      pagebreak: { mode: ["avoid-all" as const, "css" as const] }
+      pagebreak: { 
+        mode: ["css" as const, "legacy" as const],
+        avoid: ["h3", "li", ".avoid-break"]
+      }
     };
 
     await html2pdf().set(opt).from(clone).save();
