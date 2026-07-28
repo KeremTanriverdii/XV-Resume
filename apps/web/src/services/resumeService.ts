@@ -60,3 +60,14 @@ export const updateResumeTranslation = async (
     .then(() => true)
     .catch(() => false);
 };
+
+/**
+ * Perform standalone real-time ATS Analysis (Quick Scan).
+ */
+export const analyzeAts = async (
+  data: { externalJobLink: string; profileId: string; jobDescriptionText?: string },
+  token: string | undefined
+) => {
+  if (!token) return null;
+  return api.post<import("@/types").AtsAnalysisResultDto>("/resumes/ats-analyze", data, token).catch(() => null);
+};

@@ -421,6 +421,62 @@ public class ResumeService(
     };
   }
 
+  public async Task<AtsAnalysisResultDto> AnalyzeAtsAsync(AtsAnalysisRequestDto dto, string authenticatedUserId)
+  {
+    if (string.IsNullOrWhiteSpace(dto.ExternalJobLink) && string.IsNullOrWhiteSpace(dto.JobDescriptionText))
+    {
+      throw new ArgumentException("ExternalJobLink or JobDescriptionText is required.");
+    }
+
+    var profile = await _profileRepository.GetWithDetailsByIdAsync(dto.ProfileId);
+    if (profile == null)
+    {
+      throw new ArgumentException($"Profile not found: {dto.ProfileId}");
+    }
+
+    if (profile.UserId != authenticatedUserId)
+    {
+      throw new UnauthorizedAccessException("You do not have permission to access this profile.");
+    }
+
+    // Check Subscription & Pro Status
+    var userObj = await _userRepository.GetByIdAsync(authenticatedUserId);
+    if (userObj == null)
+    {
+      userObj = new User
+      {
+        Id = authenticatedUserId,
+        SubscriptionsStatus = "Trial",
+        TrialsEndsAt = DateTime.UtcNow.AddDays(14)
+      };
+      await _userRepository.AddAsync(userObj);
+      await _userRepository.SaveChangesAsync();
+    }
+    else if (!userObj.TrialsEndsAt.HasValue && userObj.SubscriptionsStatus == "Trial")
+    {
+      userObj.TrialsEndsAt = DateTime.UtcNow.AddDays(14);
+      await _userRepository.SaveChangesAsync();
+    }
+
+    if (!userObj.CanGenerateResume)
+    {
+      throw new InvalidOperationException("Your free trial or subscription has expired. Please subscribe to Pro to access ATS analysis.");
+    }
+
+    var aiProfile = MapToAiProfileInput(profile);
+    var result = await _aiService.AnalyzeAtsAsync(dto.ExternalJobLink, aiProfile, dto.JobDescriptionText);
+
+    return new AtsAnalysisResultDto
+    {
+      MatchPercentage = result.MatchPercentage,
+      MatchedSkills = result.MatchedSkills,
+      MissingSkills = result.MissingSkills,
+      AtsFeedback = result.AtsFeedback,
+      ScrapedJobTitle = result.ScrapedJobTitle,
+      ScrapedJobDescription = result.ScrapedJobDescription
+    };
+  }
+
   private static ResumeDto MapToDto(Resume r) => new()
   {
     Id = r.Id,

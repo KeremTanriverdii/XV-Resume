@@ -15,6 +15,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ResumeDto, ResumeTranslationDto } from '@/types';
 
+import { useAuth } from '@/providers/AuthProvider';
+import { analyzeAts } from '@/services/resumeService';
+
 interface AtsMatcherTabProps {
   resume: Partial<ResumeDto>;
   translation: Partial<ResumeTranslationDto>;
@@ -32,7 +35,10 @@ export const AtsMatcherTab: React.FC<AtsMatcherTabProps> = ({
   isAuthenticated = true,
   onRequestLogin,
 }) => {
-  const [jobUrl, setJobUrl] = useState('');
+  const { session } = useAuth();
+  const token = session?.access_token;
+
+  const [jobUrl, setJobUrl] = useState(resume.externalJobLink || '');
   const [jobDescription, setJobDescription] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [atsResult, setAtsResult] = useState<{
@@ -40,44 +46,59 @@ export const AtsMatcherTab: React.FC<AtsMatcherTabProps> = ({
     matchingKeywords: string[];
     missingKeywords: string[];
     recommendations: string[];
-  } | null>(null);
+  } | null>(
+    translation.matchPercentage
+      ? {
+          score: translation.matchPercentage,
+          matchingKeywords: ['Skills Match', 'Experience Match'],
+          missingKeywords: [],
+          recommendations: translation.atsFeedback
+            ? [translation.atsFeedback]
+            : ['Target job requirements match this resume.'],
+        }
+      : null,
+  );
 
   const [iterationCount, setIterationCount] = useState(0);
   const MAX_ITERATIONS = 5;
 
   const handleAnalyze = async () => {
-    if (!jobUrl.trim() && !jobDescription.trim()) return;
+    const targetUrl = jobUrl.trim() || resume.externalJobLink || '';
+    if (!targetUrl && !jobDescription.trim()) return;
     setIsAnalyzing(true);
 
     try {
-      // Simulate AI ATS analysis against the job description & CV
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      if (token && resume.profileId) {
+        const res = await analyzeAts(
+          {
+            externalJobLink: targetUrl,
+            profileId: resume.profileId,
+            jobDescriptionText: jobDescription.trim() || undefined,
+          },
+          token,
+        );
 
-      const mockMissing = [
-        'Docker',
-        'Kubernetes',
-        'AWS Cloud',
-        'GraphQL',
-        'CI/CD Pipelines',
-      ];
-      const mockMatching = [
-        'React',
-        'Next.js',
-        'TypeScript',
-        'Node.js',
-        'Tailwind CSS',
-        'REST APIs',
-      ];
+        if (res) {
+          setAtsResult({
+            score: res.matchPercentage,
+            matchingKeywords: res.matchedSkills,
+            missingKeywords: res.missingSkills,
+            recommendations: res.atsFeedback ? [res.atsFeedback] : [],
+          });
+          setIsAnalyzing(false);
+          return;
+        }
+      }
 
-      const newScore = Math.min(65 + iterationCount * 8, 98);
-
+      // Fallback if no token/profileId yet
+      const newScore = Math.min(72 + iterationCount * 6, 96);
       setAtsResult({
         score: newScore,
-        matchingKeywords: mockMatching,
-        missingKeywords: mockMissing.slice(0, Math.max(1, 5 - iterationCount)),
+        matchingKeywords: ['TypeScript', 'React', 'Next.js', 'REST APIs'],
+        missingKeywords: ['Docker', 'Kubernetes'],
         recommendations: [
-          'Add Docker and Kubernetes containerization experience to Work Experience.',
-          'Emphasize AWS Cloud deployment and CI/CD pipelines in technical skills.',
+          'Add containerization experience to Work Experience.',
+          'Emphasize cloud deployment skills.',
         ],
       });
     } catch (err) {

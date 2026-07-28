@@ -31,7 +31,9 @@ import {
   Briefcase,
   FolderGit2,
   Trash2,
+  Zap,
 } from 'lucide-react';
+import { QuickAtsScanModal } from '@/components/dashboard/QuickAtsScanModal';
 import { createClient } from '@/utils/supabase/client';
 import { useAuth } from './AuthProvider';
 import {
@@ -61,6 +63,7 @@ export function AppSidebar() {
 
   const [mounted, setMounted] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [isAtsModalOpen, setIsAtsModalOpen] = useState(false);
 
   const handleDeleteSession = async (e: React.MouseEvent, id: string) => {
     e.preventDefault();
@@ -210,6 +213,19 @@ export function AppSidebar() {
 
         {/* Session History */}
         <SidebarGroup>
+          <div className="px-2 pb-2">
+            <button
+              type="button"
+              onClick={() => setIsAtsModalOpen(true)}
+              className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-xs font-bold transition-all cursor-pointer group"
+            >
+              <div className="flex items-center gap-2">
+                <Zap className="h-4 w-4 text-amber-500 group-hover:scale-110 transition-transform" />
+                <span>Hızlı ATS Uyum Testi</span>
+              </div>
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-500 font-extrabold border border-amber-500/40 shadow-xs">PRO</span>
+            </button>
+          </div>
           <SidebarGroupLabel>{t('sidebar.recent-resumes')}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -348,6 +364,7 @@ export function AppSidebar() {
           </DropdownMenu>
         )}
       </SidebarFooter>
+      <QuickAtsScanModal isOpen={isAtsModalOpen} onClose={() => setIsAtsModalOpen(false)} />
     </Sidebar>
   );
 }

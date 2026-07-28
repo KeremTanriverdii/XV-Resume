@@ -95,5 +95,34 @@ public static class ResumeEndpoints
       }
     })
     .WithName("UpdateResumeTranslation");
+
+    // POST /api/v1/resumes/ats-analyze
+    group.MapPost("/ats-analyze", async (AtsAnalysisRequestDto dto, IResumeService resumeService, HttpContext ctx) =>
+    {
+      var userId = ctx.User.FindFirstValue(ClaimTypes.NameIdentifier)
+                ?? ctx.User.FindFirstValue("sub");
+
+      if (string.IsNullOrEmpty(userId))
+        return Results.Unauthorized();
+
+      try
+      {
+        var result = await resumeService.AnalyzeAtsAsync(dto, userId);
+        return Results.Ok(result);
+      }
+      catch (ArgumentException ex)
+      {
+        return Results.BadRequest(new { error = ex.Message });
+      }
+      catch (InvalidOperationException ex)
+      {
+        return Results.Json(new { error = ex.Message, isSubscriptionRequired = true }, statusCode: 402);
+      }
+      catch (UnauthorizedAccessException ex)
+      {
+        return Results.Json(new { error = ex.Message }, statusCode: 403);
+      }
+    })
+    .WithName("AnalyzeAts");
   }
 }

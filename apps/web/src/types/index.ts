@@ -197,6 +197,21 @@ export interface ResumeDto {
   profile?: Profile | null;
 }
 
+export interface AtsAnalysisRequestDto {
+  externalJobLink: string;
+  profileId: string;
+  jobDescriptionText?: string;
+}
+
+export interface AtsAnalysisResultDto {
+  matchPercentage: number;
+  matchedSkills: string[];
+  missingSkills: string[];
+  atsFeedback: string;
+  scrapedJobTitle: string;
+  scrapedJobDescription: string;
+}
+
 export * from "./landing";
 
 
