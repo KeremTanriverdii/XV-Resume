@@ -26,10 +26,12 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { getLandingData } from "./landingData";
 import { LandingContent } from "@/types";
+import { useAuth } from "@/providers/AuthProvider";
 
 
 export default function HomePageClient() {
   const locale = useLocale();
+  const { session } = useAuth();
   const c: LandingContent = getLandingData(locale);
 
   // States
@@ -198,18 +200,19 @@ export default function HomePageClient() {
 
                 <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
                   <Link
-                    href="/dashboard"
-                    className="group inline-flex items-center justify-center gap-2 rounded-full bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-bold px-8 py-4 transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/25 active:scale-95 text-center"
+                    href={session ? "/dashboard" : "/register"}
+                    className="group inline-flex items-center justify-center gap-2 rounded-full bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-bold px-8 py-4 transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/25 active:scale-95 text-center cursor-pointer"
                   >
+                    <Sparkles className="h-4.5 w-4.5" />
                     {c.hero.ctaPrimary}
                     <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </Link>
-                  <Link
-                    href="/dashboard/templates"
-                    className="inline-flex items-center justify-center rounded-full border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-700 dark:text-zinc-300 font-semibold px-8 py-4 transition-all duration-300 hover:border-zinc-300 dark:hover:border-zinc-700 active:scale-95 text-center"
+                  <a
+                    href="#proof"
+                    className="inline-flex items-center justify-center rounded-full border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-700 dark:text-zinc-300 font-semibold px-8 py-4 transition-all duration-300 hover:border-zinc-300 dark:hover:border-zinc-700 active:scale-95 text-center cursor-pointer"
                   >
                     {c.hero.ctaSecondary}
-                  </Link>
+                  </a>
                 </div>
               </div>
 
@@ -360,7 +363,7 @@ export default function HomePageClient() {
         </section>
 
         {/* PROOF SECTION */}
-        <section ref={proofSectionRef} className="py-36 md:py-48 border-b border-zinc-200 dark:border-zinc-900 relative overflow-hidden z-0">
+        <section id="proof" ref={proofSectionRef} className="py-36 md:py-48 border-b border-zinc-200 dark:border-zinc-900 relative overflow-hidden z-0">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-emerald-500/5 blur-[150px] rounded-full pointer-events-none -z-10" />
 
           {/* Floating abstract target circles (Theme Aware & Visible) */}
@@ -626,9 +629,10 @@ export default function HomePageClient() {
               {c.ctaBanner.desc}
             </p>
             <Link
-              href="/dashboard"
-              className="inline-flex items-center gap-2 rounded-full bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-bold px-8 py-4 shadow-lg shadow-emerald-500/10 transition-all duration-300 hover:scale-105 active:scale-95 text-center text-sm"
+              href={session ? "/dashboard" : "/register"}
+              className="inline-flex items-center gap-2 rounded-full bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-bold px-8 py-4 shadow-lg shadow-emerald-500/10 transition-all duration-300 hover:scale-105 active:scale-95 text-center text-sm cursor-pointer"
             >
+              <Sparkles className="h-4.5 w-4.5" />
               {c.ctaBanner.button}
               <ArrowRight className="h-4.5 w-4.5" />
             </Link>
