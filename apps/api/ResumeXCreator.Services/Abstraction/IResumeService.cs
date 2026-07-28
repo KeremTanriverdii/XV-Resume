@@ -11,4 +11,5 @@ public interface IResumeService
     Task<ResumeDto?> GetResumeByIdAsync(Guid id);
     Task<ResumeDto> CreateResumeAsync(CreateResumeDto createResumeDto);
     Task<ResumeDto> GenerateResumeAsync(CreateResumeDto dto, string authenticatedUserId);
+    Task<bool> DeleteResumeAsync(Guid id, string authenticatedUserId);
 }

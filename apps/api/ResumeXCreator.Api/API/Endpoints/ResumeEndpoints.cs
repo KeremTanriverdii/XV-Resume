@@ -53,5 +53,26 @@ public static class ResumeEndpoints
     })
     .WithValidation<CreateResumeDto>()
     .WithName("GenerateResume");
+
+    // DELETE /api/v1/resumes/{id}
+    group.MapDelete("/{id:guid}", async (Guid id, IResumeService resumeService, HttpContext ctx) =>
+    {
+      var userId = ctx.User.FindFirstValue(ClaimTypes.NameIdentifier)
+                ?? ctx.User.FindFirstValue("sub");
+
+      if (string.IsNullOrEmpty(userId))
+        return Results.Unauthorized();
+
+      try
+      {
+        var success = await resumeService.DeleteResumeAsync(id, userId);
+        return success ? Results.NoContent() : Results.NotFound();
+      }
+      catch (UnauthorizedAccessException ex)
+      {
+        return Results.Json(new { error = ex.Message }, statusCode: 403);
+      }
+    })
+    .WithName("DeleteResume");
   }
 }

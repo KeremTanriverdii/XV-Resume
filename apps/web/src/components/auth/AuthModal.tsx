@@ -87,9 +87,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         {/* Forms */}
         <div className="text-sm">
           {tab === "register" ? (
-            <EmailAndPasswordRegister />
+            <EmailAndPasswordRegister onSuccess={onSuccess} />
           ) : (
-            <EmailAndPasswordLogin />
+            <EmailAndPasswordLogin onSuccess={onSuccess} />
           )}
         </div>
 

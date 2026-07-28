@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/providers/AuthProvider';
-import { fetchResumeById, generateResume } from '@/services/resumeService';
+import { fetchResumeById, generateResume, deleteResume } from '@/services/resumeService';
+import { useResumeStore } from '@/store/useResumeStore';
 import { ResumeDto, ResumeTranslationDto } from '@/types';
 import { Button } from '@/components/ui/button';
 import {
@@ -23,6 +24,7 @@ import {
   Download,
   Layout,
   Palette,
+  Trash2,
 } from 'lucide-react';
 import { Link, useRouter } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
@@ -160,7 +162,6 @@ const cleanJobDescriptionText = (raw?: string | null) => {
   return clean.length > 0 ? clean : raw;
 };
 
-import { useResumeStore } from '@/store/useResumeStore';
 import { formatCompanyAndRole } from '@/utils/formatTitle';
 
 export default function ResumeSessionPage() {
@@ -201,9 +202,11 @@ export default function ResumeSessionPage() {
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
   const [authActionTitle, setAuthActionTitle] = useState<string>('Save & Export Your CV');
+  const [pendingAction, setPendingAction] = useState<'download' | 'email' | 'save' | 'ats' | null>(null);
 
   const handleActionTrigger = (action: 'download' | 'email' | 'save') => {
     if (!session) {
+      setPendingAction(action);
       setAuthActionTitle(
         action === 'download'
           ? 'Sign in to Download High-Res PDF'
@@ -218,6 +221,24 @@ export default function ResumeSessionPage() {
     if (action === 'download') {
       handleDownloadPdf();
     }
+  };
+
+  const handleRequestAtsLogin = () => {
+    setPendingAction('ats');
+    setAuthActionTitle('Sign in to Unlock ATS Analysis');
+    setIsAuthModalOpen(true);
+  };
+
+  const handleAuthSuccess = () => {
+    setIsAuthModalOpen(false);
+    // Execute the pending action after successful login
+    if (pendingAction === 'download') {
+      // Small delay to let auth state propagate
+      setTimeout(() => handleDownloadPdf(), 500);
+    } else if (pendingAction === 'ats') {
+      setActiveTab('ats');
+    }
+    setPendingAction(null);
   };
 
   // Fetch Resume details
@@ -302,6 +323,27 @@ export default function ResumeSessionPage() {
       setErrorMsg(t('regenerateError'));
     } finally {
       setRegenerating(false);
+    }
+  };
+
+  const removeSession = useResumeStore((state) => state.removeSession);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteResume = async () => {
+    if (!resume || isDeleting) return;
+    if (!window.confirm('Bu özgeçmiş oturumunu silmek istediğinizden emin misiniz?')) return;
+
+    setIsDeleting(true);
+    try {
+      if (token) {
+        await deleteResume(resume.id, token);
+      }
+      removeSession(resume.id);
+      router.push('/dashboard');
+    } catch (err) {
+      console.error('Failed to delete resume:', err);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -439,6 +481,23 @@ export default function ResumeSessionPage() {
               <>
                 <Download className="h-4 w-4" />
                 <span>{t('downloadPdf')}</span>
+              </>
+            )}
+          </Button>
+
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={handleDeleteResume}
+            disabled={isDeleting}
+            className="rounded-full gap-1.5 cursor-pointer shadow-sm"
+          >
+            {isDeleting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <>
+                <Trash2 className="h-4 w-4" />
+                <span>Sil</span>
               </>
             )}
           </Button>
@@ -695,6 +754,8 @@ export default function ResumeSessionPage() {
                 <AtsMatcherTab
                   resume={resume}
                   translation={activeTranslation}
+                  isAuthenticated={!!session}
+                  onRequestLogin={handleRequestAtsLogin}
                   onApplyTailoredTranslation={(updatedTranslation) => {
                     const updatedTranslations = resume.translations.map((tr) =>
                       tr.id === activeTranslation.id ? { ...tr, ...updatedTranslation } : tr
@@ -711,8 +772,12 @@ export default function ResumeSessionPage() {
       {/* Auth Gate Modal */}
       <AuthModal
         isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
+        onClose={() => {
+          setIsAuthModalOpen(false);
+          setPendingAction(null);
+        }}
         title={authActionTitle}
+        onSuccess={handleAuthSuccess}
       />
     </div>
   );

@@ -356,6 +356,25 @@ public class ResumeService(
     return MapToDto(resume);
   }
 
+  public async Task<bool> DeleteResumeAsync(Guid id, string authenticatedUserId)
+  {
+    var resume = await _resumeRepository.GetWithTranslationsByIdAsync(id);
+    if (resume == null) return false;
+
+    if (resume.ProfileId.HasValue)
+    {
+      var profile = await _profileRepository.GetByIdAsync(resume.ProfileId.Value);
+      if (profile != null && profile.UserId != authenticatedUserId)
+      {
+        throw new UnauthorizedAccessException("You do not have permission to delete this resume.");
+      }
+    }
+
+    _resumeRepository.Delete(resume);
+    await _resumeRepository.SaveChangesAsync();
+    return true;
+  }
+
   private static ResumeDto MapToDto(Resume r) => new()
   {
     Id = r.Id,

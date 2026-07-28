@@ -27,3 +27,13 @@ export const generateResume = async (
   if (!token) return null;
   return api.post<ResumeDto>("/resumes/generate", data, token).catch(() => null);
 };
+
+/**
+ * Delete a resume session by ID.
+ */
+export const deleteResume = async (id: string, token: string | undefined): Promise<boolean> => {
+  if (!token) return false;
+  return api.delete<void>(`/resumes/${id}`, token)
+    .then(() => true)
+    .catch(() => false);
+};

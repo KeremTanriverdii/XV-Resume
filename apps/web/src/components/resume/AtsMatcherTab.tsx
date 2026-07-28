@@ -21,12 +21,16 @@ interface AtsMatcherTabProps {
   onApplyTailoredTranslation: (
     updatedTranslation: Partial<ResumeTranslationDto>,
   ) => void;
+  isAuthenticated?: boolean;
+  onRequestLogin?: () => void;
 }
 
 export const AtsMatcherTab: React.FC<AtsMatcherTabProps> = ({
   resume,
   translation,
   onApplyTailoredTranslation,
+  isAuthenticated = true,
+  onRequestLogin,
 }) => {
   const [jobUrl, setJobUrl] = useState('');
   const [jobDescription, setJobDescription] = useState('');
@@ -117,6 +121,63 @@ export const AtsMatcherTab: React.FC<AtsMatcherTabProps> = ({
       setIsAnalyzing(false);
     }
   };
+
+  // ── Login Gate for unauthenticated users ──
+  if (!isAuthenticated) {
+    return (
+      <div className="flex flex-col gap-6 p-4 sm:p-6 bg-background rounded-2xl border border-border">
+        <div className="flex flex-col items-center justify-center py-16 px-6 text-center gap-5">
+          {/* Glowing Lock Icon */}
+          <div className="relative">
+            <div className="absolute inset-0 rounded-full bg-amber-500/20 blur-xl animate-pulse" />
+            <div className="relative h-20 w-20 rounded-full bg-amber-500/10 border-2 border-amber-500/30 flex items-center justify-center shadow-lg shadow-amber-500/10">
+              <Lock className="h-9 w-9 text-amber-500" />
+            </div>
+          </div>
+
+          {/* Headline */}
+          <div className="space-y-2 max-w-sm">
+            <h3 className="text-xl font-bold text-foreground tracking-tight">
+              Unlock ATS Intelligence
+            </h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Sign in to access AI-powered ATS analysis, keyword matching, and automated CV optimization tailored to your target job.
+            </p>
+          </div>
+
+          {/* Feature Pills */}
+          <div className="flex flex-wrap justify-center gap-2 mt-2">
+            {[
+              { icon: BarChart2, label: 'ATS Score Analysis' },
+              { icon: Sparkles, label: 'AI Keyword Optimization' },
+              { icon: CheckCircle2, label: 'Gap Detection' },
+            ].map((feature, idx) => (
+              <span
+                key={idx}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/60 border border-border text-xs font-semibold text-muted-foreground"
+              >
+                <feature.icon className="h-3.5 w-3.5 text-amber-500" />
+                {feature.label}
+              </span>
+            ))}
+          </div>
+
+          {/* CTA Button */}
+          <Button
+            onClick={onRequestLogin}
+            className="mt-4 rounded-full px-8 py-5 font-bold gap-2 text-sm bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/20 hover:shadow-amber-500/30 hover:scale-105 active:scale-95 transition-all"
+          >
+            <Lock className="h-4 w-4" />
+            Sign In to Unlock ATS Analysis
+          </Button>
+
+          <p className="text-[11px] text-muted-foreground/70 mt-1">
+            Free account • No credit card required
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6 p-4 sm:p-6 bg-background rounded-2xl border border-border">
