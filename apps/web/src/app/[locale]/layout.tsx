@@ -6,12 +6,42 @@ import '../global.css';
 import { Providers } from '../providers';
 import { AuthProvider } from '@/providers/AuthProvider';
 
-export const metadata = {
-  title: 'XV Resume - AI Powered Resume Creator',
-  description: 'Create your professional ATS-optimized resume per job post using AI.',
-}
-
+import type { Metadata } from 'next';
 import { Toaster } from 'sonner';
+
+export const metadata: Metadata = {
+  title: {
+    default: 'XV Resume — AI Uyumlu Özgeçmiş Oluşturucu',
+    template: '%s | XV Resume',
+  },
+  description: 'Yapay zeka ile her iş ilanına %100 ATS uyumlu, profesyonel ve etkileyici özgeçmişler (CV) oluşturun.',
+  keywords: [
+    'CV Oluşturucu',
+    'AI Resume Creator',
+    'ATS Uyumlu CV',
+    'Yapay Zeka Özgeçmiş',
+    'İş Başvurusu CV Hazırlama',
+    'Resume Builder',
+  ],
+  authors: [{ name: 'XV Resume Team' }],
+  openGraph: {
+    title: 'XV Resume — AI Uyumlu Özgeçmiş Oluşturucu',
+    description: 'Yapay zeka desteğiyle hedef iş ilanına özel ATS optimizasyonlu CV oluşturun.',
+    url: 'https://resumexcreator.com',
+    siteName: 'XV Resume',
+    locale: 'tr_TR',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'XV Resume — AI Powered Resume Builder',
+    description: 'Create ATS-optimized resumes tailored to job postings instantly using AI.',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+};
 
 export default async function RootLayout({
   children,
