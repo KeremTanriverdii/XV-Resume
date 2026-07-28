@@ -48,6 +48,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useTheme } from 'next-themes';
 import { useLocale, useTranslations } from 'next-intl';
+import { toast } from 'sonner';
 
 import { formatCompanyAndRole } from '@/utils/formatTitle';
 
@@ -77,11 +78,13 @@ export function AppSidebar() {
         await deleteResume(id, token);
       }
       removeSession(id);
+      toast.success('Özgeçmiş başarıyla silindi');
       if (pathname.includes(`/dashboard/resume/${id}`)) {
         router.push('/dashboard');
       }
     } catch (err) {
       console.error('Failed to delete resume session:', err);
+      toast.error('Özgeçmiş silinirken bir hata oluştu');
     } finally {
       setDeletingId(null);
     }

@@ -11,6 +11,8 @@ export const metadata = {
   description: 'Create your professional ATS-optimized resume per job post using AI.',
 }
 
+import { Toaster } from 'sonner';
+
 export default async function RootLayout({
   children,
   params
@@ -36,6 +38,7 @@ export default async function RootLayout({
         <NextIntlClientProvider messages={messages}>
           <Providers>
             {children}
+            <Toaster position="bottom-right" richColors closeButton />
           </Providers>
         </NextIntlClientProvider>
           </AuthProvider>

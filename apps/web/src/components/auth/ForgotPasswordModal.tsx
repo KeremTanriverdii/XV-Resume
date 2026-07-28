@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { createClient } from '@/utils/supabase/client';
 import { useLocale } from 'next-intl';
+import { toast } from 'sonner';
 
 interface ForgotPasswordModalProps {
   isOpen: boolean;
@@ -59,6 +60,7 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
       }
 
       setIsSuccess(true);
+      toast.success('Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.');
     } catch {
       setError('E-posta gönderilirken bir hata oluştu. Lütfen tekrar deneyin.');
     } finally {

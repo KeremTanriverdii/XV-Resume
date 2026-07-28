@@ -27,6 +27,7 @@ import {
   Trash2,
   Save,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { Link, useRouter } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
 import {
@@ -352,10 +353,14 @@ export default function ResumeSessionPage() {
       );
       if (ok) {
         setSaveSuccess(true);
+        toast.success('Değişiklikler başarıyla kaydedildi');
         setTimeout(() => setSaveSuccess(false), 3000);
+      } else {
+        toast.error('Değişiklikler kaydedilemedi');
       }
     } catch (err) {
       console.error('Save translation error:', err);
+      toast.error('Kaydetme sırasında bir hata oluştu');
     } finally {
       setIsSaving(false);
     }
@@ -371,9 +376,11 @@ export default function ResumeSessionPage() {
         await deleteResume(resume.id, token);
       }
       removeSession(resume.id);
+      toast.success('Özgeçmiş başarıyla silindi');
       router.push('/dashboard');
     } catch (err) {
       console.error('Failed to delete resume:', err);
+      toast.error('Özgeçmiş silinirken hata oluştu');
     } finally {
       setIsDeleting(false);
     }
