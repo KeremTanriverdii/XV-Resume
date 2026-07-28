@@ -74,5 +74,26 @@ public static class ResumeEndpoints
       }
     })
     .WithName("DeleteResume");
+
+    // PUT /api/v1/resumes/{resumeId}/translations/{translationId}
+    group.MapPut("/{resumeId:guid}/translations/{translationId:int}", async (Guid resumeId, int translationId, UpdateResumeTranslationDto dto, IResumeService resumeService, HttpContext ctx) =>
+    {
+      var userId = ctx.User.FindFirstValue(ClaimTypes.NameIdentifier)
+                ?? ctx.User.FindFirstValue("sub");
+
+      if (string.IsNullOrEmpty(userId))
+        return Results.Unauthorized();
+
+      try
+      {
+        var result = await resumeService.UpdateResumeTranslationAsync(resumeId, translationId, dto, userId);
+        return result is not null ? Results.Ok(result) : Results.NotFound();
+      }
+      catch (UnauthorizedAccessException ex)
+      {
+        return Results.Json(new { error = ex.Message }, statusCode: 403);
+      }
+    })
+    .WithName("UpdateResumeTranslation");
   }
 }

@@ -171,7 +171,7 @@ export interface CreateResumeDto {
 }
 
 export interface ResumeTranslationDto {
-  id: string;
+  id: number | string;
   resumeId: string;
   languageCode: string;
   title: string;

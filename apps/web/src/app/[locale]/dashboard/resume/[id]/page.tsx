@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/providers/AuthProvider';
-import { fetchResumeById, generateResume, deleteResume } from '@/services/resumeService';
+import { fetchResumeById, generateResume, deleteResume, updateResumeTranslation } from '@/services/resumeService';
 import { useResumeStore } from '@/store/useResumeStore';
 import { ResumeDto, ResumeTranslationDto } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,7 @@ import {
   Layout,
   Palette,
   Trash2,
+  Save,
 } from 'lucide-react';
 import { Link, useRouter } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
@@ -328,6 +329,37 @@ export default function ResumeSessionPage() {
 
   const removeSession = useResumeStore((state) => state.removeSession);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
+  const handleSaveTranslation = async () => {
+    if (!resume || !activeTranslation || isSaving) return;
+    setIsSaving(true);
+    try {
+      const ok = await updateResumeTranslation(
+        resume.id,
+        activeTranslation.id,
+        {
+          title: activeTranslation.title,
+          summary: activeTranslation.summary,
+          experienceHtml: activeTranslation.experienceHtml,
+          educationHtml: activeTranslation.educationHtml,
+          skillsHtml: activeTranslation.skillsHtml,
+          languagesHtml: activeTranslation.languagesHtml,
+          projectsHtml: activeTranslation.projectsHtml,
+        },
+        token
+      );
+      if (ok) {
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 3000);
+      }
+    } catch (err) {
+      console.error('Save translation error:', err);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleDeleteResume = async () => {
     if (!resume || isDeleting) return;
@@ -462,6 +494,33 @@ export default function ResumeSessionPage() {
                 <span>{t('jobLink')}</span>
                 <ExternalLink className="h-3.5 w-3.5" />
               </a>
+            </Button>
+          )}
+
+          {activeTranslation && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSaveTranslation}
+              disabled={isSaving}
+              className="rounded-full gap-1.5 cursor-pointer shadow-xs border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10"
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  <span>Kaydediliyor...</span>
+                </>
+              ) : saveSuccess ? (
+                <>
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                  <span>Kaydedildi!</span>
+                </>
+              ) : (
+                <>
+                  <Save className="h-3.5 w-3.5" />
+                  <span>Kaydet</span>
+                </>
+              )}
             </Button>
           )}
 

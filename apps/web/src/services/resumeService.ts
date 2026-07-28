@@ -37,3 +37,26 @@ export const deleteResume = async (id: string, token: string | undefined): Promi
     .then(() => true)
     .catch(() => false);
 };
+
+/**
+ * Update a specific resume translation (summary, section HTMLs, title).
+ */
+export const updateResumeTranslation = async (
+  resumeId: string,
+  translationId: number | string,
+  data: {
+    title?: string;
+    summary?: string;
+    experienceHtml?: string;
+    educationHtml?: string;
+    skillsHtml?: string;
+    languagesHtml?: string;
+    projectsHtml?: string | null;
+  },
+  token: string | undefined
+): Promise<boolean> => {
+  if (!token) return false;
+  return api.put<any>(`/resumes/${resumeId}/translations/${translationId}`, data, token)
+    .then(() => true)
+    .catch(() => false);
+};

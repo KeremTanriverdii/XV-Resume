@@ -375,6 +375,52 @@ public class ResumeService(
     return true;
   }
 
+  public async Task<ResumeTranslationDto?> UpdateResumeTranslationAsync(Guid resumeId, int translationId, UpdateResumeTranslationDto dto, string authenticatedUserId)
+  {
+    var resume = await _resumeRepository.GetWithTranslationsByIdAsync(resumeId);
+    if (resume == null) return null;
+
+    if (resume.ProfileId.HasValue)
+    {
+      var profile = await _profileRepository.GetByIdAsync(resume.ProfileId.Value);
+      if (profile != null && profile.UserId != authenticatedUserId)
+      {
+        throw new UnauthorizedAccessException("You do not have permission to modify this resume.");
+      }
+    }
+
+    var translation = resume.Translations.FirstOrDefault(t => t.Id == translationId);
+    if (translation == null) return null;
+
+    if (dto.Title != null) translation.Title = dto.Title;
+    if (dto.Summary != null) translation.Summary = dto.Summary;
+    if (dto.ExperienceHtml != null) translation.ExperienceHtml = dto.ExperienceHtml;
+    if (dto.EducationHtml != null) translation.EducationHtml = dto.EducationHtml;
+    if (dto.SkillsHtml != null) translation.SkillsHtml = dto.SkillsHtml;
+    if (dto.LanguagesHtml != null) translation.LanguagesHtml = dto.LanguagesHtml;
+    if (dto.ProjectsHtml != null) translation.ProjectsHtml = dto.ProjectsHtml;
+
+    await _resumeRepository.SaveChangesAsync();
+
+    return new ResumeTranslationDto
+    {
+      Id = translation.Id,
+      ResumeId = translation.ResumeId,
+      LanguageCode = translation.LanguageCode,
+      Title = translation.Title,
+      Summary = translation.Summary,
+      ExperienceHtml = translation.ExperienceHtml,
+      EducationHtml = translation.EducationHtml,
+      SkillsHtml = translation.SkillsHtml,
+      LanguagesHtml = translation.LanguagesHtml,
+      ProjectsHtml = translation.ProjectsHtml,
+      MatchPercentage = translation.MatchPercentage,
+      AtsFeedback = translation.AtsFeedback,
+      Version = translation.Version,
+      CreatedAt = translation.CreatedAt
+    };
+  }
+
   private static ResumeDto MapToDto(Resume r) => new()
   {
     Id = r.Id,
