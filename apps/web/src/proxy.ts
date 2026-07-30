@@ -19,7 +19,7 @@ export async function proxy(request: NextRequest) {
   }
 
   // 2. Run i18n middleware first to get the base response (which includes necessary locale headers/rewrites)
-  let response = intlMiddleware(request);
+  let response = intlMiddleware(request as any);
 
   // 3. Supabase Auth & Session Refresh
   const supabase = createServerClient(

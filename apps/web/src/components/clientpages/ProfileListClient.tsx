@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/button';
 import { Pencil, Trash2, Loader2 } from 'lucide-react';
 import { formatDate } from '@/utils/date';
 
+import Image from 'next/image';
+
 interface ProfileListClientProps {
   token: string | undefined;
   userId: string | undefined;
@@ -171,14 +173,16 @@ export default function ProfileListClient({
                     )}
                   </div>
                   {profile.showPhoto && profile.photoUrl && (
-                    <img
-                      src={profile.photoUrl}
-                      alt={profile.fullName}
-                      className="h-16 w-16 rounded-md object-cover border border-border/80 shadow-xs shrink-0"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                      }}
-                    />
+                    <div className="relative h-16 w-16 rounded-md overflow-hidden border border-border/80 shadow-xs shrink-0 bg-muted">
+                      <Image
+                        src={profile.photoUrl}
+                        alt={profile.fullName || 'Profile Photo'}
+                        width={64}
+                        height={64}
+                        className="h-full w-full object-cover"
+                        unoptimized
+                      />
+                    </div>
                   )}
                 </div>
 

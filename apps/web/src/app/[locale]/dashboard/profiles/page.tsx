@@ -12,6 +12,7 @@ export default async function ProfilesPage() {
   } = await supabase.auth.getUser();
   if (userError || !user) {
     redirect('/login');
+    return null;
   }
   const metaData = user.user_metadata;
   const {
