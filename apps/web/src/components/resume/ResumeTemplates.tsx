@@ -262,7 +262,7 @@ export const ResumeTemplates: React.FC<ResumeTemplatesProps> = ({
   ) => {
     if (styleVariant === 'executive') {
       return (
-        <div className="border-b-2 border-t border-zinc-900 dark:border-zinc-100 py-0.5 my-2 [break-after:avoid] [page-break-after:avoid]">
+        <div className="border-b-2 border-t border-zinc-900 dark:border-zinc-100 py-0.5 my-2 cv-section-header avoid-break [break-after:avoid] [page-break-after:avoid]">
           <h3 className="text-xs font-serif uppercase tracking-widest text-zinc-900 dark:text-zinc-100 font-bold text-center">
             {label}
           </h3>
@@ -272,7 +272,7 @@ export const ResumeTemplates: React.FC<ResumeTemplatesProps> = ({
 
     if (styleVariant === 'minimal') {
       return (
-        <div className="mb-1 border-b border-zinc-200 dark:border-zinc-800 pb-0.5 [break-after:avoid] [page-break-after:avoid]">
+        <div className="mb-1 border-b border-zinc-200 dark:border-zinc-800 pb-0.5 cv-section-header avoid-break [break-after:avoid] [page-break-after:avoid]">
           <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
             // {label}
           </h3>
@@ -283,7 +283,7 @@ export const ResumeTemplates: React.FC<ResumeTemplatesProps> = ({
     if (styleVariant === 'sidebar') {
       return (
         <h3
-          className={`text-xs font-bold uppercase tracking-wider ${theme.textClass} border-b ${theme.borderClass} pb-0.5 mb-1.5 [break-after:avoid] [page-break-after:avoid]`}
+          className={`text-xs font-bold uppercase tracking-wider ${theme.textClass} border-b ${theme.borderClass} pb-0.5 mb-1.5 cv-section-header avoid-break [break-after:avoid] [page-break-after:avoid]`}
         >
           {label}
         </h3>
@@ -293,7 +293,7 @@ export const ResumeTemplates: React.FC<ResumeTemplatesProps> = ({
     // Default: Modern
     return (
       <h3
-        className={`text-xs font-extrabold uppercase tracking-widest ${theme.primaryClass} border-b ${theme.borderClass}/30 pb-1 mb-1.5 [break-after:avoid] [page-break-after:avoid]`}
+        className={`text-xs font-extrabold uppercase tracking-widest ${theme.primaryClass} border-b ${theme.borderClass}/30 pb-1 mb-1.5 cv-section-header avoid-break [break-after:avoid] [page-break-after:avoid]`}
       >
         {label}
       </h3>
@@ -369,15 +369,38 @@ export const ResumeTemplates: React.FC<ResumeTemplatesProps> = ({
     htmlContent?: string | null,
     label?: string,
     styleVariant: 'modern' | 'executive' | 'sidebar' | 'minimal' = 'modern',
+    isCompact: boolean = false,
   ) => {
     if (!htmlContent) return null;
     const cleanedHtml = cleanExperienceHtml(htmlContent);
+
+    if (isCompact) {
+      return (
+        <div
+          className="flex flex-col gap-0.5 mb-2.5 last:mb-0 cv-section cv-section-compact avoid-break [break-inside:avoid] [page-break-inside:avoid]"
+        >
+          {label && renderSectionHeader(label, styleVariant)}
+          <div
+            className="prose prose-zinc dark:prose-invert text-sm max-w-none prose-headings:mt-1 prose-headings:mb-0.5 prose-headings:first:mt-0 prose-h3:mt-1 prose-h3:mb-0.5 prose-h3:first:mt-0 prose-h3:text-xs sm:prose-h3:text-sm prose-h3:font-bold prose-h3:[break-after:avoid] prose-h3:[page-break-after:avoid] prose-headings:text-zinc-900 dark:prose-headings:text-zinc-100 prose-p:my-0.5 prose-p:first:mt-0 prose-p:leading-snug prose-p:text-zinc-700 dark:prose-p:text-zinc-300 prose-p:[break-inside:avoid] prose-ul:my-0.5 prose-ul:first:mt-0 prose-ul:list-disc prose-ul:pl-4 prose-li:my-0.5 prose-li:leading-snug prose-li:[break-inside:avoid]"
+            dangerouslySetInnerHTML={{ __html: cleanedHtml }}
+          />
+        </div>
+      );
+    }
+
+    const processedHtml = cleanedHtml.includes('<h3')
+      ? cleanedHtml.replace(
+          /(<h[34][^>]*>[\s\S]*?)(?=(<h[34][^>]*>|$))/gi,
+          '<div class="cv-item avoid-break [break-inside:avoid] [page-break-inside:avoid]">$1</div>',
+        )
+      : cleanedHtml;
+
     return (
-      <div className="flex flex-col gap-0.5 mb-2.5 last:mb-0">
+      <div className="flex flex-col gap-0.5 mb-2.5 last:mb-0 cv-section">
         {label && renderSectionHeader(label, styleVariant)}
         <div
           className="prose prose-zinc dark:prose-invert text-sm max-w-none prose-headings:mt-1 prose-headings:mb-0.5 prose-headings:first:mt-0 prose-h3:mt-1 prose-h3:mb-0.5 prose-h3:first:mt-0 prose-h3:text-xs sm:prose-h3:text-sm prose-h3:font-bold prose-h3:[break-after:avoid] prose-h3:[page-break-after:avoid] prose-headings:text-zinc-900 dark:prose-headings:text-zinc-100 prose-p:my-0.5 prose-p:first:mt-0 prose-p:leading-snug prose-p:text-zinc-700 dark:prose-p:text-zinc-300 prose-p:[break-inside:avoid] prose-ul:my-0.5 prose-ul:first:mt-0 prose-ul:list-disc prose-ul:pl-4 prose-li:my-0.5 prose-li:leading-snug prose-li:[break-inside:avoid]"
-          dangerouslySetInnerHTML={{ __html: cleanedHtml }}
+          dangerouslySetInnerHTML={{ __html: processedHtml }}
         />
       </div>
     );
@@ -439,7 +462,7 @@ export const ResumeTemplates: React.FC<ResumeTemplatesProps> = ({
 
         {/* Summary */}
         {translation.summary && (
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 cv-section-compact avoid-break [break-inside:avoid] [page-break-inside:avoid]">
             {renderSectionHeader(labels.summary, 'modern')}
             <p className="text-sm text-zinc-650 dark:text-zinc-300 leading-relaxed italic border-l-2 border-primary/30 pl-3">
               {translation.summary}
@@ -458,12 +481,18 @@ export const ResumeTemplates: React.FC<ResumeTemplatesProps> = ({
           labels.education,
           'modern',
         )}
-        {renderHtmlSection(translation.skillsHtml, labels.skills, 'modern')}
+        {renderHtmlSection(
+          translation.skillsHtml,
+          labels.skills,
+          'modern',
+          true,
+        )}
         {renderHtmlSection(translation.projectsHtml, labels.projects, 'modern')}
         {renderHtmlSection(
           translation.languagesHtml,
           labels.languages,
           'modern',
+          true,
         )}
       </div>
     );
@@ -511,7 +540,7 @@ export const ResumeTemplates: React.FC<ResumeTemplatesProps> = ({
 
         {/* Executive Summary */}
         {translation.summary && (
-          <div className="my-2">
+          <div className="my-2 cv-section-compact avoid-break [break-inside:avoid] [page-break-inside:avoid]">
             {renderSectionHeader(labels.summary, 'executive')}
             <p className="text-xs font-sans leading-relaxed text-zinc-700 dark:text-zinc-300 text-justify">
               {translation.summary}
@@ -529,7 +558,12 @@ export const ResumeTemplates: React.FC<ResumeTemplatesProps> = ({
           labels.education,
           'executive',
         )}
-        {renderHtmlSection(translation.skillsHtml, labels.skills, 'executive')}
+        {renderHtmlSection(
+          translation.skillsHtml,
+          labels.skills,
+          'executive',
+          true,
+        )}
         {renderHtmlSection(
           translation.projectsHtml,
           labels.projects,
@@ -539,6 +573,7 @@ export const ResumeTemplates: React.FC<ResumeTemplatesProps> = ({
           translation.languagesHtml,
           labels.languages,
           'executive',
+          true,
         )}
       </div>
     );
@@ -604,7 +639,7 @@ export const ResumeTemplates: React.FC<ResumeTemplatesProps> = ({
 
           {/* Skills HTML in Sidebar */}
           {translation.skillsHtml && (
-            <div className="space-y-2 border-t border-border/60 pt-4">
+            <div className="space-y-2 border-t border-border/60 pt-4 cv-section-compact avoid-break [break-inside:avoid] [page-break-inside:avoid]">
               {renderSectionHeader(labels.skills, 'sidebar')}
               <div
                 className="prose prose-xs max-w-none text-zinc-700 dark:text-zinc-300 prose-ul:my-1 prose-ul:list-disc prose-ul:pl-4 prose-li:my-0.5 prose-p:my-0.5"
@@ -617,7 +652,7 @@ export const ResumeTemplates: React.FC<ResumeTemplatesProps> = ({
 
           {/* Languages HTML in Sidebar */}
           {translation.languagesHtml && (
-            <div className="space-y-2 border-t border-border/60 pt-4">
+            <div className="space-y-2 border-t border-border/60 pt-4 cv-section-compact avoid-break [break-inside:avoid] [page-break-inside:avoid]">
               {renderSectionHeader(labels.languages, 'sidebar')}
               <div
                 className="prose prose-xs max-w-none text-zinc-700 dark:text-zinc-300 prose-ul:my-1 prose-ul:list-disc prose-ul:pl-4 prose-li:my-0.5 prose-p:my-0.5"
@@ -632,7 +667,7 @@ export const ResumeTemplates: React.FC<ResumeTemplatesProps> = ({
         {/* Right Main Content Column */}
         <div className="md:col-span-8 p-6 sm:p-10 flex flex-col gap-6">
           {translation.summary && (
-            <div>
+            <div className="cv-section-compact avoid-break [break-inside:avoid] [page-break-inside:avoid]">
               {renderSectionHeader(labels.summary, 'sidebar')}
               <p className="text-xs text-zinc-650 dark:text-zinc-300 leading-relaxed italic border-l-2 border-primary/40 pl-3">
                 {translation.summary}
@@ -693,7 +728,7 @@ export const ResumeTemplates: React.FC<ResumeTemplatesProps> = ({
       </div>
 
       {translation.summary && (
-        <div className="mb-1">
+        <div className="mb-1 cv-section-compact avoid-break [break-inside:avoid] [page-break-inside:avoid]">
           {renderSectionHeader(labels.summary, 'minimal')}
           <p className="text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed font-sans">
             {translation.summary}
@@ -711,12 +746,18 @@ export const ResumeTemplates: React.FC<ResumeTemplatesProps> = ({
         labels.education,
         'minimal',
       )}
-      {renderHtmlSection(translation.skillsHtml, labels.skills, 'minimal')}
+      {renderHtmlSection(
+        translation.skillsHtml,
+        labels.skills,
+        'minimal',
+        true,
+      )}
       {renderHtmlSection(translation.projectsHtml, labels.projects, 'minimal')}
       {renderHtmlSection(
         translation.languagesHtml,
         labels.languages,
         'minimal',
+        true,
       )}
     </div>
   );

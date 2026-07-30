@@ -36,6 +36,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import CreateExperienceModal from './CreateExpreienceModal';
 import CreateEducationModal from './CreateEducetionModal';
 import { Field, FieldLabel } from '../ui/field';
+import { DatePicker } from '@/components/ui/date-picker';
 
 export interface ProfileCreateFormProps {
   token: string | undefined;
@@ -596,12 +597,10 @@ export default function ProfileCreateForm({
                 <label className="text-sm font-medium">
                   {t('militaryPostponed')}
                 </label>
-                <Input
-                  type="date"
-                  className="w-full bg-background"
+                <DatePicker
                   value={militaryPostponedUntil}
-                  onChange={(e) => setMilitaryPostponedUntil(e.target.value)}
-                  required={militaryStatus === 'Postponed'}
+                  onChange={setMilitaryPostponedUntil}
+                  placeholder={t('militaryPostponed')}
                 />
               </div>
             )}

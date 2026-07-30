@@ -8,6 +8,7 @@ import { useTranslations } from 'next-intl';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Pencil, Trash2, Loader2 } from 'lucide-react';
+import { formatDate } from '@/utils/date';
 
 interface ProfileListClientProps {
   token: string | undefined;
@@ -211,13 +212,7 @@ export default function ProfileListClient({
                           profile.militaryPostponedUntil && (
                             <>
                               :{' '}
-                              {new Date(
-                                profile.militaryPostponedUntil,
-                              ).toLocaleDateString(undefined, {
-                                year: 'numeric',
-                                month: '2-digit',
-                                day: '2-digit',
-                              })}
+                              {formatDate(profile.militaryPostponedUntil)}
                             </>
                           )}
                       </span>

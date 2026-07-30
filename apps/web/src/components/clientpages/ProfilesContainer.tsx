@@ -103,7 +103,7 @@ export default function ProfilesContainer({
       subtitle: 'Name, email, phone & title',
       icon: User,
       isComplete: !!previewProfile.fullName,
-      liveDataSummary: previewProfile.fullName ? `${previewProfile.fullName} • ${previewProfile.title || 'No Title'}` : 'Not filled',
+      liveDataSummary: previewProfile.fullName ? `${previewProfile.fullName} • ${previewProfile.title || previewProfile.profileName || 'No Title'}` : 'Not filled',
     },
     {
       id: 1,
@@ -173,13 +173,13 @@ export default function ProfilesContainer({
     experienceHtml: safeExperiencesList
       .map(
         (exp) =>
-          `<h3>${exp.jobTitle} @ ${exp.companyName}</h3><p>${exp.startDate} - ${exp.endDate || 'Present'}</p><p>${exp.description || ''}</p>`
+          `<h3>${exp.jobTitle || exp.role || 'Position'} @ ${exp.companyName || 'Company'}</h3><p>${exp.startDate || ''} - ${exp.endDate || 'Present'}</p><p>${exp.description || ''}</p>`
       )
       .join('<br/>'),
     educationHtml: safeEducationsList
       .map(
         (edu) =>
-          `<h3>${edu.degree} @ ${edu.institutionName}</h3><p>${edu.startDate} - ${edu.endDate || 'Present'}</p>`
+          `<h3>${edu.degree || 'Degree'} @ ${edu.institutionName || edu.schoolName || 'University/School'}</h3><p>${edu.startDate || ''} - ${edu.endDate || 'Present'}</p>`
       )
       .join('<br/>'),
     projectsHtml: safeProjectsList
@@ -189,7 +189,17 @@ export default function ProfilesContainer({
       )
       .join('<br/>'),
     skillsHtml: safeSkillsList.length
-      ? `<p><strong>Skills:</strong> ${safeSkillsList.join(', ')}</p>`
+      ? safeSkillsList
+          .map((s) => {
+            if (s.includes(':')) {
+              const parts = s.split(':');
+              const category = parts[0].trim();
+              const items = parts.slice(1).join(':').trim();
+              return `<p><strong>${category}:</strong> ${items}</p>`;
+            }
+            return `<p>${s}</p>`;
+          })
+          .join('')
       : '',
     languagesHtml: safeLanguagesList.length
       ? `<p><strong>Languages:</strong> ${safeLanguagesList.join(', ')}</p>`

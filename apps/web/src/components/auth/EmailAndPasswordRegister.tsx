@@ -14,7 +14,11 @@ type FieldErrors = {
   confirmPassword?: string;
 };
 
-export default function EmailAndPasswordRegister() {
+interface EmailAndPasswordRegisterProps {
+  onSuccess?: () => void;
+}
+
+export default function EmailAndPasswordRegister({ onSuccess }: EmailAndPasswordRegisterProps) {
   const supabase = createClient();
   const t = useTranslations('register');
 
@@ -72,6 +76,7 @@ export default function EmailAndPasswordRegister() {
       }
 
       setSuccess(true);
+      onSuccess?.();
     } catch {
       setError(t('errorGeneric'));
     } finally {

@@ -16,6 +16,7 @@ import AutocompleteInput from "@/components/ui/autocomplete-input"
 import { SCHOOL_NAMES, DEGREES, FIELDS_OF_STUDY } from "@/lib/autocomplete-data"
 import { useTranslations } from "next-intl"
 import { formatDate } from "@/utils/date"
+import { DatePicker } from "@/components/ui/date-picker"
 import { Skeleton } from "@/components/ui/skeleton"
 
 interface EducationListClientProps {
@@ -212,11 +213,10 @@ export default function EducationListClient({ token, userId }: EducationListClie
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-muted-foreground">{t("startDate")} <span className="text-destructive">*</span></label>
-                <Input 
-                  type="date"
+                <DatePicker
                   value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  required 
+                  onChange={setStartDate}
+                  placeholder={t("startDate")}
                 />
               </div>
               <div className="space-y-2">
@@ -239,11 +239,11 @@ export default function EducationListClient({ token, userId }: EducationListClie
                     {t("ongoing")}
                   </label>
                 </div>
-                <Input 
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
+                <DatePicker
+                  value={isOngoing ? "" : endDate}
+                  onChange={setEndDate}
                   disabled={isOngoing}
+                  placeholder={t("endDate")}
                 />
               </div>
             </div>

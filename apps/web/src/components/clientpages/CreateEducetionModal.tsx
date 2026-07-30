@@ -6,6 +6,7 @@ import { useState } from "react"
 import { Input } from "../ui/input"
 import { Plus } from "lucide-react"
 import AutocompleteInput from "@/components/ui/autocomplete-input"
+import { DatePicker } from "@/components/ui/date-picker"
 import { SCHOOL_NAMES, DEGREES, FIELDS_OF_STUDY } from "@/lib/autocomplete-data"
 import { createEducation } from "@/services/educationService"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
@@ -121,26 +122,26 @@ export default function CreateEducationModal({ token, userId }: CreateEducationM
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <label htmlFor="startDate" className="text-right text-sm font-medium">Başlangıç <span className="text-destructive">*</span></label>
-            <Input
-              type="date"
-              id="startDate"
-              className="col-span-3 bg-background"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              required
-            />
+            <div className="col-span-3">
+              <DatePicker
+                id="startDate"
+                value={startDate}
+                onChange={setStartDate}
+                placeholder="Başlangıç tarihi seçin"
+              />
+            </div>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <label htmlFor="endDate" className="text-right text-sm font-medium">Bitiş</label>
-            <Input
-              type="date"
-              id="endDate"
-              className="col-span-3 bg-background"
-              disabled={isOngoing}
-              value={isOngoing ? "" : endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              required={!isOngoing}
-            />
+            <div className="col-span-3">
+              <DatePicker
+                id="endDate"
+                value={isOngoing ? "" : endDate}
+                onChange={setEndDate}
+                disabled={isOngoing}
+                placeholder="Bitiş tarihi seçin"
+              />
+            </div>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <div className="col-start-2 col-span-3 flex items-center gap-2">

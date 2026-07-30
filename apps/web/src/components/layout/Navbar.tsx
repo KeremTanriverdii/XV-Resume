@@ -9,7 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
-import { Globe, Sun, Moon, User } from 'lucide-react';
+import { Globe, Sun, Moon, User, Sparkles } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
@@ -127,9 +127,10 @@ export default function Navbar() {
               <Link
                 href="/dashboard"
                 locale={locale as any}
-                className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+                className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-bold px-4 py-2 text-xs transition-all duration-300 shadow-md shadow-emerald-500/10 hover:shadow-emerald-500/25 active:scale-95 cursor-pointer"
               >
-                Dashboard
+                <Sparkles className="h-3.5 w-3.5" />
+                <span>CV Oluştur</span>
               </Link>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -144,6 +145,12 @@ export default function Navbar() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 text-zinc-800 dark:text-zinc-300">
+                  <DropdownMenuItem
+                    onClick={() => router.push('/dashboard')}
+                    className="hover:bg-zinc-100 dark:hover:bg-zinc-900 focus:bg-zinc-100 dark:focus:bg-zinc-900 hover:text-zinc-900 dark:hover:text-zinc-100 focus:text-zinc-100 transition-colors"
+                  >
+                    <span className="text-xs">Dashboard / CV Oluştur</span>
+                  </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => router.push('/profile')}
                     className="hover:bg-zinc-100 dark:hover:bg-zinc-900 focus:bg-zinc-100 dark:focus:bg-zinc-900 hover:text-zinc-900 dark:hover:text-zinc-100 focus:text-zinc-100 transition-colors"
@@ -175,9 +182,10 @@ export default function Navbar() {
               </Link>
               <Link
                 href="/register"
-                className="hidden sm:inline-flex rounded-full bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-bold px-5 py-2 text-xs transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/10"
+                className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-bold px-5 py-2 text-xs transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/10 active:scale-95 cursor-pointer"
               >
-                Hemen Başla
+                <Sparkles className="h-3.5 w-3.5" />
+                <span>CV Oluştur</span>
               </Link>
             </>
           )}

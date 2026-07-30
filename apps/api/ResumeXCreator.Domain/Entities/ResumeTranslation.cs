@@ -14,6 +14,8 @@ public class ResumeTranslation
   public string? ProjectsHtml { get; set; } = string.Empty;
   public int? MatchPercentage { get; set; }
   public string? AtsFeedback { get; set; }
+  public string? CoverLetter { get; set; } = string.Empty;
+  public string? ColdMessage { get; set; } = string.Empty;
   public int Version { get; set; } = 1;
   public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
   public Resume? Resume { get; set; }

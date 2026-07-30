@@ -69,9 +69,11 @@ public class GeminiAiService : IAiService
             languagesHtml = new { type = "STRING" },
             projectsHtml = new { type = "STRING" },
             matchPercentage = new { type = "INTEGER" },
-            atsFeedback = new { type = "STRING" }
+            atsFeedback = new { type = "STRING" },
+            coverLetter = new { type = "STRING" },
+            coldMessage = new { type = "STRING" }
           },
-          required = new[] { "title", "summary", "experienceHtml", "educationHtml", "skillsHtml", "languagesHtml", "projectsHtml", "matchPercentage", "atsFeedback" }
+          required = new[] { "title", "summary", "experienceHtml", "educationHtml", "skillsHtml", "languagesHtml", "projectsHtml", "matchPercentage", "atsFeedback", "coverLetter", "coldMessage" }
         }
       }
     };
@@ -331,6 +333,11 @@ ATS MATCH SCORE & FEEDBACK RULES
    ### Weak Areas
    ### Improvement Suggestions
    ### Estimated ATS Risks
+3. COVER LETTER ('coverLetter'): Write a complete, compelling 3-4 paragraph formal Cover Letter strictly in '{languageCode}'.
+   - Address the hiring manager/employer for the target job description.
+   - Connect applicant's past achievements, skills, and background directly to company requirements.
+4. COLD MESSAGE ('coldMessage'): Write a high-converting, concise 2-3 paragraph Cold Outreach Message (for LinkedIn InMail or Recruiter Email) strictly in '{languageCode}'.
+   - Include a catchy subject line or greeting, applicant's top 2 value propositions, and a clear call-to-action (CTA).
 
 ==================================================
 OUTPUT & LANGUAGE RULES
@@ -338,5 +345,127 @@ OUTPUT & LANGUAGE RULES
 - ALL generated resume content, HTML headings, text, dates, and feedback MUST be strictly in language '{languageCode}'.
 - Exception for language mixing: Keep original technology/framework names (e.g., React, .NET, TypeScript), company names, and product names as-is.
 - Output MUST be valid, parsable JSON matching the required schema. Do NOT wrap in markdown backticks or add introductory/trailing text.";
+  }
+
+  public async Task<AiAtsAnalysisResult> AnalyzeAtsAsync(
+      string externalJobLink,
+      AiProfileInput profile,
+      string? jobDescriptionText = null)
+  {
+    if (string.IsNullOrWhiteSpace(_apiKey))
+    {
+      throw new InvalidOperationException("Gemini API key is not configured.");
+    }
+
+    var jobDescription = !string.IsNullOrWhiteSpace(jobDescriptionText)
+        ? jobDescriptionText
+        : await ScrapeJobDescriptionAsync(externalJobLink);
+
+    var prompt = $@"
+You are an expert ATS (Applicant Tracking System) parser and senior recruiter.
+Analyze the candidate profile against the target job description.
+
+JOB DESCRIPTION:
+{jobDescription}
+
+CANDIDATE PROFILE:
+- Full Name: {profile.FullName}
+- Title: {profile.Title}
+- Summary: {profile.Summary}
+- Skills: {string.Join(", ", profile.Skills)}
+- Experiences: {JsonSerializer.Serialize(profile.Experiences)}
+- Educations: {JsonSerializer.Serialize(profile.Educations)}
+- Projects: {JsonSerializer.Serialize(profile.Projects)}
+
+RETURN JSON STRICTLY matching this schema:
+- matchPercentage: INTEGER (0 to 100)
+- matchedSkills: ARRAY of STRINGS (key technical/soft skills present in both job description and profile)
+- missingSkills: ARRAY of STRINGS (important skills/keywords required by job description but missing or weak in profile)
+- atsFeedback: STRING (actionable 3-4 sentence Markdown advice on how to improve ATS match)
+- scrapedJobTitle: STRING (extracted job title from description)
+";
+
+    var requestUrl = $"https://generativelanguage.googleapis.com/v1beta/models/{_model}:generateContent?key={_apiKey}";
+
+    var payload = new
+    {
+      contents = new[]
+        {
+          new
+          {
+            parts = new[]
+              {
+                new { text = prompt }
+              }
+          }
+        },
+      generationConfig = new
+      {
+        responseMimeType = "application/json",
+        responseSchema = new
+        {
+          type = "OBJECT",
+          properties = new
+          {
+            matchPercentage = new { type = "INTEGER" },
+            matchedSkills = new { type = "ARRAY", items = new { type = "STRING" } },
+            missingSkills = new { type = "ARRAY", items = new { type = "STRING" } },
+            atsFeedback = new { type = "STRING" },
+            scrapedJobTitle = new { type = "STRING" }
+          },
+          required = new[] { "matchPercentage", "matchedSkills", "missingSkills", "atsFeedback", "scrapedJobTitle" }
+        }
+      }
+    };
+
+    var requestContent = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+    var response = await _httpClient.PostAsync(requestUrl, requestContent);
+
+    if (!response.IsSuccessStatusCode)
+    {
+      var errorDetails = await response.Content.ReadAsStringAsync();
+      throw new Exception($"Gemini API error (Status: {response.StatusCode}): {errorDetails}");
+    }
+
+    var responseContent = await response.Content.ReadAsStringAsync();
+    using var doc = JsonDocument.Parse(responseContent);
+    var candidates = doc.RootElement.GetProperty("candidates");
+    if (candidates.GetArrayLength() == 0)
+    {
+      throw new Exception("Gemini API returned no candidates in response.");
+    }
+
+    var text = candidates[0]
+        .GetProperty("content")
+        .GetProperty("parts")[0]
+        .GetProperty("text")
+        .GetString();
+
+    using var resultDoc = JsonDocument.Parse(text!);
+    var root = resultDoc.RootElement;
+
+    var matchedSkills = new List<string>();
+    if (root.TryGetProperty("matchedSkills", out var matchedArr))
+    {
+      foreach (var item in matchedArr.EnumerateArray())
+        matchedSkills.Add(item.GetString() ?? "");
+    }
+
+    var missingSkills = new List<string>();
+    if (root.TryGetProperty("missingSkills", out var missingArr))
+    {
+      foreach (var item in missingArr.EnumerateArray())
+        missingSkills.Add(item.GetString() ?? "");
+    }
+
+    return new AiAtsAnalysisResult
+    {
+      MatchPercentage = root.GetProperty("matchPercentage").GetInt32(),
+      MatchedSkills = matchedSkills,
+      MissingSkills = missingSkills,
+      AtsFeedback = root.GetProperty("atsFeedback").GetString() ?? string.Empty,
+      ScrapedJobTitle = root.TryGetProperty("scrapedJobTitle", out var titleProp) ? titleProp.GetString() ?? string.Empty : string.Empty,
+      ScrapedJobDescription = jobDescription
+    };
   }
 }

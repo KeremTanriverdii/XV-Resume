@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import TagInput from "@/components/ui/tag-input";
 import PhoneInput from "@/components/ui/phone-input";
 import AutocompleteInput from "@/components/ui/autocomplete-input";
+import { DatePicker } from "@/components/ui/date-picker";
+import { formatDate } from "@/utils/date";
 import { LOCATIONS, JOB_TITLES, SKILLS, SCHOOL_NAMES, DEGREES } from "@/lib/autocomplete-data";
 import { Plus, Trash2, User, Briefcase, GraduationCap, FolderGit2, Wrench, ChevronLeft, ChevronRight, Save, Globe, ExternalLink, Calendar, CheckSquare, Square } from "lucide-react";
 
@@ -65,6 +67,33 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
   // Inline Language Form State
   const [newLangName, setNewLangName] = useState("English");
   const [newLangLevel, setNewLangLevel] = useState("C1 (Advanced)");
+
+  // Categorized Skill State
+  const [selectedCategory, setSelectedCategory] = useState("Frontend");
+  const [customCategory, setCustomCategory] = useState("");
+  const [categorySkillsTags, setCategorySkillsTags] = useState<string[]>([]);
+
+  const handlePhotoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        updateField("photoUrl", reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleAddCategorizedSkill = () => {
+    if (categorySkillsTags.length === 0) return;
+    const catName = selectedCategory === "Custom" ? customCategory.trim() : selectedCategory;
+    if (!catName) return;
+
+    const formattedSkill = `${catName}: ${categorySkillsTags.join(", ")}`;
+    updateField("skills", [...safeSkills, formattedSkill]);
+    setCategorySkillsTags([]);
+    if (selectedCategory === "Custom") setCustomCategory("");
+  };
 
   const updateField = (field: keyof Profile, value: unknown) => {
     onChangeProfile({
@@ -183,16 +212,41 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
           </div>
 
           {profile.showPhoto && (
-            <div className="pt-2 flex items-center gap-3">
+            <div className="pt-2 flex flex-col gap-2.5">
+              <div className="flex items-center gap-3">
+                <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-xs font-semibold transition-all">
+                  <span>📁 Fotoğraf Seç (Select Image File)</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePhotoFileChange}
+                    className="hidden"
+                  />
+                </label>
+                {profile.photoUrl && (
+                  <div className="flex items-center gap-2">
+                    <img
+                      src={profile.photoUrl}
+                      alt="Avatar"
+                      className="h-10 w-10 rounded-full object-cover border-2 border-primary shadow-xs shrink-0"
+                    />
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => updateField('photoUrl', '')}
+                      className="text-xs text-destructive hover:bg-destructive/10 h-8"
+                    >
+                      Kaldır
+                    </Button>
+                  </div>
+                )}
+              </div>
               <Input
-                value={profile.photoUrl || ""}
-                onChange={(e) => updateField("photoUrl", e.target.value)}
-                placeholder="Photo URL (https://...)"
-                className="text-xs flex-1"
+                value={profile.photoUrl || ''}
+                onChange={(e) => updateField('photoUrl', e.target.value)}
+                placeholder="Veya Görsel URL'si Girin (https://...)"
+                className="text-xs"
               />
-              {profile.photoUrl && (
-                <img src={profile.photoUrl} alt="Avatar" className="h-10 w-10 rounded-lg object-cover border border-border shrink-0" />
-              )}
             </div>
           )}
         </div>
@@ -271,15 +325,14 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
               <label className="text-xs font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1">
                 <Calendar className="h-3.5 w-3.5" /> Postponed Until Date (Tecil Bitiş Tarihi)
               </label>
-              <Input
-                type="date"
+              <DatePicker
                 value={
                   profile.militaryPostponedUntil
                     ? new Date(profile.militaryPostponedUntil).toISOString().split("T")[0]
                     : ""
                 }
-                onChange={(e) => updateField("militaryPostponedUntil", e.target.value)}
-                className="bg-background text-xs"
+                onChange={(val) => updateField("militaryPostponedUntil", val)}
+                placeholder="Tecil bitiş tarihi seçin"
               />
             </div>
           )}
@@ -360,19 +413,19 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
               value={newExp.jobTitle}
               onChange={(val) => setNewExp({ ...newExp, jobTitle: val })}
             />
-            <Input
-              placeholder="Start Date (e.g. Jan 2022)"
+            <DatePicker
+              placeholder="Başlangıç Tarihi"
               value={newExp.startDate}
-              onChange={(e) => setNewExp({ ...newExp, startDate: e.target.value })}
+              onChange={(val) => setNewExp({ ...newExp, startDate: val })}
             />
             
             {/* End Date / Ongoing Switch */}
             <div className="flex flex-col justify-center">
               {!newExp.isOngoing ? (
-                <Input
-                  placeholder="End Date (e.g. Dec 2024)"
+                <DatePicker
+                  placeholder="Bitiş Tarihi"
                   value={newExp.endDate}
-                  onChange={(e) => setNewExp({ ...newExp, endDate: e.target.value })}
+                  onChange={(val) => setNewExp({ ...newExp, endDate: val })}
                 />
               ) : (
                 <div className="h-9 rounded-md bg-muted/60 border border-border px-3 flex items-center text-xs font-semibold text-emerald-600 dark:text-emerald-400">
@@ -388,7 +441,14 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
               type="checkbox"
               id="expOngoing"
               checked={newExp.isOngoing}
-              onChange={(e) => setNewExp({ ...newExp, isOngoing: e.target.checked })}
+              onChange={(e) => {
+                const checked = e.target.checked;
+                setNewExp({
+                  ...newExp,
+                  isOngoing: checked,
+                  endDate: checked ? "" : newExp.endDate,
+                });
+              }}
               className="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer"
             />
             <label htmlFor="expOngoing" className="text-xs font-semibold text-foreground cursor-pointer">
@@ -420,7 +480,9 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
             <div key={idx} className="p-3 rounded-xl bg-background border border-border/70 text-xs flex justify-between items-start gap-2">
               <div>
                 <p className="font-bold text-foreground">{exp.jobTitle || exp.role} <span className="text-primary">@ {exp.companyName}</span></p>
-                <p className="text-muted-foreground text-[11px]">{exp.startDate} - {exp.endDate || "Present"}</p>
+                <p className="text-muted-foreground text-[11px]">
+                  {formatDate(exp.startDate)} - {exp.endDate === "Present" || !exp.endDate ? "Present" : formatDate(exp.endDate)}
+                </p>
                 {exp.description && <p className="text-muted-foreground mt-1 line-clamp-2">{exp.description}</p>}
               </div>
               <Button
@@ -472,19 +534,19 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
               value={newEdu.degree}
               onChange={(val) => setNewEdu({ ...newEdu, degree: val })}
             />
-            <Input
-              placeholder="Start Date (e.g. Sept 2018)"
+            <DatePicker
+              placeholder="Başlangıç Tarihi"
               value={newEdu.startDate}
-              onChange={(e) => setNewEdu({ ...newEdu, startDate: e.target.value })}
+              onChange={(val) => setNewEdu({ ...newEdu, startDate: val })}
             />
 
             {/* End Date / Ongoing Switch */}
             <div className="flex flex-col justify-center">
               {!newEdu.isOngoing ? (
-                <Input
-                  placeholder="End Date (e.g. June 2022)"
+                <DatePicker
+                  placeholder="Bitiş Tarihi"
                   value={newEdu.endDate}
-                  onChange={(e) => setNewEdu({ ...newEdu, endDate: e.target.value })}
+                  onChange={(val) => setNewEdu({ ...newEdu, endDate: val })}
                 />
               ) : (
                 <div className="h-9 rounded-md bg-muted/60 border border-border px-3 flex items-center text-xs font-semibold text-emerald-600 dark:text-emerald-400">
@@ -500,7 +562,14 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
               type="checkbox"
               id="eduOngoing"
               checked={newEdu.isOngoing}
-              onChange={(e) => setNewEdu({ ...newEdu, isOngoing: e.target.checked })}
+              onChange={(e) => {
+                const checked = e.target.checked;
+                setNewEdu({
+                  ...newEdu,
+                  isOngoing: checked,
+                  endDate: checked ? "" : newEdu.endDate,
+                });
+              }}
               className="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer"
             />
             <label htmlFor="eduOngoing" className="text-xs font-semibold text-foreground cursor-pointer">
@@ -525,7 +594,9 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
             <div key={idx} className="p-3 rounded-xl bg-background border border-border/70 text-xs flex justify-between items-center">
               <div>
                 <p className="font-bold text-foreground">{edu.degree}</p>
-                <p className="text-muted-foreground text-[11px]">{edu.institutionName || edu.schoolName} • {edu.startDate} - {edu.endDate || "Present"}</p>
+                <p className="text-muted-foreground text-[11px]">
+                  {edu.institutionName || edu.schoolName} • {formatDate(edu.startDate)} - {edu.endDate === "Present" || !edu.endDate ? "Present" : formatDate(edu.endDate)}
+                </p>
               </div>
               <Button
                 size="icon"
@@ -675,14 +746,84 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
       </div>
 
       <div className="space-y-4">
-        {/* Safe Skills Tag Input */}
+        {/* Categorized Skills Section */}
+        <div className="p-4 rounded-xl bg-muted/30 border border-border space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-bold text-foreground block">
+              Kategorili Yetenek Ekle (Categorized Skills)
+            </label>
+            <span className="text-[10px] text-muted-foreground">
+              Örn: Frontend: React, TypeScript
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            <div>
+              <label className="text-[11px] font-semibold text-muted-foreground block mb-1">
+                Kategori Başlığı (Category)
+              </label>
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="w-full h-9 rounded-md border border-input bg-background px-2 text-xs focus:ring-1 focus:ring-primary"
+              >
+                <option value="Frontend">Frontend Development</option>
+                <option value="Backend">Backend Development</option>
+                <option value="Database">Database & Data</option>
+                <option value="DevOps">DevOps & Cloud</option>
+                <option value="Mobile">Mobile App Development</option>
+                <option value="Soft Skills">Soft Skills & Leadership</option>
+                <option value="Custom">Özel Kategori (Custom...)</option>
+              </select>
+            </div>
+
+            {selectedCategory === 'Custom' && (
+              <div>
+                <label className="text-[11px] font-semibold text-muted-foreground block mb-1">
+                  Özel Kategori Adı
+                </label>
+                <Input
+                  value={customCategory}
+                  onChange={(e) => setCustomCategory(e.target.value)}
+                  placeholder="Örn. Test & QA, AI Tools"
+                  className="text-xs"
+                />
+              </div>
+            )}
+          </div>
+
+          <div>
+            <label className="text-[11px] font-semibold text-muted-foreground block mb-1">
+              Beceriler (Skills list)
+            </label>
+            <TagInput
+              suggestions={SKILLS}
+              value={categorySkillsTags}
+              onChange={(tags: string[]) => setCategorySkillsTags(tags)}
+              placeholder="Yetenek yazıp Enter'a basın..."
+            />
+          </div>
+
+          <Button
+            size="sm"
+            onClick={handleAddCategorizedSkill}
+            disabled={categorySkillsTags.length === 0}
+            className="text-xs font-bold gap-1 bg-primary text-primary-foreground"
+          >
+            <Plus className="h-3.5 w-3.5" /> Kategori & Becerileri Ekle
+          </Button>
+        </div>
+
+        {/* General Tag Input Fallback */}
         <div>
-          <label className="text-xs font-semibold text-muted-foreground block mb-1">Skills & Technical Keywords</label>
+          <label className="text-xs font-semibold text-muted-foreground block mb-1">
+            Ek Beceriler (Tüm Liste)
+          </label>
           <TagInput
             suggestions={SKILLS}
             value={safeSkills}
-            onChange={(tags: string[]) => updateField("skills", tags)}
-            placeholder="Type skill & press Enter..."
+            onChange={(tags: string[]) => updateField('skills', tags)}
+            placeholder="Tekil yetenek yazıp Enter'a basın..."
           />
         </div>
 

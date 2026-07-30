@@ -171,7 +171,7 @@ export interface CreateResumeDto {
 }
 
 export interface ResumeTranslationDto {
-  id: string;
+  id: number | string;
   resumeId: string;
   languageCode: string;
   title: string;
@@ -183,6 +183,8 @@ export interface ResumeTranslationDto {
   projectsHtml?: string | null;
   matchPercentage?: number | null;
   atsFeedback?: string | null;
+  coverLetter?: string | null;
+  coldMessage?: string | null;
   version: number;
   createdAt: string;
 }
@@ -195,6 +197,21 @@ export interface ResumeDto {
   createdAt: string;
   translations: ResumeTranslationDto[];
   profile?: Profile | null;
+}
+
+export interface AtsAnalysisRequestDto {
+  externalJobLink: string;
+  profileId: string;
+  jobDescriptionText?: string;
+}
+
+export interface AtsAnalysisResultDto {
+  matchPercentage: number;
+  matchedSkills: string[];
+  missingSkills: string[];
+  atsFeedback: string;
+  scrapedJobTitle: string;
+  scrapedJobDescription: string;
 }
 
 export * from "./landing";

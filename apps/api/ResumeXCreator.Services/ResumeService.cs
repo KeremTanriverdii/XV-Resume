@@ -234,6 +234,8 @@ public class ResumeService(
           ProjectsHtml = aiResult.ProjectsHtml,
           MatchPercentage = aiResult.MatchPercentage,
           AtsFeedback = aiResult.AtsFeedback,
+          CoverLetter = aiResult.CoverLetter,
+          ColdMessage = aiResult.ColdMessage,
           CreatedAt = DateTime.UtcNow
         });
       }
@@ -345,6 +347,8 @@ public class ResumeService(
         ProjectsHtml = aiResult.ProjectsHtml,
         MatchPercentage = aiResult.MatchPercentage,
         AtsFeedback = aiResult.AtsFeedback,
+        CoverLetter = aiResult.CoverLetter,
+        ColdMessage = aiResult.ColdMessage,
         CreatedAt = DateTime.UtcNow
       });
     }
@@ -354,6 +358,131 @@ public class ResumeService(
     await _resumeRepository.SaveChangesAsync();
 
     return MapToDto(resume);
+  }
+
+  public async Task<bool> DeleteResumeAsync(Guid id, string authenticatedUserId)
+  {
+    var resume = await _resumeRepository.GetWithTranslationsByIdAsync(id);
+    if (resume == null) return false;
+
+    if (resume.ProfileId.HasValue)
+    {
+      var profile = await _profileRepository.GetByIdAsync(resume.ProfileId.Value);
+      if (profile != null && profile.UserId != authenticatedUserId)
+      {
+        throw new UnauthorizedAccessException("You do not have permission to delete this resume.");
+      }
+    }
+
+    _resumeRepository.Delete(resume);
+    await _resumeRepository.SaveChangesAsync();
+    return true;
+  }
+
+  public async Task<ResumeTranslationDto?> UpdateResumeTranslationAsync(Guid resumeId, int translationId, UpdateResumeTranslationDto dto, string authenticatedUserId)
+  {
+    var resume = await _resumeRepository.GetWithTranslationsByIdAsync(resumeId);
+    if (resume == null) return null;
+
+    if (resume.ProfileId.HasValue)
+    {
+      var profile = await _profileRepository.GetByIdAsync(resume.ProfileId.Value);
+      if (profile != null && profile.UserId != authenticatedUserId)
+      {
+        throw new UnauthorizedAccessException("You do not have permission to modify this resume.");
+      }
+    }
+
+    var translation = resume.Translations.FirstOrDefault(t => t.Id == translationId);
+    if (translation == null) return null;
+
+    if (dto.Title != null) translation.Title = dto.Title;
+    if (dto.Summary != null) translation.Summary = dto.Summary;
+    if (dto.ExperienceHtml != null) translation.ExperienceHtml = dto.ExperienceHtml;
+    if (dto.EducationHtml != null) translation.EducationHtml = dto.EducationHtml;
+    if (dto.SkillsHtml != null) translation.SkillsHtml = dto.SkillsHtml;
+    if (dto.LanguagesHtml != null) translation.LanguagesHtml = dto.LanguagesHtml;
+    if (dto.ProjectsHtml != null) translation.ProjectsHtml = dto.ProjectsHtml;
+    if (dto.CoverLetter != null) translation.CoverLetter = dto.CoverLetter;
+    if (dto.ColdMessage != null) translation.ColdMessage = dto.ColdMessage;
+
+    await _resumeRepository.SaveChangesAsync();
+
+    return new ResumeTranslationDto
+    {
+      Id = translation.Id,
+      ResumeId = translation.ResumeId,
+      LanguageCode = translation.LanguageCode,
+      Title = translation.Title,
+      Summary = translation.Summary,
+      ExperienceHtml = translation.ExperienceHtml,
+      EducationHtml = translation.EducationHtml,
+      SkillsHtml = translation.SkillsHtml,
+      LanguagesHtml = translation.LanguagesHtml,
+      ProjectsHtml = translation.ProjectsHtml,
+      MatchPercentage = translation.MatchPercentage,
+      AtsFeedback = translation.AtsFeedback,
+      CoverLetter = translation.CoverLetter,
+      ColdMessage = translation.ColdMessage,
+      Version = translation.Version,
+      CreatedAt = translation.CreatedAt
+    };
+  }
+
+  public async Task<AtsAnalysisResultDto> AnalyzeAtsAsync(AtsAnalysisRequestDto dto, string authenticatedUserId)
+  {
+    if (string.IsNullOrWhiteSpace(dto.ExternalJobLink) && string.IsNullOrWhiteSpace(dto.JobDescriptionText))
+    {
+      throw new ArgumentException("ExternalJobLink or JobDescriptionText is required.");
+    }
+
+    var profile = await _profileRepository.GetWithDetailsByIdAsync(dto.ProfileId);
+    if (profile == null)
+    {
+      throw new ArgumentException($"Profile not found: {dto.ProfileId}");
+    }
+
+    if (profile.UserId != authenticatedUserId)
+    {
+      throw new UnauthorizedAccessException("You do not have permission to access this profile.");
+    }
+
+    // Check Subscription & Pro Status
+    var userObj = await _userRepository.GetByIdAsync(authenticatedUserId);
+    if (userObj == null)
+    {
+      userObj = new User
+      {
+        Id = authenticatedUserId,
+        SubscriptionsStatus = "Trial",
+        TrialsEndsAt = DateTime.UtcNow.AddDays(14)
+      };
+      await _userRepository.AddAsync(userObj);
+      await _userRepository.SaveChangesAsync();
+    }
+    else if (!userObj.TrialsEndsAt.HasValue && userObj.SubscriptionsStatus == "Trial")
+    {
+      userObj.TrialsEndsAt = DateTime.UtcNow.AddDays(14);
+      await _userRepository.SaveChangesAsync();
+    }
+
+    if (!userObj.CanGenerateResume)
+    {
+      throw new InvalidOperationException("Your free trial or subscription has expired. Please subscribe to Pro to access ATS analysis.");
+    }
+
+    var aiProfile = MapToAiProfileInput(profile);
+    var result = await _aiService.AnalyzeAtsAsync(dto.ExternalJobLink, aiProfile, dto.JobDescriptionText);
+
+    return new AtsAnalysisResultDto
+    {
+      MatchPercentage = result.MatchPercentage,
+      MatchedSkills = result.MatchedSkills,
+      MissingSkills = result.MissingSkills,
+      AtsFeedback = result.AtsFeedback,
+      ScrapedJobTitle = result.ScrapedJobTitle,
+      ScrapedJobDescription = result.ScrapedJobDescription
+    };
   }
 
   private static ResumeDto MapToDto(Resume r) => new()
@@ -378,6 +507,8 @@ public class ResumeService(
       ProjectsHtml = t.ProjectsHtml,
       MatchPercentage = t.MatchPercentage,
       AtsFeedback = t.AtsFeedback,
+      CoverLetter = t.CoverLetter,
+      ColdMessage = t.ColdMessage,
       Version = t.Version,
       CreatedAt = t.CreatedAt
     })]

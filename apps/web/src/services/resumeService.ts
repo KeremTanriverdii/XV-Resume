@@ -27,3 +27,49 @@ export const generateResume = async (
   if (!token) return null;
   return api.post<ResumeDto>("/resumes/generate", data, token).catch(() => null);
 };
+
+/**
+ * Delete a resume session by ID.
+ */
+export const deleteResume = async (id: string, token: string | undefined): Promise<boolean> => {
+  if (!token) return false;
+  return api.delete<void>(`/resumes/${id}`, token)
+    .then(() => true)
+    .catch(() => false);
+};
+
+/**
+ * Update a specific resume translation (summary, section HTMLs, title).
+ */
+export const updateResumeTranslation = async (
+  resumeId: string,
+  translationId: number | string,
+  data: {
+    title?: string;
+    summary?: string;
+    experienceHtml?: string;
+    educationHtml?: string;
+    skillsHtml?: string;
+    languagesHtml?: string;
+    projectsHtml?: string | null;
+    coverLetter?: string | null;
+    coldMessage?: string | null;
+  },
+  token: string | undefined
+): Promise<boolean> => {
+  if (!token) return false;
+  return api.put<any>(`/resumes/${resumeId}/translations/${translationId}`, data, token)
+    .then(() => true)
+    .catch(() => false);
+};
+
+/**
+ * Perform standalone real-time ATS Analysis (Quick Scan).
+ */
+export const analyzeAts = async (
+  data: { externalJobLink: string; profileId: string; jobDescriptionText?: string },
+  token: string | undefined
+) => {
+  if (!token) return null;
+  return api.post<import("@/types").AtsAnalysisResultDto>("/resumes/ats-analyze", data, token).catch(() => null);
+};

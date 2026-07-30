@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/providers/AuthProvider';
-import { fetchResumeById, generateResume } from '@/services/resumeService';
+import { fetchResumeById, generateResume, deleteResume, updateResumeTranslation } from '@/services/resumeService';
+import { useResumeStore } from '@/store/useResumeStore';
 import { ResumeDto, ResumeTranslationDto } from '@/types';
 import { Button } from '@/components/ui/button';
 import {
@@ -23,7 +24,10 @@ import {
   Download,
   Layout,
   Palette,
+  Trash2,
+  Save,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { Link, useRouter } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
 import {
@@ -36,9 +40,12 @@ import { exportToPdf } from '@/utils/pdfExport';
 import { StepFormSidebar, StepItem } from '@/components/resume/StepFormSidebar';
 import { StepFormFields } from '@/components/resume/StepFormFields';
 import { AtsMatcherTab } from '@/components/resume/AtsMatcherTab';
+import { CoverLetterTab } from '@/components/resume/CoverLetterTab';
+import { ColdMessageTab } from '@/components/resume/ColdMessageTab';
+import { LanguageGenerationSelector } from '@/components/resume/LanguageGenerationSelector';
 import { ProtectedPreviewOverlay } from '@/components/resume/ProtectedPreviewOverlay';
 import { AuthModal } from '@/components/auth/AuthModal';
-import { User, GraduationCap, Wrench, Edit3 } from 'lucide-react';
+import { User, GraduationCap, Wrench, Edit3, Mail, Send } from 'lucide-react';
 
 const parseBold = (text: string) => {
   const parts = text.split(/\*\*([^*]+)\*\*/g);
@@ -160,7 +167,6 @@ const cleanJobDescriptionText = (raw?: string | null) => {
   return clean.length > 0 ? clean : raw;
 };
 
-import { useResumeStore } from '@/store/useResumeStore';
 import { formatCompanyAndRole } from '@/utils/formatTitle';
 
 export default function ResumeSessionPage() {
@@ -193,17 +199,20 @@ export default function ResumeSessionPage() {
     useState<TemplateId>(initialTemplate);
   const [selectedColor, setSelectedColor] =
     useState<ColorThemeId>(initialColor);
+  const [selectedRegenLangs, setSelectedRegenLangs] = useState<string[]>(['en', 'tr']);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'preview' | 'builder' | 'jobDesc' | 'ats'>(
-    'preview',
-  );
+  const [activeTab, setActiveTab] = useState<
+    'preview' | 'builder' | 'jobDesc' | 'ats' | 'coverLetter' | 'coldMessage'
+  >('preview');
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
   const [authActionTitle, setAuthActionTitle] = useState<string>('Save & Export Your CV');
+  const [pendingAction, setPendingAction] = useState<'download' | 'email' | 'save' | 'ats' | null>(null);
 
   const handleActionTrigger = (action: 'download' | 'email' | 'save') => {
     if (!session) {
+      setPendingAction(action);
       setAuthActionTitle(
         action === 'download'
           ? 'Sign in to Download High-Res PDF'
@@ -218,6 +227,24 @@ export default function ResumeSessionPage() {
     if (action === 'download') {
       handleDownloadPdf();
     }
+  };
+
+  const handleRequestAtsLogin = () => {
+    setPendingAction('ats');
+    setAuthActionTitle('Sign in to Unlock ATS Analysis');
+    setIsAuthModalOpen(true);
+  };
+
+  const handleAuthSuccess = () => {
+    setIsAuthModalOpen(false);
+    // Execute the pending action after successful login
+    if (pendingAction === 'download') {
+      // Small delay to let auth state propagate
+      setTimeout(() => handleDownloadPdf(), 500);
+    } else if (pendingAction === 'ats') {
+      setActiveTab('ats');
+    }
+    setPendingAction(null);
   };
 
   // Fetch Resume details
@@ -285,7 +312,7 @@ export default function ResumeSessionPage() {
           resumeId: resume.id,
           externalJobLink: resume.externalJobLink,
           profileId: resume.profileId,
-          selectedLanguagesForGeneration: [selectedLang],
+          selectedLanguagesForGeneration: selectedRegenLangs,
         },
         token,
       );
@@ -302,6 +329,64 @@ export default function ResumeSessionPage() {
       setErrorMsg(t('regenerateError'));
     } finally {
       setRegenerating(false);
+    }
+  };
+
+  const removeSession = useResumeStore((state) => state.removeSession);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
+  const handleSaveTranslation = async () => {
+    if (!resume || !activeTranslation || isSaving) return;
+    setIsSaving(true);
+    try {
+      const ok = await updateResumeTranslation(
+        resume.id,
+        activeTranslation.id,
+        {
+          title: activeTranslation.title,
+          summary: activeTranslation.summary,
+          experienceHtml: activeTranslation.experienceHtml,
+          educationHtml: activeTranslation.educationHtml,
+          skillsHtml: activeTranslation.skillsHtml,
+          languagesHtml: activeTranslation.languagesHtml,
+          projectsHtml: activeTranslation.projectsHtml,
+        },
+        token
+      );
+      if (ok) {
+        setSaveSuccess(true);
+        toast.success('Değişiklikler başarıyla kaydedildi');
+        setTimeout(() => setSaveSuccess(false), 3000);
+      } else {
+        toast.error('Değişiklikler kaydedilemedi');
+      }
+    } catch (err) {
+      console.error('Save translation error:', err);
+      toast.error('Kaydetme sırasında bir hata oluştu');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDeleteResume = async () => {
+    if (!resume || isDeleting) return;
+    if (!window.confirm('Bu özgeçmiş oturumunu silmek istediğinizden emin misiniz?')) return;
+
+    setIsDeleting(true);
+    try {
+      if (token) {
+        await deleteResume(resume.id, token);
+      }
+      removeSession(resume.id);
+      toast.success('Özgeçmiş başarıyla silindi');
+      router.push('/dashboard');
+    } catch (err) {
+      console.error('Failed to delete resume:', err);
+      toast.error('Özgeçmiş silinirken hata oluştu');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -423,6 +508,33 @@ export default function ResumeSessionPage() {
             </Button>
           )}
 
+          {activeTranslation && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSaveTranslation}
+              disabled={isSaving}
+              className="rounded-full gap-1.5 cursor-pointer shadow-xs border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10"
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  <span>Kaydediliyor...</span>
+                </>
+              ) : saveSuccess ? (
+                <>
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                  <span>Kaydedildi!</span>
+                </>
+              ) : (
+                <>
+                  <Save className="h-3.5 w-3.5" />
+                  <span>Kaydet</span>
+                </>
+              )}
+            </Button>
+          )}
+
           <Button
             onClick={handleDownloadPdf}
             disabled={
@@ -439,6 +551,23 @@ export default function ResumeSessionPage() {
               <>
                 <Download className="h-4 w-4" />
                 <span>{t('downloadPdf')}</span>
+              </>
+            )}
+          </Button>
+
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={handleDeleteResume}
+            disabled={isDeleting}
+            className="rounded-full gap-1.5 cursor-pointer shadow-sm"
+          >
+            {isDeleting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <>
+                <Trash2 className="h-4 w-4" />
+                <span>Sil</span>
               </>
             )}
           </Button>
@@ -567,6 +696,15 @@ export default function ResumeSessionPage() {
               </div>
             </div>
 
+            {/* Regenerate Target Languages Selector */}
+            <div className="space-y-1.5 border-t border-border/60 pt-4">
+              <LanguageGenerationSelector
+                selectedLanguages={selectedRegenLangs}
+                onChange={setSelectedRegenLangs}
+                disabled={regenerating}
+              />
+            </div>
+
             {/* Regenerate Action */}
             <Button
               onClick={handleRegenerate}
@@ -625,6 +763,28 @@ export default function ResumeSessionPage() {
               >
                 <Sparkles className="h-3.5 w-3.5" />
                 ATS Analysis
+              </button>
+              <button
+                onClick={() => setActiveTab('coverLetter')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer ${
+                  activeTab === 'coverLetter'
+                    ? 'bg-background text-foreground shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/80'
+                }`}
+              >
+                <Mail className="h-3.5 w-3.5 text-emerald-500" />
+                Cover Letter
+              </button>
+              <button
+                onClick={() => setActiveTab('coldMessage')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer ${
+                  activeTab === 'coldMessage'
+                    ? 'bg-background text-foreground shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/80'
+                }`}
+              >
+                <Send className="h-3.5 w-3.5 text-blue-500" />
+                Cold Message
               </button>
             </div>
 
@@ -695,12 +855,80 @@ export default function ResumeSessionPage() {
                 <AtsMatcherTab
                   resume={resume}
                   translation={activeTranslation}
+                  isAuthenticated={!!session}
+                  onRequestLogin={handleRequestAtsLogin}
                   onApplyTailoredTranslation={(updatedTranslation) => {
                     const updatedTranslations = resume.translations.map((tr) =>
                       tr.id === activeTranslation.id ? { ...tr, ...updatedTranslation } : tr
                     );
                     setResume({ ...resume, translations: updatedTranslations } as ResumeDto);
                   }}
+                />
+              )}
+
+              {activeTab === 'coverLetter' && (
+                <CoverLetterTab
+                  key={`coverletter-${activeTranslation.id}-${activeTranslation.languageCode}`}
+                  translation={activeTranslation}
+                  profile={resume?.profile}
+                  onSaveTranslation={async (updated) => {
+                    if (!resume || !token || !activeTranslation.id) return false;
+                    try {
+                      setIsSaving(true);
+                      const ok = await updateResumeTranslation(
+                        resume.id,
+                        activeTranslation.id,
+                        updated,
+                        token,
+                      );
+                      if (ok) {
+                        const updatedTranslations = resume.translations.map((tr) =>
+                          tr.id === activeTranslation.id ? { ...tr, ...updated } : tr
+                        );
+                        setResume({ ...resume, translations: updatedTranslations } as ResumeDto);
+                        return true;
+                      }
+                      return false;
+                    } catch {
+                      return false;
+                    } finally {
+                      setIsSaving(false);
+                    }
+                  }}
+                  isSaving={isSaving}
+                />
+              )}
+
+              {activeTab === 'coldMessage' && (
+                <ColdMessageTab
+                  key={`coldmessage-${activeTranslation.id}-${activeTranslation.languageCode}`}
+                  translation={activeTranslation}
+                  profile={resume?.profile}
+                  onSaveTranslation={async (updated) => {
+                    if (!resume || !token || !activeTranslation.id) return false;
+                    try {
+                      setIsSaving(true);
+                      const ok = await updateResumeTranslation(
+                        resume.id,
+                        activeTranslation.id,
+                        updated,
+                        token,
+                      );
+                      if (ok) {
+                        const updatedTranslations = resume.translations.map((tr) =>
+                          tr.id === activeTranslation.id ? { ...tr, ...updated } : tr
+                        );
+                        setResume({ ...resume, translations: updatedTranslations } as ResumeDto);
+                        return true;
+                      }
+                      return false;
+                    } catch {
+                      return false;
+                    } finally {
+                      setIsSaving(false);
+                    }
+                  }}
+                  isSaving={isSaving}
                 />
               )}
             </>
@@ -711,8 +939,12 @@ export default function ResumeSessionPage() {
       {/* Auth Gate Modal */}
       <AuthModal
         isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
+        onClose={() => {
+          setIsAuthModalOpen(false);
+          setPendingAction(null);
+        }}
         title={authActionTitle}
+        onSuccess={handleAuthSuccess}
       />
     </div>
   );
