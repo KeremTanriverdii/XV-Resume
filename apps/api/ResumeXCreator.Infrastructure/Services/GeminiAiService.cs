@@ -78,11 +78,27 @@ public class GeminiAiService : IAiService
       }
     };
 
-    var requestContent = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
-    var response = await _httpClient.PostAsync(requestUrl, requestContent);
+    HttpResponseMessage? response = null;
+    int maxRetries = 3;
+    int delayMs = 1000;
 
-    if (!response.IsSuccessStatusCode)
+    for (int attempt = 1; attempt <= maxRetries; attempt++)
     {
+      var requestContent = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+      response = await _httpClient.PostAsync(requestUrl, requestContent);
+
+      if (response.IsSuccessStatusCode)
+      {
+        break;
+      }
+
+      if (((int)response.StatusCode == 429 || (int)response.StatusCode >= 500) && attempt < maxRetries)
+      {
+        await Task.Delay(delayMs);
+        delayMs *= 2;
+        continue;
+      }
+
       var errorDetails = await response.Content.ReadAsStringAsync();
       throw new Exception($"Gemini API error (Status: {response.StatusCode}): {errorDetails}");
     }

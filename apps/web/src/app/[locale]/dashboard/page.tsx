@@ -17,11 +17,18 @@ import { TemplateSelector } from '@/components/resume/TemplateSelectorModal';
 import { TemplateId, ColorThemeId } from '@/components/resume/ResumeTemplates';
 import { useAuth } from '@/providers/AuthProvider';
 import { useTranslations } from 'next-intl';
+import dynamic from 'next/dynamic';
 import { generateResume } from '@/services/resumeService';
 import { formatCompanyAndRole } from '@/utils/formatTitle';
-import { PaddleSubscribeModal } from '@/components/payment/PaddleSubscribeModal';
-
 import { LanguageGenerationSelector } from '@/components/resume/LanguageGenerationSelector';
+
+const PaddleSubscribeModal = dynamic(
+  () =>
+    import('@/components/payment/PaddleSubscribeModal').then(
+      (m) => m.PaddleSubscribeModal,
+    ),
+  { ssr: false },
+);
 
 export default function DashboardPage() {
   const t = useTranslations('Dashboard');

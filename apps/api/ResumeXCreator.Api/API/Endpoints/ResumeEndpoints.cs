@@ -52,6 +52,7 @@ public static class ResumeEndpoints
       }
     })
     .WithValidation<CreateResumeDto>()
+    .RequireRateLimiting("ai-generation")
     .WithName("GenerateResume");
 
     // DELETE /api/v1/resumes/{id}
@@ -123,6 +124,7 @@ public static class ResumeEndpoints
         return Results.Json(new { error = ex.Message }, statusCode: 403);
       }
     })
+    .RequireRateLimiting("ai-generation")
     .WithName("AnalyzeAts");
   }
 }

@@ -33,9 +33,17 @@ import {
   Trash2,
   Zap,
 } from 'lucide-react';
-import { QuickAtsScanModal } from '@/components/dashboard/QuickAtsScanModal';
+import dynamic from 'next/dynamic';
 import { createClient } from '@/utils/supabase/client';
 import { useAuth } from './AuthProvider';
+
+const QuickAtsScanModal = dynamic(
+  () =>
+    import('@/components/dashboard/QuickAtsScanModal').then(
+      (m) => m.QuickAtsScanModal,
+    ),
+  { ssr: false },
+);
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -196,7 +204,7 @@ export function AppSidebar() {
               {navigateSidebarItem.map((item) => (
                 <SidebarMenuItem key={item.href}>
                   <SidebarMenuButton asChild>
-                    <Link href={item.href}>
+                    <Link href={item.href} prefetch={true}>
                       <item.icon className="mr-2 h-4 w-4" />
                       <span>{item.name}</span>
                     </Link>
@@ -236,7 +244,7 @@ export function AppSidebar() {
                     className="group/item relative flex items-center"
                   >
                     <SidebarMenuButton asChild className="pr-8">
-                      <Link href={`/dashboard/resume/${session.id}`}>
+                      <Link href={`/dashboard/resume/${session.id}`} prefetch={true}>
                         <MessageSquare className="mr-2 h-4 w-4 shrink-0" />
                         <span className="truncate">{session.jobTitle}</span>
                       </Link>

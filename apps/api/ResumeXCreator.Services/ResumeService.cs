@@ -206,8 +206,20 @@ public class ResumeService(
             Title = existingResume.Profile?.Title ?? "Professional"
           };
 
-      foreach (var lang in langs)
+      var regenTasks = langs.Select(async lang =>
       {
+        var aiResult = await _aiService.GenerateResumeTranslationAsync(existingResume.ExternalJobLink, aiProfile, lang);
+        return (Lang: lang, Result: aiResult);
+      });
+
+      var regenResults = await Task.WhenAll(regenTasks);
+
+      foreach (var item in regenResults)
+      {
+        var lang = item.Lang;
+        var aiResult = item.Result;
+        existingResume.JobDescription = aiResult.ScrapedJobDescription;
+
         var currentMaxVersion = existingResume.Translations
             .Where(t => t.LanguageCode.Equals(lang, StringComparison.OrdinalIgnoreCase))
             .Select(t => t.Version)
@@ -215,10 +227,6 @@ public class ResumeService(
             .Max();
 
         var nextVersion = currentMaxVersion + 1;
-
-        // Generate customized CV using Gemini API
-        var aiResult = await _aiService.GenerateResumeTranslationAsync(existingResume.ExternalJobLink, aiProfile, lang);
-        existingResume.JobDescription = aiResult.ScrapedJobDescription;
 
         existingResume.Translations.Add(new ResumeTranslation
         {
@@ -328,9 +336,18 @@ public class ResumeService(
         ? MapToAiProfileInput(profile)
         : MapManualToAiProfileInput(dto.ManualProfileData!);
 
-    foreach (var lang in targetLanguages)
+    var genTasks = targetLanguages.Select(async lang =>
     {
       var aiResult = await _aiService.GenerateResumeTranslationAsync(dto.ExternalJobLink, aiProfileInput, lang);
+      return (Lang: lang, Result: aiResult);
+    });
+
+    var genResults = await Task.WhenAll(genTasks);
+
+    foreach (var item in genResults)
+    {
+      var lang = item.Lang;
+      var aiResult = item.Result;
       resume.JobDescription = aiResult.ScrapedJobDescription;
 
       resume.Translations.Add(new ResumeTranslation

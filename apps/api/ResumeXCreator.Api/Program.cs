@@ -8,7 +8,10 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using ResumeXCreator.Api.API.Endpoints;
+using ResumeXCreator.Api.Hubs;
 using ResumeXCreator.Infrastructure;
+
+// ... (remaining imports handled cleanly)
 using ResumeXCreator.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,6 +30,12 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 
 // Add services to the container.
 builder.Services.AddHealthChecks();
+
+// SignalR Service
+builder.Services.AddSignalR();
+
+// Distributed Cache (IDistributedCache abstraction - ready for Redis in production)
+builder.Services.AddDistributedMemoryCache();
 
 // Infrastructure Services (DbContext & Repositories)
 builder.Services.AddDatabaseServices(builder.Configuration);
@@ -54,10 +63,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
-// Rate Limiting Policy
+// Rate Limiting Policies
 var permitLimit = builder.Configuration.GetValue<int>("RateLimiting:PermitLimit", 100);
 var windowMinutes = builder.Configuration.GetValue<int>("RateLimiting:WindowInMinutes", 1);
 var queueLimit = builder.Configuration.GetValue<int>("RateLimiting:QueueLimit", 10);
+
+var aiPermitLimit = builder.Configuration.GetValue<int>("RateLimiting:AiPermitLimit", 10);
+var aiWindowMinutes = builder.Configuration.GetValue<int>("RateLimiting:AiWindowInMinutes", 1);
 
 builder.Services.AddRateLimiter(options =>
 {
@@ -76,6 +88,23 @@ builder.Services.AddRateLimiter(options =>
         PermitLimit = permitLimit,
         QueueLimit = queueLimit,
         Window = TimeSpan.FromMinutes(windowMinutes)
+      });
+  });
+
+  options.AddPolicy("ai-generation", httpContext =>
+  {
+    var userId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                 ?? httpContext.Connection.RemoteIpAddress?.ToString()
+                 ?? "unknown";
+
+    return RateLimitPartition.GetFixedWindowLimiter(
+      partitionKey: $"ai_{userId}",
+      factory: _ => new FixedWindowRateLimiterOptions
+      {
+        AutoReplenishment = true,
+        PermitLimit = aiPermitLimit,
+        QueueLimit = 2,
+        Window = TimeSpan.FromMinutes(aiWindowMinutes)
       });
   });
 });
@@ -135,5 +164,6 @@ app.MapProjectEndpoints();
 app.MapResumeEndpoints();
 app.MapUserEndpoints();
 app.MapPaymentEndpoints();
+app.MapHub<ResumeHub>("/hubs/resume");
 
 app.Run();

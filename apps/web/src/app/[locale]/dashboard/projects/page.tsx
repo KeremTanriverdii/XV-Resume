@@ -9,6 +9,7 @@ export default async function ProjectsPage() {
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
         redirect("/login");
+        return null;
     }
 
     const { data: { session } } = await supabase.auth.getSession();
