@@ -1,96 +1,122 @@
-# ResumeXCreator
+# ResumeXCreator (XV-Resume)
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+ResumeXCreator is an AI-powered resume optimization, cover letter generator, cold outreach message creator, and ATS analysis platform. Built on an enterprise Nx monorepo architecture, it combines Next.js 16 App Router on the frontend with a scalable .NET 10 Web API backend powered by Google Gemini AI, SignalR real-time streaming, and PostgreSQL.
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
+## Features
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/getting-started/intro#learn-nx?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+- Contextual AI Resume Tailoring: Scrapes job posting URLs and aligns candidate profiles with job requirements.
+- Multi-Language Target Generation: Generates tailored CVs, Cover Letters, and Cold Messages concurrently across multiple languages (English, Turkish, German, French, Spanish, Italian).
+- Real-Time Progress Streaming: Broadcasts live generation milestones using SignalR Hub connection.
+- Tailored Cover Letter & Cold Outreach Tabs: Interactive workspace tabs for copying, inline editing, and exporting custom cover letters and recruiter outreach messages.
+- Quick ATS Match Analysis: Provides match percentage scoring, keyword feedback, and gap analysis.
+- Smart PDF Export: Container-level page break rules preventing orphaned headers and broken section layouts.
+- Advanced Performance Infrastructure: Built-in route loading skeletons, TanStack Query in-memory caching, SWC tree-shaking, and next/image WebP/AVIF auto-compression.
+- Resilient API Architecture: Exponential backoff retry policies for external Gemini API rate limits and IDistributedCache support ready for Redis deployment.
 
-## Run tasks
+## Architecture and Tech Stack
 
-To run tasks with Nx use:
+### Frontend (apps/web)
+- Framework: Next.js 16 (App Router) with React 19 and TypeScript
+- Styling: TailwindCSS v4 and Radix UI Primitives
+- State & Data Fetching: TanStack Query v5 (React Query) and Zustand
+- Real-time Client: @microsoft/signalr
+- Internationalization: next-intl
+- PDF Generation: html2pdf.js with container page-break avoidance
 
-```sh
-npx nx <target> <project-name>
+### Backend (apps/api)
+- Framework: .NET 10 C# Web API
+- ORM & Database: Entity Framework Core 10 with Npgsql (PostgreSQL)
+- AI Engine: Google Gemini 3.1 Flash Lite via structured response schemas
+- Real-time Hub: ASP.NET Core SignalR
+- Resilience & Rate Limiting: Exponential Backoff retry policies and fixed-window rate limiters per endpoint type
+- Authentication: Supabase Auth with JWT Bearer validation
+
+## Project Structure
+
+```
+ResumeXCreator/
+├── apps/
+│   ├── api/
+│   │   ├── ResumeXCreator.Api/           # Endpoints, Program.cs, SignalR Hubs
+│   │   ├── ResumeXCreator.Domain/        # Domain Entities & Interfaces
+│   │   ├── ResumeXCreator.Infrastructure/ # EF Core DbContext, Repositories, Gemini API
+│   │   └── ResumeXCreator.Services/      # Application Business Logic & DTOs
+│   └── web/
+│       └── src/
+│           ├── app/                       # Next.js App Router ([locale]/dashboard)
+│           ├── components/                # UI Components, Templates & Tabs
+│           ├── hooks/                     # Custom React Hooks (useSignalR)
+│           ├── providers/                  # QueryProvider, AuthProvider, AppSidebar
+│           ├── services/                   # Frontend API Client Services
+│           └── utils/                     # PDF Exporter, Title Formatting
+├── package.json
+└── README.md
 ```
 
-For example:
+## Getting Started
 
-```sh
-npx nx build myproject
+### Prerequisites
+
+- Node.js 20+ and npm 10+
+- .NET 10.0 SDK
+- PostgreSQL database instance or Supabase project
+
+### Environment Configuration
+
+#### Frontend (`apps/web/.env.local`)
+```env
+NEXT_PUBLIC_API_URL=http://localhost:5075/api/v1
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
-
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Add new projects
-
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
-
-To install a new plugin you can use the `nx add` command. Here's an example of adding the React plugin:
-```sh
-npx nx add @nx/react
+#### Backend (`apps/api/ResumeXCreator.Api/appsettings.Development.json`)
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Database=resumexcreator;Username=postgres;Password=yourpassword"
+  },
+  "Authentication": {
+    "ValidIssuer": "https://your-supabase-project.supabase.co/auth/v1",
+    "ValidAudience": "authenticated",
+    "JwtSecret": "your_jwt_secret"
+  },
+  "Gemini": {
+    "ApiKey": "your_gemini_api_key"
+  }
+}
 ```
 
-Use the plugin's generator to create new projects. For example, to create a new React app or library:
+### Running Locally
 
-```sh
-# Generate an app
-npx nx g @nx/react:app demo
+To run all applications concurrently using Nx:
 
-# Generate a library
-npx nx g @nx/react:lib some-lib
+```bash
+# Run both Frontend and Backend in development mode
+npm run dev:all
+
+# Run Frontend only
+npm run dev:web
+
+# Run Backend API only
+npm run dev:api
 ```
 
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
+Frontend will run at `http://localhost:3000` and API at `http://localhost:5075`.
 
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## Building for Production
 
-## Set up CI!
+```bash
+# Typecheck web application
+npx tsc --noEmit -p apps/web/tsconfig.json
 
-### Step 1
+# Build frontend application
+npx nx build web
 
-To connect to Nx Cloud, run the following command:
-
-```sh
-npx nx connect
+# Build backend API
+dotnet build apps/api/ResumeXCreator.Api/ResumeXCreator.Api.csproj -c Release
 ```
 
-Connecting to Nx Cloud ensures a [fast and scalable CI](https://nx.dev/ci/intro/why-nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
+## License
 
-- [Remote caching](https://nx.dev/ci/features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/ci/features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/ci/features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/ci/features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-### Step 2
-
-Use the following command to configure a CI workflow for your workspace:
-
-```sh
-npx nx g ci-workflow
-```
-
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Install Nx Console
-
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
-
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Useful links
-
-Learn more:
-
-- [Learn more about this workspace setup](https://nx.dev/getting-started/intro#learn-nx?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+This project is licensed under the MIT License.
