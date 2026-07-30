@@ -52,6 +52,8 @@ export const updateResumeTranslation = async (
     skillsHtml?: string;
     languagesHtml?: string;
     projectsHtml?: string | null;
+    coverLetter?: string | null;
+    coldMessage?: string | null;
   },
   token: string | undefined
 ): Promise<boolean> => {

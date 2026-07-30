@@ -234,6 +234,8 @@ public class ResumeService(
           ProjectsHtml = aiResult.ProjectsHtml,
           MatchPercentage = aiResult.MatchPercentage,
           AtsFeedback = aiResult.AtsFeedback,
+          CoverLetter = aiResult.CoverLetter,
+          ColdMessage = aiResult.ColdMessage,
           CreatedAt = DateTime.UtcNow
         });
       }
@@ -345,6 +347,8 @@ public class ResumeService(
         ProjectsHtml = aiResult.ProjectsHtml,
         MatchPercentage = aiResult.MatchPercentage,
         AtsFeedback = aiResult.AtsFeedback,
+        CoverLetter = aiResult.CoverLetter,
+        ColdMessage = aiResult.ColdMessage,
         CreatedAt = DateTime.UtcNow
       });
     }
@@ -399,6 +403,8 @@ public class ResumeService(
     if (dto.SkillsHtml != null) translation.SkillsHtml = dto.SkillsHtml;
     if (dto.LanguagesHtml != null) translation.LanguagesHtml = dto.LanguagesHtml;
     if (dto.ProjectsHtml != null) translation.ProjectsHtml = dto.ProjectsHtml;
+    if (dto.CoverLetter != null) translation.CoverLetter = dto.CoverLetter;
+    if (dto.ColdMessage != null) translation.ColdMessage = dto.ColdMessage;
 
     await _resumeRepository.SaveChangesAsync();
 
@@ -416,6 +422,8 @@ public class ResumeService(
       ProjectsHtml = translation.ProjectsHtml,
       MatchPercentage = translation.MatchPercentage,
       AtsFeedback = translation.AtsFeedback,
+      CoverLetter = translation.CoverLetter,
+      ColdMessage = translation.ColdMessage,
       Version = translation.Version,
       CreatedAt = translation.CreatedAt
     };
@@ -499,6 +507,8 @@ public class ResumeService(
       ProjectsHtml = t.ProjectsHtml,
       MatchPercentage = t.MatchPercentage,
       AtsFeedback = t.AtsFeedback,
+      CoverLetter = t.CoverLetter,
+      ColdMessage = t.ColdMessage,
       Version = t.Version,
       CreatedAt = t.CreatedAt
     })]

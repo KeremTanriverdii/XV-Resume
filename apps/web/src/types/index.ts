@@ -183,6 +183,8 @@ export interface ResumeTranslationDto {
   projectsHtml?: string | null;
   matchPercentage?: number | null;
   atsFeedback?: string | null;
+  coverLetter?: string | null;
+  coldMessage?: string | null;
   version: number;
   createdAt: string;
 }

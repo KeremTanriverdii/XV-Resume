@@ -98,7 +98,6 @@ export function AppSidebar() {
   useEffect(() => {
     if (token) {
       fetchResumes(token).then((resumes) => {
-        const currentSessions = useResumeStore.getState().sessions;
         const mappedSessions: ResumeSession[] = resumes.map((r) => {
           const prefTrans =
             r.translations.find((t) => t.languageCode === locale) ||
@@ -108,15 +107,9 @@ export function AppSidebar() {
             r.externalJobLink,
           );
 
-          const existing = currentSessions.find((s) => s.id === r.id);
-          const finalTitle =
-            existing?.jobTitle && existing.jobTitle.includes(' - ')
-              ? existing.jobTitle
-              : calculatedTitle;
-
           return {
             id: r.id,
-            jobTitle: finalTitle,
+            jobTitle: calculatedTitle,
             jobLink: r.externalJobLink,
             createdAt: r.createdAt,
           };

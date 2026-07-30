@@ -14,6 +14,8 @@ import PhoneInput from "@/components/ui/phone-input";
 import { LOCATIONS } from "@/lib/autocomplete-data";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatDate } from "@/utils/date";
+import { DatePicker } from "@/components/ui/date-picker";
 import { 
   User, 
   Phone, 
@@ -312,12 +314,10 @@ export default function SettingsPage() {
             <label className="text-sm font-semibold">
               {t("militaryPostponed")}
             </label>
-            <Input
-              type="date"
+            <DatePicker
               value={militaryPostponedUntil}
-              onChange={(e) => setMilitaryPostponedUntil(e.target.value)}
-              required={militaryStatus === "Postponed"}
-              className="rounded-xl border-muted-foreground/30 focus-visible:ring-primary/50 py-5"
+              onChange={setMilitaryPostponedUntil}
+              placeholder={t("militaryPostponed")}
             />
           </div>
         )}
@@ -354,12 +354,12 @@ export default function SettingsPage() {
             <span className="text-sm font-semibold">Current Plan: {subStatus || 'Trial'}</span>
             {subEnds && (
               <span className="text-xs text-muted-foreground">
-                Next renewal date: {new Date(subEnds).toLocaleDateString()}
+                Next renewal date: {formatDate(subEnds)}
               </span>
             )}
             {subStatus === 'Trial' && trialEnds && (
               <span className="text-xs text-indigo-500 font-medium">
-                Trial ends on: {new Date(trialEnds).toLocaleDateString()}
+                Trial ends on: {formatDate(trialEnds)}
               </span>
             )}
           </div>

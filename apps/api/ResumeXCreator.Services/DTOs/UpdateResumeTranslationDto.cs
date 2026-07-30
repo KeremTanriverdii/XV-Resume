@@ -9,4 +9,6 @@ public record UpdateResumeTranslationDto
   public string? SkillsHtml { get; init; }
   public string? LanguagesHtml { get; init; }
   public string? ProjectsHtml { get; init; }
+  public string? CoverLetter { get; init; }
+  public string? ColdMessage { get; init; }
 }

@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import TagInput from "@/components/ui/tag-input";
 import PhoneInput from "@/components/ui/phone-input";
 import AutocompleteInput from "@/components/ui/autocomplete-input";
+import { DatePicker } from "@/components/ui/date-picker";
+import { formatDate } from "@/utils/date";
 import { LOCATIONS, JOB_TITLES, SKILLS, SCHOOL_NAMES, DEGREES } from "@/lib/autocomplete-data";
 import { Plus, Trash2, User, Briefcase, GraduationCap, FolderGit2, Wrench, ChevronLeft, ChevronRight, Save, Globe, ExternalLink, Calendar, CheckSquare, Square } from "lucide-react";
 
@@ -323,15 +325,14 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
               <label className="text-xs font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1">
                 <Calendar className="h-3.5 w-3.5" /> Postponed Until Date (Tecil Bitiş Tarihi)
               </label>
-              <Input
-                type="date"
+              <DatePicker
                 value={
                   profile.militaryPostponedUntil
                     ? new Date(profile.militaryPostponedUntil).toISOString().split("T")[0]
                     : ""
                 }
-                onChange={(e) => updateField("militaryPostponedUntil", e.target.value)}
-                className="bg-background text-xs"
+                onChange={(val) => updateField("militaryPostponedUntil", val)}
+                placeholder="Tecil bitiş tarihi seçin"
               />
             </div>
           )}
@@ -412,19 +413,19 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
               value={newExp.jobTitle}
               onChange={(val) => setNewExp({ ...newExp, jobTitle: val })}
             />
-            <Input
-              placeholder="Start Date (e.g. Jan 2022)"
+            <DatePicker
+              placeholder="Başlangıç Tarihi"
               value={newExp.startDate}
-              onChange={(e) => setNewExp({ ...newExp, startDate: e.target.value })}
+              onChange={(val) => setNewExp({ ...newExp, startDate: val })}
             />
             
             {/* End Date / Ongoing Switch */}
             <div className="flex flex-col justify-center">
               {!newExp.isOngoing ? (
-                <Input
-                  placeholder="End Date (e.g. Dec 2024)"
+                <DatePicker
+                  placeholder="Bitiş Tarihi"
                   value={newExp.endDate}
-                  onChange={(e) => setNewExp({ ...newExp, endDate: e.target.value })}
+                  onChange={(val) => setNewExp({ ...newExp, endDate: val })}
                 />
               ) : (
                 <div className="h-9 rounded-md bg-muted/60 border border-border px-3 flex items-center text-xs font-semibold text-emerald-600 dark:text-emerald-400">
@@ -440,7 +441,14 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
               type="checkbox"
               id="expOngoing"
               checked={newExp.isOngoing}
-              onChange={(e) => setNewExp({ ...newExp, isOngoing: e.target.checked })}
+              onChange={(e) => {
+                const checked = e.target.checked;
+                setNewExp({
+                  ...newExp,
+                  isOngoing: checked,
+                  endDate: checked ? "" : newExp.endDate,
+                });
+              }}
               className="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer"
             />
             <label htmlFor="expOngoing" className="text-xs font-semibold text-foreground cursor-pointer">
@@ -472,7 +480,9 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
             <div key={idx} className="p-3 rounded-xl bg-background border border-border/70 text-xs flex justify-between items-start gap-2">
               <div>
                 <p className="font-bold text-foreground">{exp.jobTitle || exp.role} <span className="text-primary">@ {exp.companyName}</span></p>
-                <p className="text-muted-foreground text-[11px]">{exp.startDate} - {exp.endDate || "Present"}</p>
+                <p className="text-muted-foreground text-[11px]">
+                  {formatDate(exp.startDate)} - {exp.endDate === "Present" || !exp.endDate ? "Present" : formatDate(exp.endDate)}
+                </p>
                 {exp.description && <p className="text-muted-foreground mt-1 line-clamp-2">{exp.description}</p>}
               </div>
               <Button
@@ -524,19 +534,19 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
               value={newEdu.degree}
               onChange={(val) => setNewEdu({ ...newEdu, degree: val })}
             />
-            <Input
-              placeholder="Start Date (e.g. Sept 2018)"
+            <DatePicker
+              placeholder="Başlangıç Tarihi"
               value={newEdu.startDate}
-              onChange={(e) => setNewEdu({ ...newEdu, startDate: e.target.value })}
+              onChange={(val) => setNewEdu({ ...newEdu, startDate: val })}
             />
 
             {/* End Date / Ongoing Switch */}
             <div className="flex flex-col justify-center">
               {!newEdu.isOngoing ? (
-                <Input
-                  placeholder="End Date (e.g. June 2022)"
+                <DatePicker
+                  placeholder="Bitiş Tarihi"
                   value={newEdu.endDate}
-                  onChange={(e) => setNewEdu({ ...newEdu, endDate: e.target.value })}
+                  onChange={(val) => setNewEdu({ ...newEdu, endDate: val })}
                 />
               ) : (
                 <div className="h-9 rounded-md bg-muted/60 border border-border px-3 flex items-center text-xs font-semibold text-emerald-600 dark:text-emerald-400">
@@ -552,7 +562,14 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
               type="checkbox"
               id="eduOngoing"
               checked={newEdu.isOngoing}
-              onChange={(e) => setNewEdu({ ...newEdu, isOngoing: e.target.checked })}
+              onChange={(e) => {
+                const checked = e.target.checked;
+                setNewEdu({
+                  ...newEdu,
+                  isOngoing: checked,
+                  endDate: checked ? "" : newEdu.endDate,
+                });
+              }}
               className="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer"
             />
             <label htmlFor="eduOngoing" className="text-xs font-semibold text-foreground cursor-pointer">
@@ -577,7 +594,9 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
             <div key={idx} className="p-3 rounded-xl bg-background border border-border/70 text-xs flex justify-between items-center">
               <div>
                 <p className="font-bold text-foreground">{edu.degree}</p>
-                <p className="text-muted-foreground text-[11px]">{edu.institutionName || edu.schoolName} • {edu.startDate} - {edu.endDate || "Present"}</p>
+                <p className="text-muted-foreground text-[11px]">
+                  {edu.institutionName || edu.schoolName} • {formatDate(edu.startDate)} - {edu.endDate === "Present" || !edu.endDate ? "Present" : formatDate(edu.endDate)}
+                </p>
               </div>
               <Button
                 size="icon"

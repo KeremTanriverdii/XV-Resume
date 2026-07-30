@@ -76,6 +76,7 @@ export async function exportToPdf({ filename = "Resume.pdf", elementId, element 
     clone.style.width = "794px"; // Standard A4 pixel width at 96 DPI
     clone.style.margin = "0";
     clone.style.padding = "32px";
+    clone.style.minHeight = "auto";
     clone.style.boxShadow = "none";
     clone.style.borderRadius = "0";
     clone.style.background = "#ffffff";
@@ -124,7 +125,11 @@ export async function exportToPdf({ filename = "Resume.pdf", elementId, element 
       },
       pagebreak: { 
         mode: ["css" as const, "legacy" as const],
-        avoid: ["h3", "li", ".avoid-break"]
+        avoid: [
+          ".avoid-break",
+          ".cv-section-compact",
+          ".cv-item"
+        ]
       }
     };
 

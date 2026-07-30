@@ -69,9 +69,11 @@ public class GeminiAiService : IAiService
             languagesHtml = new { type = "STRING" },
             projectsHtml = new { type = "STRING" },
             matchPercentage = new { type = "INTEGER" },
-            atsFeedback = new { type = "STRING" }
+            atsFeedback = new { type = "STRING" },
+            coverLetter = new { type = "STRING" },
+            coldMessage = new { type = "STRING" }
           },
-          required = new[] { "title", "summary", "experienceHtml", "educationHtml", "skillsHtml", "languagesHtml", "projectsHtml", "matchPercentage", "atsFeedback" }
+          required = new[] { "title", "summary", "experienceHtml", "educationHtml", "skillsHtml", "languagesHtml", "projectsHtml", "matchPercentage", "atsFeedback", "coverLetter", "coldMessage" }
         }
       }
     };
@@ -331,6 +333,11 @@ ATS MATCH SCORE & FEEDBACK RULES
    ### Weak Areas
    ### Improvement Suggestions
    ### Estimated ATS Risks
+3. COVER LETTER ('coverLetter'): Write a complete, compelling 3-4 paragraph formal Cover Letter strictly in '{languageCode}'.
+   - Address the hiring manager/employer for the target job description.
+   - Connect applicant's past achievements, skills, and background directly to company requirements.
+4. COLD MESSAGE ('coldMessage'): Write a high-converting, concise 2-3 paragraph Cold Outreach Message (for LinkedIn InMail or Recruiter Email) strictly in '{languageCode}'.
+   - Include a catchy subject line or greeting, applicant's top 2 value propositions, and a clear call-to-action (CTA).
 
 ==================================================
 OUTPUT & LANGUAGE RULES

@@ -1,4 +1,5 @@
 using System.Net;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
@@ -61,11 +62,14 @@ var queueLimit = builder.Configuration.GetValue<int>("RateLimiting:QueueLimit", 
 builder.Services.AddRateLimiter(options =>
 {
   options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-  options.AddPolicy("fixed-ip", httpContext =>
+  options.AddPolicy("fixed-user", httpContext =>
   {
-    var ipAddress = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+    var userId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                 ?? httpContext.Connection.RemoteIpAddress?.ToString()
+                 ?? "unknown";
+
     return RateLimitPartition.GetFixedWindowLimiter(
-      partitionKey: ipAddress,
+      partitionKey: userId,
       factory: _ => new FixedWindowRateLimiterOptions
       {
         AutoReplenishment = true,
@@ -75,6 +79,7 @@ builder.Services.AddRateLimiter(options =>
       });
   });
 });
+
 
 // Dynamic CORS Configuration
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()

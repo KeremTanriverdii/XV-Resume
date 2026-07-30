@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/sheet';
 import { useProfiles } from '@/hooks/useProfile';
 import { useState, useEffect } from 'react';
+import { formatDate } from '@/utils/date';
 import {
   Loader2,
   Mail,
@@ -318,13 +319,7 @@ export function SelectProfile({
                         <span>🛡️</span>
                         <span>
                           {t('militaryStatus.Postponed') || 'Postponed'}:{' '}
-                          {new Date(
-                            profile.militaryPostponedUntil,
-                          ).toLocaleDateString(undefined, {
-                            year: 'numeric',
-                            month: '2-digit',
-                            day: '2-digit',
-                          })}
+                          {formatDate(profile.militaryPostponedUntil)}
                         </span>
                       </div>
                     )}

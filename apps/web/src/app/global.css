@@ -124,6 +124,32 @@
   }
 }
 
+/* Page break utilities for CV export and printing */
+.avoid-break,
+.cv-section-compact,
+#cv-document-container .prose p,
+#cv-document-container .prose li,
+#cv-document-container .prose h1,
+#cv-document-container .prose h2,
+#cv-document-container .prose h3,
+#cv-document-container .prose h4,
+#cv-document-container .prose ul,
+#cv-document-container .prose ol,
+#cv-document-container .cv-section-header {
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
+  -webkit-column-break-inside: avoid !important;
+}
+
+.cv-section-header,
+#cv-document-container h1,
+#cv-document-container h2,
+#cv-document-container h3,
+#cv-document-container h4 {
+  break-after: avoid !important;
+  page-break-after: avoid !important;
+}
+
 /* Document Typography Spacing Overrides for tight headings and gentle item gaps */
 #cv-document-container .prose h1,
 #cv-document-container .prose h2,

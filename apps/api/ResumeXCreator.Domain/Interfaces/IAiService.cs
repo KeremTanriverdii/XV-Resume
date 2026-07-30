@@ -37,6 +37,8 @@ public record AiGeneratedResumeResult
   public string? ProjectsHtml { get; init; } = string.Empty;
   public int MatchPercentage { get; init; }
   public string AtsFeedback { get; init; } = string.Empty;
+  public string CoverLetter { get; init; } = string.Empty;
+  public string ColdMessage { get; init; } = string.Empty;
   public string ScrapedJobDescription { get; init; } = string.Empty;
 }
 

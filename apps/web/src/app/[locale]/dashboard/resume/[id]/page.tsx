@@ -40,9 +40,12 @@ import { exportToPdf } from '@/utils/pdfExport';
 import { StepFormSidebar, StepItem } from '@/components/resume/StepFormSidebar';
 import { StepFormFields } from '@/components/resume/StepFormFields';
 import { AtsMatcherTab } from '@/components/resume/AtsMatcherTab';
+import { CoverLetterTab } from '@/components/resume/CoverLetterTab';
+import { ColdMessageTab } from '@/components/resume/ColdMessageTab';
+import { LanguageGenerationSelector } from '@/components/resume/LanguageGenerationSelector';
 import { ProtectedPreviewOverlay } from '@/components/resume/ProtectedPreviewOverlay';
 import { AuthModal } from '@/components/auth/AuthModal';
-import { User, GraduationCap, Wrench, Edit3 } from 'lucide-react';
+import { User, GraduationCap, Wrench, Edit3, Mail, Send } from 'lucide-react';
 
 const parseBold = (text: string) => {
   const parts = text.split(/\*\*([^*]+)\*\*/g);
@@ -196,11 +199,12 @@ export default function ResumeSessionPage() {
     useState<TemplateId>(initialTemplate);
   const [selectedColor, setSelectedColor] =
     useState<ColorThemeId>(initialColor);
+  const [selectedRegenLangs, setSelectedRegenLangs] = useState<string[]>(['en', 'tr']);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'preview' | 'builder' | 'jobDesc' | 'ats'>(
-    'preview',
-  );
+  const [activeTab, setActiveTab] = useState<
+    'preview' | 'builder' | 'jobDesc' | 'ats' | 'coverLetter' | 'coldMessage'
+  >('preview');
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
   const [authActionTitle, setAuthActionTitle] = useState<string>('Save & Export Your CV');
@@ -308,7 +312,7 @@ export default function ResumeSessionPage() {
           resumeId: resume.id,
           externalJobLink: resume.externalJobLink,
           profileId: resume.profileId,
-          selectedLanguagesForGeneration: [selectedLang],
+          selectedLanguagesForGeneration: selectedRegenLangs,
         },
         token,
       );
@@ -692,6 +696,15 @@ export default function ResumeSessionPage() {
               </div>
             </div>
 
+            {/* Regenerate Target Languages Selector */}
+            <div className="space-y-1.5 border-t border-border/60 pt-4">
+              <LanguageGenerationSelector
+                selectedLanguages={selectedRegenLangs}
+                onChange={setSelectedRegenLangs}
+                disabled={regenerating}
+              />
+            </div>
+
             {/* Regenerate Action */}
             <Button
               onClick={handleRegenerate}
@@ -750,6 +763,28 @@ export default function ResumeSessionPage() {
               >
                 <Sparkles className="h-3.5 w-3.5" />
                 ATS Analysis
+              </button>
+              <button
+                onClick={() => setActiveTab('coverLetter')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer ${
+                  activeTab === 'coverLetter'
+                    ? 'bg-background text-foreground shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/80'
+                }`}
+              >
+                <Mail className="h-3.5 w-3.5 text-emerald-500" />
+                Cover Letter
+              </button>
+              <button
+                onClick={() => setActiveTab('coldMessage')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer ${
+                  activeTab === 'coldMessage'
+                    ? 'bg-background text-foreground shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/80'
+                }`}
+              >
+                <Send className="h-3.5 w-3.5 text-blue-500" />
+                Cold Message
               </button>
             </div>
 
@@ -828,6 +863,72 @@ export default function ResumeSessionPage() {
                     );
                     setResume({ ...resume, translations: updatedTranslations } as ResumeDto);
                   }}
+                />
+              )}
+
+              {activeTab === 'coverLetter' && (
+                <CoverLetterTab
+                  key={`coverletter-${activeTranslation.id}-${activeTranslation.languageCode}`}
+                  translation={activeTranslation}
+                  profile={resume?.profile}
+                  onSaveTranslation={async (updated) => {
+                    if (!resume || !token || !activeTranslation.id) return false;
+                    try {
+                      setIsSaving(true);
+                      const ok = await updateResumeTranslation(
+                        resume.id,
+                        activeTranslation.id,
+                        updated,
+                        token,
+                      );
+                      if (ok) {
+                        const updatedTranslations = resume.translations.map((tr) =>
+                          tr.id === activeTranslation.id ? { ...tr, ...updated } : tr
+                        );
+                        setResume({ ...resume, translations: updatedTranslations } as ResumeDto);
+                        return true;
+                      }
+                      return false;
+                    } catch {
+                      return false;
+                    } finally {
+                      setIsSaving(false);
+                    }
+                  }}
+                  isSaving={isSaving}
+                />
+              )}
+
+              {activeTab === 'coldMessage' && (
+                <ColdMessageTab
+                  key={`coldmessage-${activeTranslation.id}-${activeTranslation.languageCode}`}
+                  translation={activeTranslation}
+                  profile={resume?.profile}
+                  onSaveTranslation={async (updated) => {
+                    if (!resume || !token || !activeTranslation.id) return false;
+                    try {
+                      setIsSaving(true);
+                      const ok = await updateResumeTranslation(
+                        resume.id,
+                        activeTranslation.id,
+                        updated,
+                        token,
+                      );
+                      if (ok) {
+                        const updatedTranslations = resume.translations.map((tr) =>
+                          tr.id === activeTranslation.id ? { ...tr, ...updated } : tr
+                        );
+                        setResume({ ...resume, translations: updatedTranslations } as ResumeDto);
+                        return true;
+                      }
+                      return false;
+                    } catch {
+                      return false;
+                    } finally {
+                      setIsSaving(false);
+                    }
+                  }}
+                  isSaving={isSaving}
                 />
               )}
             </>
