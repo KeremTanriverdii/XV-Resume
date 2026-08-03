@@ -60,6 +60,17 @@ import { useTheme } from 'next-themes';
 import { useLocale, useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+
 import { formatCompanyAndRole } from '@/utils/formatTitle';
 
 export function AppSidebar() {
@@ -73,30 +84,38 @@ export function AppSidebar() {
   const t = useTranslations();
 
   const [mounted, setMounted] = useState(false);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [sessionToDelete, setSessionToDelete] = useState<ResumeSession | null>(null);
   const [isAtsModalOpen, setIsAtsModalOpen] = useState(false);
 
-  const handleDeleteSession = async (e: React.MouseEvent, id: string) => {
+  const openDeleteModal = (e: React.MouseEvent, sessionItem: ResumeSession) => {
     e.preventDefault();
     e.stopPropagation();
+    setSessionToDelete(sessionItem);
+  };
 
-    if (deletingId === id) return;
-    setDeletingId(id);
+  const confirmDeleteSession = async () => {
+    if (!sessionToDelete) return;
+    const targetId = sessionToDelete.id;
+    const previousSessions = [...sessions];
+
+    // OPTIMISTIC UPDATE: Instantly remove session from local store
+    removeSession(targetId);
+    setSessionToDelete(null);
+
+    if (pathname.includes(`/dashboard/resume/${targetId}`)) {
+      router.push('/dashboard');
+    }
 
     try {
       if (token) {
-        await deleteResume(id, token);
+        await deleteResume(targetId, token);
       }
-      removeSession(id);
       toast.success(t('toast.deleteSuccess'));
-      if (pathname.includes(`/dashboard/resume/${id}`)) {
-        router.push('/dashboard');
-      }
     } catch (err) {
-      console.error('Failed to delete resume session:', err);
+      console.error('Optimistic delete failed, rolling back:', err);
+      // ROLLBACK ON FAILURE
+      setSessions(previousSessions);
       toast.error(t('toast.deleteError'));
-    } finally {
-      setDeletingId(null);
     }
   };
 
@@ -248,8 +267,8 @@ export function AppSidebar() {
                     </SidebarMenuButton>
                     <button
                       type="button"
-                      onClick={(e) => handleDeleteSession(e, session.id)}
-                      title="Özgeçmişi Sil"
+                      onClick={(e) => openDeleteModal(e, session)}
+                      title={t('sidebar.deleteConfirmTitle')}
                       className="absolute right-2 text-zinc-400 hover:text-red-500 opacity-0 group-hover/item:opacity-100 transition-opacity p-1 rounded-md hover:bg-red-500/10 cursor-pointer"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
@@ -383,6 +402,30 @@ export function AppSidebar() {
         isOpen={isAtsModalOpen}
         onClose={() => setIsAtsModalOpen(false)}
       />
+
+      {/* Shadcn Alert Dialog for Delete Confirmation */}
+      <AlertDialog
+        open={!!sessionToDelete}
+        onOpenChange={(open) => !open && setSessionToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-red-600 dark:text-red-400 font-bold">
+              <Trash2 className="h-4.5 w-4.5 text-red-500 shrink-0" />
+              <span>{t('sidebar.deleteConfirmTitle')}</span>
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('sidebar.deleteConfirmDesc')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('sidebar.deleteConfirmCancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteSession}>
+              {t('sidebar.deleteConfirmAction')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Sidebar>
   );
 }

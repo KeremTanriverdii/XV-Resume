@@ -45,7 +45,11 @@
     "experiences": "職歴",
     "projects": "プロジェクト",
     "outreach": "コールドメッセージ＆カバーレター",
-    "atsScan": "迅速ATS適合テスト"
+    "atsScan": "迅速ATS適合テスト",
+    "deleteConfirmTitle": "履歴書を削除",
+    "deleteConfirmDesc": "この履歴書セッションを削除してもよろしいですか？この操作は取り消せません。",
+    "deleteConfirmCancel": "キャンセル",
+    "deleteConfirmAction": "削除"
   },
   "common": {
     "light": "ライト",

@@ -45,7 +45,11 @@
     "experiences": "Deneyimler",
     "projects": "Projeler",
     "outreach": "Cold Message & Kapak Yazısı",
-    "atsScan": "Hızlı ATS Uyum Testi"
+    "atsScan": "Hızlı ATS Uyum Testi",
+    "deleteConfirmTitle": "Özgeçmişi Sil",
+    "deleteConfirmDesc": "Bu özgeçmiş oturumunu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+    "deleteConfirmCancel": "İptal",
+    "deleteConfirmAction": "Sil"
   },
   "common": {
     "light": "Açık",

@@ -45,7 +45,11 @@
     "experiences": "Expériences",
     "projects": "Projets",
     "outreach": "Cold Message & Lettre de Motivation",
-    "atsScan": "Test Rapide ATS"
+    "atsScan": "Test Rapide ATS",
+    "deleteConfirmTitle": "Supprimer le CV",
+    "deleteConfirmDesc": "Êtes-vous sûr de vouloir supprimer ce CV ? Cette action est irréversible.",
+    "deleteConfirmCancel": "Annuler",
+    "deleteConfirmAction": "Supprimer"
   },
   "common": {
     "light": "Clair",

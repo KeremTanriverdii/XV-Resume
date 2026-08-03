@@ -45,7 +45,11 @@
     "experiences": "Berufserfahrung",
     "projects": "Projekte",
     "outreach": "Cold Message & Anschreiben",
-    "atsScan": "Schneller ATS-Test"
+    "atsScan": "Schneller ATS-Test",
+    "deleteConfirmTitle": "Lebenslauf löschen",
+    "deleteConfirmDesc": "Möchten Sie diesen Lebenslauf wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+    "deleteConfirmCancel": "Abbrechen",
+    "deleteConfirmAction": "Löschen"
   },
   "common": {
     "light": "Hell",

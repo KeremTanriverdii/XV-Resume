@@ -45,7 +45,11 @@
     "experiences": "Experiencia",
     "projects": "Proyectos",
     "outreach": "Mensaje Directo y Carta de Presentación",
-    "atsScan": "Prueba Rápida ATS"
+    "atsScan": "Prueba Rápida ATS",
+    "deleteConfirmTitle": "Eliminar Currículum",
+    "deleteConfirmDesc": "¿Está seguro de que desea eliminar este currículum? Esta acción no se puede deshacer.",
+    "deleteConfirmCancel": "Cancelar",
+    "deleteConfirmAction": "Eliminar"
   },
   "common": {
     "light": "Claro",

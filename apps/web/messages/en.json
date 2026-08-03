@@ -45,7 +45,11 @@
     "experiences": "Experiences",
     "projects": "Projects",
     "outreach": "Cold Message & Cover Letter",
-    "atsScan": "Quick ATS Match Test"
+    "atsScan": "Quick ATS Match Test",
+    "deleteConfirmTitle": "Delete Resume",
+    "deleteConfirmDesc": "Are you sure you want to delete this resume? This action cannot be undone.",
+    "deleteConfirmCancel": "Cancel",
+    "deleteConfirmAction": "Delete"
   },
   "common": {
     "light": "Light",
