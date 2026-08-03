@@ -14,6 +14,13 @@ public interface IAiService
       string externalJobLink,
       AiProfileInput profile,
       string? jobDescriptionText = null);
+
+  Task<string> GenerateOutreachTextAsync(
+      string outreachType,
+      string candidateSummaryText,
+      string? jobUrl = null,
+      string? jobDescriptionText = null,
+      string languageCode = "en");
 }
 
 public record AiAtsAnalysisResult

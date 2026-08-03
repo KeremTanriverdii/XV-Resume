@@ -27,6 +27,9 @@ public static class ServiceExtensions
     // Register Gemini AI service with HttpClient
     services.AddHttpClient<IAiService, GeminiAiService>();
 
+    // Register AI Cache Service
+    services.AddSingleton<IAiCacheService, AiCacheService>();
+
     return services;
   }
 }

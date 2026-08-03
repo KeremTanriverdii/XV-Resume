@@ -12,6 +12,7 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { formatDate } from "@/utils/date";
 import { LOCATIONS, JOB_TITLES, SKILLS, SCHOOL_NAMES, DEGREES } from "@/lib/autocomplete-data";
 import { Plus, Trash2, User, Briefcase, GraduationCap, FolderGit2, Wrench, ChevronLeft, ChevronRight, Save, Globe, ExternalLink, Calendar, CheckSquare, Square } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface MultiStepProfileBuilderProps {
   currentStep: number;
@@ -36,6 +37,7 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
   isFirstStep,
   isLastStep,
 }) => {
+  const t = useTranslations("profileBuilder");
   // Inline Experience Form State
   const [newExp, setNewExp] = useState({
     companyName: "",
@@ -182,12 +184,12 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
       <div className="flex flex-col gap-4 bg-card p-5 rounded-2xl border border-border/80 shadow-xs">
         <div className="flex items-center gap-2 border-b border-border/60 pb-3">
           <User className="h-4 w-4 text-primary" />
-          <h4 className="font-bold text-xs uppercase tracking-wider text-foreground">Step 1: Profile Name, Photo & Personal Info</h4>
+          <h4 className="font-bold text-xs uppercase tracking-wider text-foreground">{t('step1Header')}</h4>
         </div>
 
         {/* Profile Name (Required) */}
         <div className="p-3 bg-primary/10 border border-primary/20 rounded-xl space-y-1">
-          <label className="text-xs font-bold text-primary block">Profile Name / Identifier (Profil Adı)</label>
+          <label className="text-xs font-bold text-primary block">{t('profileNameLabel')}</label>
           <Input
             value={profile.profileName || ""}
             onChange={(e) => updateField("profileName", e.target.value)}
@@ -207,7 +209,7 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
               className="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer"
             />
             <label htmlFor="showPhoto" className="text-xs font-semibold text-foreground cursor-pointer">
-              Display Photo on CV (Fotoğraf Gösterilsin)
+              {t('showPhotoLabel')}
             </label>
           </div>
 
@@ -215,7 +217,7 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
             <div className="pt-2 flex flex-col gap-2.5">
               <div className="flex items-center gap-3">
                 <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-xs font-semibold transition-all">
-                  <span>📁 Fotoğraf Seç (Select Image File)</span>
+                  <span>📁 {t('selectImageFile')}</span>
                   <input
                     type="file"
                     accept="image/*"
@@ -236,7 +238,7 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
                       onClick={() => updateField('photoUrl', '')}
                       className="text-xs text-destructive hover:bg-destructive/10 h-8"
                     >
-                      Kaldır
+                      {t('removePhoto')}
                     </Button>
                   </div>
                 )}
@@ -395,7 +397,7 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
       <div className="flex flex-col gap-4 bg-card p-5 rounded-2xl border border-border/80 shadow-xs">
         <div className="flex items-center gap-2 border-b border-border/60 pb-3">
           <Briefcase className="h-4 w-4 text-primary" />
-          <h4 className="font-bold text-xs uppercase tracking-wider text-foreground">Step 2: Add Work Experience</h4>
+          <h4 className="font-bold text-xs uppercase tracking-wider text-foreground">{t('step2Header')}</h4>
         </div>
 
         {/* Form to add a new Work Experience directly */}
@@ -429,7 +431,7 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
                 />
               ) : (
                 <div className="h-9 rounded-md bg-muted/60 border border-border px-3 flex items-center text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                  Present (Hala Çalışıyorum)
+                  {t('currentlyWorkingHere')}
                 </div>
               )}
             </div>
@@ -452,7 +454,7 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
               className="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer"
             />
             <label htmlFor="expOngoing" className="text-xs font-semibold text-foreground cursor-pointer">
-              Hala Çalışıyorum (Currently Working Here)
+              {t('currentlyWorkingHere')}
             </label>
           </div>
 
@@ -515,7 +517,7 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
       <div className="flex flex-col gap-4 bg-card p-5 rounded-2xl border border-border/80 shadow-xs">
         <div className="flex items-center gap-2 border-b border-border/60 pb-3">
           <GraduationCap className="h-4 w-4 text-primary" />
-          <h4 className="font-bold text-xs uppercase tracking-wider text-foreground">Step 3: Add Education</h4>
+          <h4 className="font-bold text-xs uppercase tracking-wider text-foreground">{t('step3Header')}</h4>
         </div>
 
         {/* Form to add a new Education entry */}
@@ -550,7 +552,7 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
                 />
               ) : (
                 <div className="h-9 rounded-md bg-muted/60 border border-border px-3 flex items-center text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                  Present (Hala Okuyorum)
+                  {t('currentlyStudyingHere')}
                 </div>
               )}
             </div>
@@ -573,7 +575,7 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
               className="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer"
             />
             <label htmlFor="eduOngoing" className="text-xs font-semibold text-foreground cursor-pointer">
-              Hala Okuyorum (Currently Studying Here)
+              {t('currentlyStudyingHere')}
             </label>
           </div>
 
@@ -628,7 +630,7 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
       <div className="flex flex-col gap-4 bg-card p-5 rounded-2xl border border-border/80 shadow-xs">
         <div className="flex items-center gap-2 border-b border-border/60 pb-3">
           <FolderGit2 className="h-4 w-4 text-primary" />
-          <h4 className="font-bold text-xs uppercase tracking-wider text-foreground">Step 4: Add Projects & Portfolio</h4>
+          <h4 className="font-bold text-xs uppercase tracking-wider text-foreground">{t('step4Header')}</h4>
         </div>
 
         {/* Form to add a new Project */}
@@ -742,7 +744,7 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
     <div className="flex flex-col gap-4 bg-card p-5 rounded-2xl border border-border/80 shadow-xs">
       <div className="flex items-center gap-2 border-b border-border/60 pb-3">
         <Wrench className="h-4 w-4 text-primary" />
-        <h4 className="font-bold text-xs uppercase tracking-wider text-foreground">Step 5: Technical Skills, Languages & Summary</h4>
+        <h4 className="font-bold text-xs uppercase tracking-wider text-foreground">{t('step5Header')}</h4>
       </div>
 
       <div className="space-y-4">
@@ -909,38 +911,41 @@ interface FooterProps {
   isSaving: boolean;
 }
 
-const StepNavigationFooter: React.FC<FooterProps> = ({ onPrev, onNext, onSave, isFirst, isLast, isSaving }) => (
-  <div className="flex items-center justify-between pt-3 mt-2 border-t border-border/60">
-    <Button
-      size="sm"
-      variant="outline"
-      onClick={onPrev}
-      disabled={isFirst}
-      className="text-xs gap-1"
-    >
-      <ChevronLeft className="h-3.5 w-3.5" /> Previous
-    </Button>
-
-    <div className="flex items-center gap-2">
+const StepNavigationFooter: React.FC<FooterProps> = ({ onPrev, onNext, onSave, isFirst, isLast, isSaving }) => {
+  const t = useTranslations("profileBuilder");
+  return (
+    <div className="flex items-center justify-between pt-3 mt-2 border-t border-border/60">
       <Button
         size="sm"
-        variant="secondary"
-        onClick={onSave}
-        disabled={isSaving}
-        className="text-xs gap-1 font-bold"
+        variant="outline"
+        onClick={onPrev}
+        disabled={isFirst}
+        className="text-xs gap-1 cursor-pointer"
       >
-        <Save className="h-3.5 w-3.5" /> Save Profile
+        <ChevronLeft className="h-3.5 w-3.5" /> {t('btnPrevious')}
       </Button>
 
-      {!isLast && (
+      <div className="flex items-center gap-2">
         <Button
           size="sm"
-          onClick={onNext}
-          className="text-xs font-bold gap-1 bg-primary text-primary-foreground"
+          variant="secondary"
+          onClick={onSave}
+          disabled={isSaving}
+          className="text-xs gap-1 font-bold cursor-pointer"
         >
-          Next <ChevronRight className="h-3.5 w-3.5" />
+          <Save className="h-3.5 w-3.5" /> {t('btnSaveProfile')}
         </Button>
-      )}
+
+        {!isLast && (
+          <Button
+            size="sm"
+            onClick={onNext}
+            className="text-xs font-bold gap-1 bg-primary text-primary-foreground cursor-pointer"
+          >
+            {t('btnNext')} <ChevronRight className="h-3.5 w-3.5" />
+          </Button>
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
+};

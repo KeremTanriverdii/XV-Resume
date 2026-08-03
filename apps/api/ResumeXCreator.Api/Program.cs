@@ -107,6 +107,23 @@ builder.Services.AddRateLimiter(options =>
         Window = TimeSpan.FromMinutes(aiWindowMinutes)
       });
   });
+
+  options.AddPolicy("outreach-generation", httpContext =>
+  {
+    var userId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                 ?? httpContext.Connection.RemoteIpAddress?.ToString()
+                 ?? "unknown";
+
+    return RateLimitPartition.GetFixedWindowLimiter(
+      partitionKey: $"outreach_{userId}",
+      factory: _ => new FixedWindowRateLimiterOptions
+      {
+        AutoReplenishment = true,
+        PermitLimit = 3, // Elevated permit limit for seamless testing
+        QueueLimit = 0,
+        Window = TimeSpan.FromMinutes(1)
+      });
+  });
 });
 
 
@@ -164,6 +181,7 @@ app.MapProjectEndpoints();
 app.MapResumeEndpoints();
 app.MapUserEndpoints();
 app.MapPaymentEndpoints();
+app.MapOutreachEndpoints();
 app.MapHub<ResumeHub>("/hubs/resume");
 
 app.Run();

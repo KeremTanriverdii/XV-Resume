@@ -32,6 +32,8 @@ import {
   FolderGit2,
   Trash2,
   Zap,
+  Mail,
+  Send,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { createClient } from '@/utils/supabase/client';
@@ -86,13 +88,13 @@ export function AppSidebar() {
         await deleteResume(id, token);
       }
       removeSession(id);
-      toast.success('Özgeçmiş başarıyla silindi');
+      toast.success(t('toast.deleteSuccess'));
       if (pathname.includes(`/dashboard/resume/${id}`)) {
         router.push('/dashboard');
       }
     } catch (err) {
       console.error('Failed to delete resume session:', err);
-      toast.error('Özgeçmiş silinirken bir hata oluştu');
+      toast.error(t('toast.deleteError'));
     } finally {
       setDeletingId(null);
     }
@@ -155,19 +157,9 @@ export function AppSidebar() {
       icon: LayoutTemplate,
     },
     {
-      name: t('sidebar.educations'),
-      href: '/dashboard/educations',
-      icon: GraduationCap,
-    },
-    {
-      name: t('sidebar.experiences'),
-      href: '/dashboard/experiences',
-      icon: Briefcase,
-    },
-    {
-      name: t('sidebar.projects'),
-      href: '/dashboard/projects',
-      icon: FolderGit2,
+      name: t('sidebar.outreach') || 'Cold Message & Cover Letter',
+      href: '/dashboard/outreach',
+      icon: Mail,
     },
   ];
 
@@ -225,9 +217,11 @@ export function AppSidebar() {
             >
               <div className="flex items-center gap-2">
                 <Zap className="h-4 w-4 text-amber-500 group-hover:scale-110 transition-transform" />
-                <span>Hızlı ATS Uyum Testi</span>
+                <span>{t('sidebar.atsScan') || 'Hızlı ATS Uyum Testi'}</span>
               </div>
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-500 font-extrabold border border-amber-500/40 shadow-xs">PRO</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-500 font-extrabold border border-amber-500/40 shadow-xs">
+                PRO
+              </span>
             </button>
           </div>
           <SidebarGroupLabel>{t('sidebar.recent-resumes')}</SidebarGroupLabel>
@@ -244,7 +238,10 @@ export function AppSidebar() {
                     className="group/item relative flex items-center"
                   >
                     <SidebarMenuButton asChild className="pr-8">
-                      <Link href={`/dashboard/resume/${session.id}`} prefetch={true}>
+                      <Link
+                        href={`/dashboard/resume/${session.id}`}
+                        prefetch={true}
+                      >
                         <MessageSquare className="mr-2 h-4 w-4 shrink-0" />
                         <span className="truncate">{session.jobTitle}</span>
                       </Link>
@@ -267,26 +264,39 @@ export function AppSidebar() {
 
       {/* User Profile & Settings Dropdown at Bottom */}
       <SidebarFooter className="p-2">
-        {user && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="flex w-full items-center gap-3 text-left focus:outline-none hover:bg-accent hover:text-accent-foreground p-2 rounded-lg transition-colors cursor-pointer">
-                <Avatar className="h-9 w-9">
-                  <AvatarImage src={user.user_metadata.avatar_url} />
-                  <AvatarFallback className="bg-primary/10 text-primary">
-                    {user.user_metadata.name?.charAt(0) || 'U'}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex flex-col overflow-hidden flex-1">
-                  <span className="text-sm font-medium truncate">
-                    {user.user_metadata.name}
-                  </span>
-                  <span className="text-xs text-muted-foreground truncate">
-                    {user.email}
-                  </span>
-                </div>
-              </button>
-            </DropdownMenuTrigger>
+        {(() => {
+          const userName =
+            user?.user_metadata?.full_name ||
+            user?.user_metadata?.name ||
+            user?.email?.split('@')[0] ||
+            'User';
+          const userEmail = user?.email || '';
+          const userAvatar =
+            user?.user_metadata?.avatar_url ||
+            user?.user_metadata?.picture;
+
+          return (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex w-full items-center gap-3 text-left focus:outline-none hover:bg-accent hover:text-accent-foreground p-2 rounded-lg transition-colors cursor-pointer">
+                  <Avatar className="h-9 w-9">
+                    {userAvatar && <AvatarImage src={userAvatar} />}
+                    <AvatarFallback className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold text-xs">
+                      {userName.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col overflow-hidden flex-1">
+                    <span className="text-sm font-semibold truncate text-foreground">
+                      {userName}
+                    </span>
+                    {userEmail && (
+                      <span className="text-xs text-muted-foreground truncate">
+                        {userEmail}
+                      </span>
+                    )}
+                  </div>
+                </button>
+              </DropdownMenuTrigger>
 
             <DropdownMenuContent
               className="w-56"
@@ -366,9 +376,13 @@ export function AppSidebar() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        )}
+        );
+      })()}
       </SidebarFooter>
-      <QuickAtsScanModal isOpen={isAtsModalOpen} onClose={() => setIsAtsModalOpen(false)} />
+      <QuickAtsScanModal
+        isOpen={isAtsModalOpen}
+        onClose={() => setIsAtsModalOpen(false)}
+      />
     </Sidebar>
   );
 }

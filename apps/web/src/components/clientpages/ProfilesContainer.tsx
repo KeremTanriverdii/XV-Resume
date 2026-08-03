@@ -10,7 +10,9 @@ import { ResumeTemplates, TemplateId, ColorThemeId, COLOR_THEMES } from '@/compo
 import { User, Briefcase, GraduationCap, FolderGit2, Wrench } from 'lucide-react';
 import { ProtectedPreviewOverlay } from '@/components/resume/ProtectedPreviewOverlay';
 import { AuthModal } from '@/components/auth/AuthModal';
-import { createProfile, updateProfile } from '@/services/profileService';
+import { createProfile, updateProfile, fetchProfiles } from '@/services/profileService';
+import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 
 interface ProfilesContainerProps {
   token: string | undefined;
@@ -23,6 +25,7 @@ export default function ProfilesContainer({
   userId,
   metaData,
 }: ProfilesContainerProps) {
+  const t = useTranslations('profiles');
   const [editingProfile, setEditingProfile] = useState<Profile | null>(null);
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateId>('modern');
@@ -57,9 +60,19 @@ export default function ProfilesContainer({
 
   const handleSaveProfile = async () => {
     if (!token) {
-      setAuthActionTitle('Sign in to save your profile');
+      setAuthActionTitle(t('signInToSave'));
       setIsAuthModalOpen(true);
       return;
+    }
+
+    if (!editingProfile?.id) {
+      try {
+        const existing = await fetchProfiles(token);
+        if (existing && existing.length >= 4) {
+          toast.error(t('maxProfilesReached'));
+          return;
+        }
+      } catch {}
     }
 
     setIsSaving(true);
@@ -210,10 +223,10 @@ export default function ProfilesContainer({
     if (!userId) {
       setAuthActionTitle(
         action === 'download'
-          ? 'Sign in to Download High-Res PDF'
+          ? t('signInToDownload')
           : action === 'email'
-          ? 'Sign in to Email Your CV'
-          : 'Save Your Profile'
+          ? t('signInToEmail')
+          : t('signInToSave')
       );
       setIsAuthModalOpen(true);
     }
@@ -225,10 +238,10 @@ export default function ProfilesContainer({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-3">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-foreground">
-            Multi-Step Profile Builder
+            {t('builderTitle')}
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Create or update your CV profile step by step with real-time template preview.
+            {t('builderSubtitle')}
           </p>
         </div>
 
@@ -275,13 +288,6 @@ export default function ProfilesContainer({
             steps={steps}
             profileName={previewProfile.profileName}
           />
-
-          <ProfileListClient
-            token={token}
-            userId={userId}
-            onEdit={handleEditProfile}
-            activeEditId={editingProfile?.id || null}
-          />
         </div>
 
         {/* Middle Column (5 cols): Multi-Step Form Fields */}
@@ -302,9 +308,9 @@ export default function ProfilesContainer({
         {/* Right Column (4 cols): Real-Time Synchronized A4 Template Preview */}
         <div className="lg:col-span-4 sticky top-4 space-y-3">
           <div className="p-2.5 bg-muted/40 rounded-xl border border-border flex items-center justify-between">
-            <span className="text-xs font-bold text-foreground">Live A4 Preview</span>
+            <span className="text-xs font-bold text-foreground">{t('livePreview')}</span>
             <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" /> Real-time Sync
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" /> {t('realtimeSync')}
             </span>
           </div>
 
@@ -320,6 +326,16 @@ export default function ProfilesContainer({
             />
           </ProtectedPreviewOverlay>
         </div>
+      </div>
+
+      {/* Bottom Full-Width Section: Saved Candidate Profiles */}
+      <div className="mt-6 pt-6 border-t border-border">
+        <ProfileListClient
+          token={token}
+          userId={userId}
+          onEdit={handleEditProfile}
+          activeEditId={editingProfile?.id || null}
+        />
       </div>
 
       <AuthModal

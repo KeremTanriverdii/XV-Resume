@@ -7,7 +7,15 @@ import { fetchProfiles, deleteProfile } from '@/services/profileService';
 import { useTranslations } from 'next-intl';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash2, Loader2 } from 'lucide-react';
+import {
+  Pencil,
+  Trash2,
+  Loader2,
+  Users,
+  UserCheck,
+  Sparkles,
+  CheckCircle2,
+} from 'lucide-react';
 import { formatDate } from '@/utils/date';
 
 import Image from 'next/image';
@@ -52,9 +60,8 @@ export default function ProfileListClient({
         userId,
       ]);
 
-      queryClient.setQueryData<Profile[]>(
-        ['profiles', userId],
-        (old) => (old ? old.filter((p) => p.id !== deletedId) : []),
+      queryClient.setQueryData<Profile[]>(['profiles', userId], (old) =>
+        old ? old.filter((p) => p.id !== deletedId) : [],
       );
 
       return { previousProfiles };
@@ -130,16 +137,47 @@ export default function ProfileListClient({
 
   if (!profiles || profiles.length === 0) {
     return (
-      <div className="text-sm text-muted-foreground border border-dashed rounded-lg p-6 text-center">
-        {t('notFound')}
+      <div className="flex flex-col items-center justify-center border-2 border-dashed border-border rounded-2xl p-8 text-center bg-card/40 my-4 gap-2">
+        <Users className="h-8 w-8 text-muted-foreground/50" />
+        <h4 className="text-sm font-semibold text-foreground">
+          {t('notFound')}
+        </h4>
+        <p className="text-xs text-muted-foreground max-w-sm">
+          {t('notFoundDesc')}
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="overflow-y-auto h-full">
-      <h1 className="text-3xl font-bold mb-6">{t('myProfiles')}</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="w-full space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 flex items-center justify-center shrink-0">
+            <Users className="h-5 w-5" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold tracking-tight text-foreground flex items-center gap-2">
+              {t('myProfiles')}
+              <span
+                className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${
+                  profiles.length >= 4
+                    ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                    : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                }`}
+              >
+                {profiles.length} / 4 {t('profile')}{' '}
+                {profiles.length >= 4 ? t('limitFull') : ''}
+              </span>
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              {t('myProfilesSubtitle')}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
         {profiles.map((profile: Profile) => {
           const isBeingEdited = activeEditId === profile.id;
           const isDeletingThis = deletingId === profile.id;
@@ -147,14 +185,20 @@ export default function ProfileListClient({
           return (
             <div
               key={profile.id}
-              className={`p-5 border rounded-2xl shadow-sm bg-card text-card-foreground flex flex-col justify-between relative group transition-all duration-300 ${
+              className={`p-5 border rounded-2xl shadow-xs bg-card text-card-foreground flex flex-col justify-between relative group transition-all duration-300 ${
                 isDeletingThis
                   ? 'opacity-40 pointer-events-none scale-[0.98] border-destructive/50'
                   : isBeingEdited
-                  ? 'border-primary ring-2 ring-primary/20 bg-primary/5'
-                  : 'hover:border-primary/40'
+                    ? 'border-emerald-500 ring-2 ring-emerald-500/20 bg-emerald-500/5'
+                    : 'hover:border-emerald-500/40 hover:shadow-md'
               }`}
             >
+              {isBeingEdited && (
+                <div className="absolute -top-3 right-4 px-2.5 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-bold tracking-wide shadow-xs flex items-center gap-1">
+                  <CheckCircle2 className="h-3 w-3" /> {t('activeEditing')}
+                </div>
+              )}
+
               <div className="flex-1 min-w-0">
                 <div className="flex justify-between items-start gap-2">
                   <div className="min-w-0 flex-1">
@@ -162,12 +206,12 @@ export default function ProfileListClient({
                       {profile.profileName}
                     </h3>
                     {profile.fullName && (
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-xs text-muted-foreground">
                         {profile.fullName}
                       </p>
                     )}
                     {profile.title && (
-                      <p className="text-xs font-semibold text-primary mt-1">
+                      <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mt-1">
                         {profile.title}
                       </p>
                     )}
@@ -214,10 +258,7 @@ export default function ProfileListClient({
                         {t(`militaryStatus.${profile.militaryStatus}`)}
                         {profile.militaryStatus === 'Postponed' &&
                           profile.militaryPostponedUntil && (
-                            <>
-                              :{' '}
-                              {formatDate(profile.militaryPostponedUntil)}
-                            </>
+                            <>: {formatDate(profile.militaryPostponedUntil)}</>
                           )}
                       </span>
                     </div>
@@ -263,12 +304,12 @@ export default function ProfileListClient({
                   {isDeletingThis ? (
                     <>
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      <span>Siliniyor...</span>
+                      <span>{t('deleting')}</span>
                     </>
                   ) : (
                     <>
                       <Trash2 className="h-3.5 w-3.5" />
-                      <span>{t('deleteProfile') || 'Sil'}</span>
+                      <span>{t('deleteProfile')}</span>
                     </>
                   )}
                 </Button>

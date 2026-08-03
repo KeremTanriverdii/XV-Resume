@@ -175,6 +175,7 @@ export default function ResumeSessionPage() {
   const id = params?.id as string;
 
   const t = useTranslations('resume');
+  const tToast = useTranslations('toast');
   const { session } = useAuth();
   const token = session?.access_token;
   const router = useRouter();
@@ -357,14 +358,14 @@ export default function ResumeSessionPage() {
       );
       if (ok) {
         setSaveSuccess(true);
-        toast.success('Değişiklikler başarıyla kaydedildi');
+        toast.success(tToast('savedSuccess'));
         setTimeout(() => setSaveSuccess(false), 3000);
       } else {
-        toast.error('Değişiklikler kaydedilemedi');
+        toast.error(tToast('saveError'));
       }
     } catch (err) {
       console.error('Save translation error:', err);
-      toast.error('Kaydetme sırasında bir hata oluştu');
+      toast.error(tToast('saveError'));
     } finally {
       setIsSaving(false);
     }
@@ -380,11 +381,11 @@ export default function ResumeSessionPage() {
         await deleteResume(resume.id, token);
       }
       removeSession(resume.id);
-      toast.success('Özgeçmiş başarıyla silindi');
+      toast.success(tToast('deleteSuccess'));
       router.push('/dashboard');
     } catch (err) {
       console.error('Failed to delete resume:', err);
-      toast.error('Özgeçmiş silinirken hata oluştu');
+      toast.error(tToast('deleteError'));
     } finally {
       setIsDeleting(false);
     }
