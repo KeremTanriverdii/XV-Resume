@@ -1,16 +1,15 @@
-'use client';
-
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Profile, ResumeDto, ResumeTranslationDto } from '@/types';
 import ProfileListClient from './ProfileListClient';
 import { UserMetadata } from '@supabase/supabase-js';
 import { ProfileStepSidebar, ProfileStepInfo } from './ProfileStepSidebar';
 import { MultiStepProfileBuilder } from './MultiStepProfileBuilder';
 import { ResumeTemplates, TemplateId, ColorThemeId, COLOR_THEMES } from '@/components/resume/ResumeTemplates';
-import { User, Briefcase, GraduationCap, FolderGit2, Wrench } from 'lucide-react';
+import { User, Briefcase, GraduationCap, FolderGit2, Wrench, Download } from 'lucide-react';
 import { ProtectedPreviewOverlay } from '@/components/resume/ProtectedPreviewOverlay';
 import { AuthModal } from '@/components/auth/AuthModal';
 import { createProfile, updateProfile, fetchProfiles } from '@/services/profileService';
+import { exportToPdf } from '@/utils/pdfExport';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
 import { useQueryClient } from '@tanstack/react-query';
@@ -35,6 +34,27 @@ export default function ProfilesContainer({
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authActionTitle, setAuthActionTitle] = useState('Save & Export Your CV');
   const [isSaving, setIsSaving] = useState(false);
+
+  // Auto-restore draft profile if user created it while logged out and just signed in
+  useEffect(() => {
+    if (!token || !userId) return;
+    try {
+      const savedDraftJson = localStorage.getItem('pending_manual_profile_draft');
+      if (savedDraftJson) {
+        const parsed = JSON.parse(savedDraftJson);
+        if (parsed && parsed.previewProfile) {
+          setPreviewProfile(parsed.previewProfile);
+          if (parsed.selectedTemplate) setSelectedTemplate(parsed.selectedTemplate);
+          if (parsed.selectedColor) setSelectedColor(parsed.selectedColor);
+
+          localStorage.removeItem('pending_manual_profile_draft');
+          toast.success(t('draftRestoredSuccess') || 'Giriş öncesi doldurduğunuz CV profili aktarıldı!');
+        }
+      }
+    } catch (e) {
+      console.error('Error restoring manual profile draft:', e);
+    }
+  }, [token, userId]);
 
   // Live Sync Preview State constructed from active profile inputs
   const [previewProfile, setPreviewProfile] = useState<Partial<Profile>>({
@@ -282,6 +302,19 @@ export default function ProfilesContainer({
 
   const handleActionTrigger = (action: 'download' | 'email' | 'save') => {
     if (!userId) {
+      try {
+        localStorage.setItem(
+          'pending_manual_profile_draft',
+          JSON.stringify({
+            previewProfile,
+            selectedTemplate,
+            selectedColor,
+          })
+        );
+      } catch (e) {
+        console.error('Error saving draft profile to localStorage:', e);
+      }
+
       setAuthActionTitle(
         action === 'download'
           ? t('signInToDownload')
@@ -290,6 +323,11 @@ export default function ProfilesContainer({
           : t('signInToSave')
       );
       setIsAuthModalOpen(true);
+    } else if (action === 'download') {
+      exportToPdf({
+        filename: `${(previewProfile.fullName || 'CV').replace(/\s+/g, '_')}_Resume.pdf`,
+        elementId: 'cv-document-container',
+      });
     }
   };
 
@@ -368,11 +406,27 @@ export default function ProfilesContainer({
 
         {/* Right Column (4 cols): Real-Time Synchronized A4 Template Preview */}
         <div className="lg:col-span-4 sticky top-4 space-y-3">
-          <div className="p-2.5 bg-muted/40 rounded-xl border border-border flex items-center justify-between">
+          <div className="p-2.5 bg-muted/40 rounded-xl border border-border flex items-center justify-between gap-2">
             <span className="text-xs font-bold text-foreground">{t('livePreview')}</span>
-            <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" /> {t('realtimeSync')}
-            </span>
+            <div className="flex items-center gap-2">
+              {userId && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    exportToPdf({
+                      filename: `${(previewProfile.fullName || 'CV').replace(/\s+/g, '_')}_Resume.pdf`,
+                      elementId: 'cv-document-container',
+                    })
+                  }
+                  className="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                >
+                  <Download className="h-3.5 w-3.5" /> PDF Export
+                </button>
+              )}
+              <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" /> {t('realtimeSync')}
+              </span>
+            </div>
           </div>
 
           <ProtectedPreviewOverlay
