@@ -8,7 +8,7 @@ const intlMiddleware = createMiddleware(routing);
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // 1. C# Backend Proxy (Bypass all auth & i18n)
+  // 1. C# Backend Proxy (Bypass all auth & i18n for /api/v1)
   if (pathname.startsWith('/api/v1')) {
     const backendUrl = new URL(
       pathname,
@@ -18,7 +18,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.rewrite(backendUrl);
   }
 
-  // 2. Run i18n middleware first to get the base response (which includes necessary locale headers/rewrites)
+  // 2. Run i18n middleware first to get the base response
   let response = intlMiddleware(request as any);
 
   // 3. Supabase Auth & Session Refresh
@@ -31,9 +31,7 @@ export async function proxy(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          // Update cookies on the request for Server Components
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          // Update cookies on the response for the browser
           cookiesToSet.forEach(({ name, value, options }) =>
             response.cookies.set(name, value, options)
           );
@@ -42,24 +40,46 @@ export async function proxy(request: NextRequest) {
     }
   );
 
-  // This will refresh the session if it's expired or about to expire
+  // Refresh session token if expired
   const { data: { user } } = await supabase.auth.getUser();
 
-  // 4. Token Forwarding & Route Protection
-  // Match dashboard routes (e.g. /dashboard, /en/dashboard, /tr/dashboard, etc.)
-  const isDashboard = pathname.match(/^\/(?:en|tr|de|es|fr|jp)\/dashboard(?:\/|$)/) || pathname === '/dashboard' || pathname.startsWith('/dashboard/');
-  
-  if (isDashboard && !user) {
-    const localeMatch = pathname.match(/^\/(en|tr|de|es|fr|jp)(?:\/|$)/);
-    const locale = localeMatch ? localeMatch[1] : routing.defaultLocale;
-    const registerUrl = new URL(`/${locale}/register`, request.url);
+  // Extract locale from pathname (e.g. /tr/dashboard -> tr)
+  const localeMatch = pathname.match(/^\/(en|tr|de|es|fr|jp)(?:\/|$)/);
+  const locale = localeMatch ? localeMatch[1] : routing.defaultLocale;
+
+  // Clean path without locale prefix
+  const cleanPath = localeMatch ? pathname.replace(/^\/(en|tr|de|es|fr|jp)/, '') : pathname;
+
+  // Protected routes where authentication is strictly required
+  // Note: /dashboard/profiles is open to guests for manual profile building
+  const isDashboardMain = cleanPath === '' || cleanPath === '/' || cleanPath === '/dashboard' || cleanPath === '/dashboard/';
+  const isProtectedSubRoute =
+    cleanPath.startsWith('/dashboard/settings') ||
+    cleanPath.startsWith('/dashboard/cover-letter') ||
+    cleanPath.startsWith('/dashboard/outreach');
+
+  const isProtectedRoute = isDashboardMain || isProtectedSubRoute;
+
+  // If unauthenticated and trying to access protected routes -> redirect to login
+  if (isProtectedRoute && !user) {
+    const loginUrl = new URL(`/${locale}/login`, request.url);
+    loginUrl.searchParams.set('next', pathname);
     
-    const redirectResponse = NextResponse.redirect(registerUrl);
-    
+    const redirectResponse = NextResponse.redirect(loginUrl);
     response.cookies.getAll().forEach((cookie) => {
       redirectResponse.cookies.set(cookie.name, cookie.value);
     });
-    
+    return redirectResponse;
+  }
+
+  // If authenticated and visiting /login or /register -> redirect to /dashboard
+  const isAuthPage = cleanPath === '/login' || cleanPath === '/register';
+  if (isAuthPage && user) {
+    const dashUrl = new URL(`/${locale}/dashboard`, request.url);
+    const redirectResponse = NextResponse.redirect(dashUrl);
+    response.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie.name, cookie.value);
+    });
     return redirectResponse;
   }
 
@@ -71,8 +91,8 @@ export const config = {
     // Match root path
     '/',
     // Match localized routes
-    '/(tr|en)/:path*',
-    // Match all other paths except standard api routes (not api/v1), next internals, static assets, etc.
+    '/(tr|en|de|es|fr|jp)/:path*',
+    // Match all other paths except standard static assets, next internals, etc.
     '/((?!api(?!/v1)|_next/static|_next/image|favicon.ico|.*\\..*).*)'
   ]
 };

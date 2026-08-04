@@ -1,18 +1,37 @@
+'use client';
+
 import { useEffect, useState } from 'react';
 import { Profile, ResumeDto, ResumeTranslationDto } from '@/types';
 import ProfileListClient from './ProfileListClient';
 import { UserMetadata } from '@supabase/supabase-js';
 import { ProfileStepSidebar, ProfileStepInfo } from './ProfileStepSidebar';
 import { MultiStepProfileBuilder } from './MultiStepProfileBuilder';
-import { ResumeTemplates, TemplateId, ColorThemeId, COLOR_THEMES } from '@/components/resume/ResumeTemplates';
-import { User, Briefcase, GraduationCap, FolderGit2, Wrench, Download } from 'lucide-react';
+import {
+  ResumeTemplates,
+  TemplateId,
+  ColorThemeId,
+  COLOR_THEMES,
+} from '@/components/resume/ResumeTemplates';
+import {
+  User,
+  Briefcase,
+  GraduationCap,
+  FolderGit2,
+  Wrench,
+  Download,
+} from 'lucide-react';
 import { ProtectedPreviewOverlay } from '@/components/resume/ProtectedPreviewOverlay';
 import { AuthModal } from '@/components/auth/AuthModal';
-import { createProfile, updateProfile, fetchProfiles } from '@/services/profileService';
+import {
+  createProfile,
+  updateProfile,
+  fetchProfiles,
+} from '@/services/profileService';
 import { exportToPdf } from '@/utils/pdfExport';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
 import { useQueryClient } from '@tanstack/react-query';
+import { Button } from '../ui/button';
 
 interface ProfilesContainerProps {
   token: string | undefined;
@@ -29,26 +48,51 @@ export default function ProfilesContainer({
   const queryClient = useQueryClient();
   const [editingProfile, setEditingProfile] = useState<Profile | null>(null);
   const [currentStep, setCurrentStep] = useState<number>(0);
-  const [selectedTemplate, setSelectedTemplate] = useState<TemplateId>('modern');
+  const [selectedTemplate, setSelectedTemplate] =
+    useState<TemplateId>('modern');
   const [selectedColor, setSelectedColor] = useState<ColorThemeId>('blue');
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [authActionTitle, setAuthActionTitle] = useState('Save & Export Your CV');
+  const [authActionTitle, setAuthActionTitle] = useState(
+    'Save & Export Your CV',
+  );
   const [isSaving, setIsSaving] = useState(false);
+  const [previewProfile, setPreviewProfile] = useState<Partial<Profile>>({
+    profileName: '',
+    fullName: metaData?.full_name || metaData?.name || 'John Doe',
+    title: '',
+    email: metaData?.email || '[EMAIL_ADDRESS]',
+    phone: '+1 234 567 890',
+    location: 'New York, USA',
+    showPhoto: false,
+    militaryStatus: 'None',
+    experiences: [],
+    educations: [],
+    projects: [],
+    skills: [''],
+    languages: [''],
+    socialLinks: ['https://github.com/', 'https://linkedin.com/in/'],
+  });
 
   // Auto-restore draft profile if user created it while logged out and just signed in
   useEffect(() => {
     if (!token || !userId) return;
     try {
-      const savedDraftJson = localStorage.getItem('pending_manual_profile_draft');
+      const savedDraftJson = localStorage.getItem(
+        'pending_manual_profile_draft',
+      );
       if (savedDraftJson) {
         const parsed = JSON.parse(savedDraftJson);
         if (parsed && parsed.previewProfile) {
           setPreviewProfile(parsed.previewProfile);
-          if (parsed.selectedTemplate) setSelectedTemplate(parsed.selectedTemplate);
+          if (parsed.selectedTemplate)
+            setSelectedTemplate(parsed.selectedTemplate);
           if (parsed.selectedColor) setSelectedColor(parsed.selectedColor);
 
           localStorage.removeItem('pending_manual_profile_draft');
-          toast.success(t('draftRestoredSuccess') || 'Giriş öncesi doldurduğunuz CV profili aktarıldı!');
+          toast.success(
+            t('draftRestoredSuccess') ||
+              'Giriş öncesi doldurduğunuz CV profili aktarıldı!',
+          );
         }
       }
     } catch (e) {
@@ -56,23 +100,23 @@ export default function ProfilesContainer({
     }
   }, [token, userId]);
 
-  // Live Sync Preview State constructed from active profile inputs
-  const [previewProfile, setPreviewProfile] = useState<Partial<Profile>>({
-    profileName: 'Ana CV Profilim',
-    fullName: metaData?.full_name || metaData?.name || 'Kerem Yılmaz',
-    title: 'Senior Full-Stack Engineer',
-    email: metaData?.email || 'kerem@example.com',
-    phone: '+90 555 123 45 67',
-    location: 'Istanbul, Turkey',
-    showPhoto: false,
-    militaryStatus: 'None',
-    experiences: [],
-    educations: [],
-    projects: [],
-    skills: ['TypeScript', 'Next.js', 'React', 'Node.js', 'Tailwind CSS'],
-    languages: ['Turkish (Native)', 'English (C1)'],
-    socialLinks: ['https://github.com', 'https://linkedin.com'],
-  });
+  // Auto-persist guest profile edits to localStorage on every change so refresh never loses data
+  useEffect(() => {
+    if (!userId && typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(
+          'pending_manual_profile_draft',
+          JSON.stringify({
+            previewProfile,
+            selectedTemplate,
+            selectedColor,
+          }),
+        );
+      } catch (e) {
+        console.error('Error auto-saving guest draft:', e);
+      }
+    }
+  }, [previewProfile, selectedTemplate, selectedColor, userId]);
 
   const handleEditProfile = (profile: Profile) => {
     setEditingProfile(profile);
@@ -100,7 +144,11 @@ export default function ProfilesContainer({
     setIsSaving(true);
     try {
       const isValidGuid = (id?: string) =>
-        id ? /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(id) : false;
+        id
+          ? /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(
+              id,
+            )
+          : false;
 
       const rawExps = previewProfile.experiences || [];
       const rawEdus = previewProfile.educations || [];
@@ -139,36 +187,59 @@ export default function ProfilesContainer({
           companyName: e.companyName || '',
           role: e.role || e.jobTitle || '',
           startDate: parseDateToIso(e.startDate),
-          endDate: e.endDate === 'Present' || !e.endDate ? null : parseDateToIso(e.endDate),
+          endDate:
+            e.endDate === 'Present' || !e.endDate
+              ? null
+              : parseDateToIso(e.endDate),
           isOngoing: e.isOngoing || e.endDate === 'Present' || !e.endDate,
           description: e.description || '',
           location: e.location || '',
         })),
         educations: rawEdus.map((e: any) => ({
           id: isValidGuid(e.id) ? e.id : undefined,
-          schoolName: (e.schoolName && e.schoolName.trim() !== '') ? e.schoolName : (e.institutionName || ''),
+          schoolName:
+            e.schoolName && e.schoolName.trim() !== ''
+              ? e.schoolName
+              : e.institutionName || '',
           degree: e.degree || '',
           fieldOfStudy: e.fieldOfStudy || '',
           startDate: parseDateToIso(e.startDate),
-          endDate: e.endDate === 'Present' || !e.endDate ? null : parseDateToIso(e.endDate),
+          endDate:
+            e.endDate === 'Present' || !e.endDate
+              ? null
+              : parseDateToIso(e.endDate),
           isOngoing: e.isOngoing || e.endDate === 'Present' || !e.endDate,
           gpa: e.gpa || null,
         })),
         projects: rawProjs.map((p: any) => ({
           id: isValidGuid(p.id) ? p.id : undefined,
-          title: (p.title && p.title.trim() !== '') ? p.title : (p.projectName || p.projectTitle || ''),
+          title:
+            p.title && p.title.trim() !== ''
+              ? p.title
+              : p.projectName || p.projectTitle || '',
           description: p.description || '',
-          links: (p.links && p.links.trim() !== '') ? p.links : (p.projectUrl || p.url || ''),
-          repositoryUrl: (p.repositoryUrl && p.repositoryUrl.trim() !== '') ? p.repositoryUrl : (p.repoUrl || ''),
-          techologiesUsed: Array.isArray(p.skills) && p.skills.length > 0
-            ? p.skills.join(', ')
-            : (p.techologiesUsed || p.technologies || ''),
+          links:
+            p.links && p.links.trim() !== ''
+              ? p.links
+              : p.projectUrl || p.url || '',
+          repositoryUrl:
+            p.repositoryUrl && p.repositoryUrl.trim() !== ''
+              ? p.repositoryUrl
+              : p.repoUrl || '',
+          techologiesUsed:
+            Array.isArray(p.skills) && p.skills.length > 0
+              ? p.skills.join(', ')
+              : p.techologiesUsed || p.technologies || '',
         })),
       };
 
       let savedResult: Profile | null = null;
       if (editingProfile?.id) {
-        savedResult = await updateProfile(editingProfile.id, payload as any, token);
+        savedResult = await updateProfile(
+          editingProfile.id,
+          payload as any,
+          token,
+        );
       } else {
         savedResult = await createProfile(payload as any, token);
       }
@@ -176,14 +247,18 @@ export default function ProfilesContainer({
       if (savedResult) {
         setEditingProfile(savedResult);
         setPreviewProfile(savedResult);
-        toast.success(t('profileSavedSuccess') || 'Profil başarıyla kaydedildi!');
+        toast.success(
+          t('profileSavedSuccess') || 'Profil başarıyla kaydedildi!',
+        );
         queryClient.invalidateQueries({ queryKey: ['profiles', userId] });
       } else {
         toast.error('Profil kaydedilemedi. Lütfen bilgilerinizi kontrol edin.');
       }
     } catch (err: any) {
       console.error('Failed to save profile:', err);
-      toast.error(`Profil kaydedilirken hata oluştu: ${err?.message || 'Bilinmeyen hata'}`);
+      toast.error(
+        `Profil kaydedilirken hata oluştu: ${err?.message || 'Bilinmeyen hata'}`,
+      );
     } finally {
       setIsSaving(false);
     }
@@ -197,7 +272,9 @@ export default function ProfilesContainer({
       subtitle: 'Name, email, phone & title',
       icon: User,
       isComplete: !!previewProfile.fullName,
-      liveDataSummary: previewProfile.fullName ? `${previewProfile.fullName} • ${previewProfile.title || previewProfile.profileName || 'No Title'}` : 'Not filled',
+      liveDataSummary: previewProfile.fullName
+        ? `${previewProfile.fullName} • ${previewProfile.title || previewProfile.profileName || 'No Title'}`
+        : 'Not filled',
     },
     {
       id: 1,
@@ -232,17 +309,29 @@ export default function ProfilesContainer({
       title: 'Skills & Summary',
       subtitle: 'Tech stack & bio',
       icon: Wrench,
-      isComplete: (Array.isArray(previewProfile.skills) ? previewProfile.skills : []).length > 0,
+      isComplete:
+        (Array.isArray(previewProfile.skills) ? previewProfile.skills : [])
+          .length > 0,
       liveDataSummary: `${(Array.isArray(previewProfile.skills) ? previewProfile.skills : []).length} Skills Added`,
     },
   ];
 
   // Live Resume & Translation
-  const safeSkillsList = Array.isArray(previewProfile.skills) ? previewProfile.skills : [];
-  const safeLanguagesList = Array.isArray(previewProfile.languages) ? previewProfile.languages : [];
-  const safeExperiencesList = Array.isArray(previewProfile.experiences) ? previewProfile.experiences : [];
-  const safeEducationsList = Array.isArray(previewProfile.educations) ? previewProfile.educations : [];
-  const safeProjectsList = Array.isArray(previewProfile.projects) ? previewProfile.projects : [];
+  const safeSkillsList = Array.isArray(previewProfile.skills)
+    ? previewProfile.skills
+    : [];
+  const safeLanguagesList = Array.isArray(previewProfile.languages)
+    ? previewProfile.languages
+    : [];
+  const safeExperiencesList = Array.isArray(previewProfile.experiences)
+    ? previewProfile.experiences
+    : [];
+  const safeEducationsList = Array.isArray(previewProfile.educations)
+    ? previewProfile.educations
+    : [];
+  const safeProjectsList = Array.isArray(previewProfile.projects)
+    ? previewProfile.projects
+    : [];
 
   const liveResume: any = {
     templateId: selectedTemplate,
@@ -263,23 +352,25 @@ export default function ProfilesContainer({
   const liveTranslation: Partial<ResumeTranslationDto> = {
     languageCode: 'en',
     title: previewProfile.profileName || 'Master CV Profile',
-    summary: previewProfile.summary || 'Professional bio paragraph will render live here as you type...',
+    summary:
+      previewProfile.summary ||
+      'Professional bio paragraph will render live here as you type...',
     experienceHtml: safeExperiencesList
       .map(
         (exp) =>
-          `<h3>${exp.jobTitle || exp.role || 'Position'} @ ${exp.companyName || 'Company'}</h3><p>${exp.startDate || ''} - ${exp.endDate || 'Present'}</p><p>${exp.description || ''}</p>`
+          `<h3>${exp.jobTitle || exp.role || 'Position'} @ ${exp.companyName || 'Company'}</h3><p>${exp.startDate || ''} - ${exp.endDate || 'Present'}</p><p>${exp.description || ''}</p>`,
       )
       .join('<br/>'),
     educationHtml: safeEducationsList
       .map(
         (edu) =>
-          `<h3>${edu.degree || 'Degree'} @ ${edu.institutionName || edu.schoolName || 'University/School'}</h3><p>${edu.startDate || ''} - ${edu.endDate || 'Present'}</p>`
+          `<h3>${edu.degree || 'Degree'} @ ${edu.institutionName || edu.schoolName || 'University/School'}</h3><p>${edu.startDate || ''} - ${edu.endDate || 'Present'}</p>`,
       )
       .join('<br/>'),
     projectsHtml: safeProjectsList
       .map(
         (proj) =>
-          `<h3>${proj.projectName}</h3>${proj.description ? `<p>${proj.description}</p>` : ''}`
+          `<h3>${proj.projectName}</h3>${proj.description ? `<p>${proj.description}</p>` : ''}`,
       )
       .join('<br/>'),
     skillsHtml: safeSkillsList.length
@@ -309,7 +400,7 @@ export default function ProfilesContainer({
             previewProfile,
             selectedTemplate,
             selectedColor,
-          })
+          }),
         );
       } catch (e) {
         console.error('Error saving draft profile to localStorage:', e);
@@ -319,8 +410,8 @@ export default function ProfilesContainer({
         action === 'download'
           ? t('signInToDownload')
           : action === 'email'
-          ? t('signInToEmail')
-          : t('signInToSave')
+            ? t('signInToEmail')
+            : t('signInToSave'),
       );
       setIsAuthModalOpen(true);
     } else if (action === 'download') {
@@ -347,8 +438,10 @@ export default function ProfilesContainer({
         {/* Template & Color Selectors */}
         <div className="flex items-center gap-3 flex-wrap">
           <div className="flex items-center gap-1.5 bg-muted/60 p-1 rounded-xl border border-border">
-            {(['modern', 'executive', 'sidebar', 'minimal'] as TemplateId[]).map((tId) => (
-              <button
+            {(
+              ['modern', 'executive', 'sidebar', 'minimal'] as TemplateId[]
+            ).map((tId) => (
+              <Button
                 key={tId}
                 onClick={() => setSelectedTemplate(tId)}
                 className={`px-2.5 py-1 rounded-lg text-xs font-semibold capitalize transition-all ${
@@ -358,17 +451,19 @@ export default function ProfilesContainer({
                 }`}
               >
                 {tId}
-              </button>
+              </Button>
             ))}
           </div>
 
           <div className="flex items-center gap-1.5">
             {(Object.keys(COLOR_THEMES) as ColorThemeId[]).map((cId) => (
-              <button
+              <Button
                 key={cId}
                 onClick={() => setSelectedColor(cId)}
                 className={`h-6 w-6 rounded-full border-2 transition-transform ${
-                  selectedColor === cId ? 'border-primary scale-110' : 'border-transparent opacity-75'
+                  selectedColor === cId
+                    ? 'border-primary scale-110'
+                    : 'border-transparent opacity-75'
                 }`}
                 style={{ backgroundColor: COLOR_THEMES[cId].hex }}
               />
@@ -407,11 +502,12 @@ export default function ProfilesContainer({
         {/* Right Column (4 cols): Real-Time Synchronized A4 Template Preview */}
         <div className="lg:col-span-4 sticky top-4 space-y-3">
           <div className="p-2.5 bg-muted/40 rounded-xl border border-border flex items-center justify-between gap-2">
-            <span className="text-xs font-bold text-foreground">{t('livePreview')}</span>
+            <span className="text-xs font-bold text-foreground">
+              {t('livePreview')}
+            </span>
             <div className="flex items-center gap-2">
               {userId && (
-                <button
-                  type="button"
+                <Button
                   onClick={() =>
                     exportToPdf({
                       filename: `${(previewProfile.fullName || 'CV').replace(/\s+/g, '_')}_Resume.pdf`,
@@ -421,10 +517,11 @@ export default function ProfilesContainer({
                   className="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
                 >
                   <Download className="h-3.5 w-3.5" /> PDF Export
-                </button>
+                </Button>
               )}
               <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" /> {t('realtimeSync')}
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />{' '}
+                {t('realtimeSync')}
               </span>
             </div>
           </div>
