@@ -151,10 +151,15 @@ export function AppSidebar() {
   }, [token, locale, setSessions]);
 
   const handleLogout = async () => {
-    setSessions([]);
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push('/login');
+    try {
+      setSessions([]);
+      const supabase = createClient();
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error('Logout error:', err);
+    } finally {
+      window.location.href = `/${locale}/login`;
+    }
   };
 
   const toggleLanguage = () => {
@@ -290,8 +295,9 @@ export function AppSidebar() {
           const userName =
             user?.user_metadata?.full_name ||
             user?.user_metadata?.name ||
+            user?.user_metadata?.display_name ||
             user?.email?.split('@')[0] ||
-            'User';
+            'Kullanıcı';
           const userEmail = user?.email || '';
           const userAvatar =
             user?.user_metadata?.avatar_url ||

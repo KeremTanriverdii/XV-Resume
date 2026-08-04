@@ -44,13 +44,27 @@ export default function Navbar() {
     { name: '日本語', code: 'jp' },
   ];
 
+  const getUserDisplayName = (usr: any) => {
+    if (!usr) return 'Kullanıcı';
+    const meta = usr.user_metadata || {};
+    const name = meta.full_name || meta.name || meta.display_name;
+    if (name && typeof name === 'string' && name.trim() !== '') {
+      return name.trim();
+    }
+    if (usr.email && typeof usr.email === 'string' && usr.email.trim() !== '') {
+      return usr.email.split('@')[0];
+    }
+    return 'Kullanıcı';
+  };
+
   const handleLogout = async () => {
-    setSessions([]);
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error('Error signing out:', error);
-    } else {
-      router.push('/');
+    try {
+      setSessions([]);
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error('Error signing out:', err);
+    } finally {
+      window.location.href = `/${locale}/login`;
     }
   };
 
@@ -143,7 +157,7 @@ export default function Navbar() {
                   >
                     <User className="mr-1 h-4 w-4" />
                     <span className="font-semibold text-xs">
-                      {user?.user_metadata?.full_name || user?.email}
+                      {getUserDisplayName(user)}
                     </span>
                   </Button>
                 </DropdownMenuTrigger>
