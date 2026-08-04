@@ -5,7 +5,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
 using ResumeXCreator.Domain.Interfaces;
+using ResumeXCreator.Infrastructure.Data;
 using ResumeXCreator.Services.Abstraction;
 using ResumeXCreator.Services.DTOs;
 
@@ -24,6 +26,7 @@ public static class OutreachEndpoints
         IAiCacheService cacheService,
         IResumeService resumeService,
         IProfileRepository profileRepo,
+        AppDbContext dbContext,
         HttpContext ctx) =>
     {
       var userId = ctx.User.FindFirstValue(ClaimTypes.NameIdentifier)
@@ -31,6 +34,12 @@ public static class OutreachEndpoints
 
       if (string.IsNullOrEmpty(userId))
         return Results.Unauthorized();
+
+      var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
+      if (user != null && !user.CanGenerateResume)
+      {
+        return Results.Json(new { error = "SubscriptionRequired", message = "Active Pro subscription is required to generate Cover Letter & Cold Message." }, statusCode: 402);
+      }
 
       if (string.IsNullOrWhiteSpace(dto.OutreachType))
         dto.OutreachType = "CoverLetter";

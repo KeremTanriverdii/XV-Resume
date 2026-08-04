@@ -4,18 +4,25 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
 import { fetchResumes } from '@/services/resumeService';
 import { fetchProfiles } from '@/services/profileService';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { generateOutreachText } from '@/services/outreachService';
 import { formatCompanyAndRole } from '@/utils/formatTitle';
 import { ResumeDto, Profile } from '@/types';
 import { OutreachType, OutreachSourceType } from '@/types/outreach';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import dynamic from 'next/dynamic';
 import {
   Mail,
   Send,
@@ -33,24 +40,53 @@ import {
   Paperclip,
   Trash2,
   FileCheck,
-  X
+  X,
+  Lock,
 } from 'lucide-react';
+
+const PaddleSubscribeModal = dynamic(
+  () =>
+    import('@/components/payment/PaddleSubscribeModal').then(
+      (m) => m.PaddleSubscribeModal,
+    ),
+  { ssr: false },
+);
 
 interface OutreachGeneratorClientProps {
   defaultMode?: OutreachType;
 }
 
-export const OutreachGeneratorClient: React.FC<OutreachGeneratorClientProps> = ({
-  defaultMode = 'CoverLetter',
-}) => {
+export const OutreachGeneratorClient: React.FC<
+  OutreachGeneratorClientProps
+> = ({ defaultMode = 'CoverLetter' }) => {
   const t = useTranslations('outreach');
   const tToast = useTranslations('toast');
-  const { session } = useAuth();
+  const locale = useLocale();
+  const { user, session } = useAuth();
   const token = session?.access_token;
+
+  const [canGenerate, setCanGenerate] = useState<boolean>(true);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<string>('Trial');
+  const [isSubscribeModalOpen, setIsSubscribeModalOpen] =
+    useState<boolean>(false);
+
+  const getSubscriptionRequiredToast = () => {
+    if (locale === 'tr')
+      return 'Yeni Cover Letter ve Cold Message oluşturmak için aktif Pro abonelik gereklidir.';
+    if (locale === 'de')
+      return 'Ein Pro-Abonnement ist erforderlich, um ein neues Anschreiben oder eine Cold Message zu erstellen.';
+    if (locale === 'fr')
+      return 'Un abonnement Pro est requis pour générer une nouvelle lettre de motivation ou un cold message.';
+    if (locale === 'es')
+      return 'Se requiere una suscripción Pro para generar una nueva carta de presentación o mensaje en frío.';
+    if (locale === 'jp')
+      return '新しいカバーレターとコールドメッセージを作成するには、有効なProサブスクリプションが必要です。';
+    return 'Active Pro subscription is required to generate new Cover Letter & Cold Message.';
+  };
 
   // Primary mode state
   const [outreachType, setOutreachType] = useState<OutreachType>(defaultMode);
-  
+
   // Data Source Selection state (3 Options)
   const [sourceType, setSourceType] = useState<OutreachSourceType>('Upload');
   const [selectedResumeId, setSelectedResumeId] = useState<string>('');
@@ -86,6 +122,21 @@ export const OutreachGeneratorClient: React.FC<OutreachGeneratorClientProps> = (
   useEffect(() => {
     if (!token) return;
     setIsLoadingLists(true);
+
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/payment/status`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data) {
+          setSubscriptionStatus(data.status);
+          setCanGenerate(!!data.canGenerateResume);
+        }
+      })
+      .catch((err) =>
+        console.error('Error fetching subscription status for outreach:', err),
+      );
+
     Promise.all([fetchResumes(token), fetchProfiles(token)])
       .then(([resumesData, profilesData]) => {
         setResumes(resumesData || []);
@@ -118,35 +169,14 @@ export const OutreachGeneratorClient: React.FC<OutreachGeneratorClientProps> = (
 
     if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
       reader.onload = (event) => {
-        const content = (event.target?.result as string) || '';
-        setUploadedCvText(content.trim());
-        toast.success(`Attached file: ${file.name}`);
+        setUploadedCvText(event.target?.result as string);
       };
       reader.readAsText(file);
     } else {
-      // PDF / DOCX file - clean text extraction without binary noise
-      reader.onload = (event) => {
-        const buffer = event.target?.result as ArrayBuffer;
-        const decoder = new TextDecoder('utf-8', { fatal: false });
-        const rawText = decoder.decode(buffer);
-
-        // Filter out PDF binary headers & object streams
-        const words = rawText
-          .replace(/%PDF[\s\S]*?obj/g, ' ')
-          .replace(/\/Filter[\s\S]*?stream/g, ' ')
-          .replace(/[^\x20-\x7E\n\r\t\u00C0-\u024F\u0100-\u017F\u0180-\u024F]/g, ' ')
-          .split(/\s+/)
-          .filter((w) => w.length > 1 && !/^[0-9A-Fa-f]{8,}$/.test(w) && !/^\/[A-Z]/.test(w));
-
-        const cleanText = words.join(' ');
-        const finalCvText = cleanText.length > 40
-          ? cleanText
-          : `Attached CV Document: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
-
-        setUploadedCvText(finalCvText);
-        toast.success(`${tToast('attachedFileSuccess')}: ${file.name}`);
-      };
-      reader.readAsArrayBuffer(file);
+      // Basic text preview simulation for PDF/DOCX
+      setUploadedCvText(
+        `[File attached: ${file.name} (${(file.size / 1024).toFixed(1)} KB)]`,
+      );
     }
   };
 
@@ -159,6 +189,12 @@ export const OutreachGeneratorClient: React.FC<OutreachGeneratorClientProps> = (
   const handleGenerate = async () => {
     if (!token) {
       toast.error(tToast('authMissing'));
+      return;
+    }
+
+    if (!canGenerate) {
+      toast.error(getSubscriptionRequiredToast());
+      setIsSubscribeModalOpen(true);
       return;
     }
 
@@ -182,13 +218,18 @@ export const OutreachGeneratorClient: React.FC<OutreachGeneratorClientProps> = (
         {
           outreachType,
           sourceType,
-          sourceId: sourceType === 'Resume' ? selectedResumeId : sourceType === 'Profile' ? selectedProfileId : undefined,
+          sourceId:
+            sourceType === 'Resume'
+              ? selectedResumeId
+              : sourceType === 'Profile'
+                ? selectedProfileId
+                : undefined,
           uploadedCvText: sourceType === 'Upload' ? uploadedCvText : undefined,
           jobUrl: jobUrl.trim() || undefined,
           jobDescription: jobDescription.trim() || undefined,
           languageCode,
         },
-        token
+        token,
       );
 
       if (res && res.generatedText) {
@@ -207,8 +248,20 @@ export const OutreachGeneratorClient: React.FC<OutreachGeneratorClientProps> = (
         }
       }
     } catch (error: any) {
-      const message = error?.response?.data?.error || error?.message || tToast('generationFailed');
-      toast.error(message);
+      if (
+        error?.status === 402 ||
+        error?.message?.includes('SubscriptionRequired') ||
+        error?.response?.status === 402
+      ) {
+        setIsSubscribeModalOpen(true);
+        toast.error(getSubscriptionRequiredToast());
+      } else {
+        const message =
+          error?.response?.data?.error ||
+          error?.message ||
+          tToast('generationFailed');
+        toast.error(message);
+      }
     } finally {
       setIsGenerating(false);
     }
@@ -228,7 +281,9 @@ export const OutreachGeneratorClient: React.FC<OutreachGeneratorClientProps> = (
 
   const handleDownload = () => {
     const textToDownload = activeResult?.text || '';
-    const blob = new Blob([textToDownload], { type: 'text/plain;charset=utf-8' });
+    const blob = new Blob([textToDownload], {
+      type: 'text/plain;charset=utf-8',
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -246,14 +301,19 @@ export const OutreachGeneratorClient: React.FC<OutreachGeneratorClientProps> = (
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gradient-to-r from-emerald-500/10 via-teal-500/5 to-transparent p-6 rounded-2xl border border-emerald-500/20">
         <div className="flex items-center gap-3">
           <div className="h-12 w-12 rounded-xl bg-emerald-500/15 text-emerald-500 flex items-center justify-center shrink-0 border border-emerald-500/30">
-            {outreachType === 'CoverLetter' ? <Mail className="h-6 w-6" /> : <Send className="h-6 w-6" />}
+            {outreachType === 'CoverLetter' ? (
+              <Mail className="h-6 w-6" />
+            ) : (
+              <Send className="h-6 w-6" />
+            )}
           </div>
           <div>
             <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
               {t('title') || 'Cold Message & Cover Letter AI Generator'}
             </h1>
             <p className="text-xs text-muted-foreground mt-0.5">
-              {t('subtitle') || 'Select candidate details and target job description to generate high-converting outreach content.'}
+              {t('subtitle') ||
+                'Select candidate details and target job description to generate high-converting outreach content.'}
             </p>
           </div>
         </div>
@@ -295,33 +355,50 @@ export const OutreachGeneratorClient: React.FC<OutreachGeneratorClientProps> = (
                 {t('step1Title') || '1. Select Candidate Data Source'}
               </CardTitle>
               <CardDescription className="text-xs">
-                {t('step1Desc') || 'Choose how you want to provide your candidate background.'}
+                {t('step1Desc') ||
+                  'Choose how you want to provide your candidate background.'}
               </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
               <Tabs
                 value={sourceType}
-                onValueChange={(val) => setSourceType(val as OutreachSourceType)}
+                onValueChange={(val) =>
+                  setSourceType(val as OutreachSourceType)
+                }
                 className="w-full"
               >
                 <TabsList className="grid grid-cols-3 w-full rounded-xl bg-muted/60 p-1">
-                  <TabsTrigger value="Upload" className="text-xs rounded-lg gap-1.5 cursor-pointer">
+                  <TabsTrigger
+                    value="Upload"
+                    className="text-xs rounded-lg gap-1.5 cursor-pointer"
+                  >
                     <Upload className="h-3.5 w-3.5" />
                     {t('uploadCv') || 'Upload CV'}
                   </TabsTrigger>
-                  <TabsTrigger value="Resume" className="text-xs rounded-lg gap-1.5 cursor-pointer">
+                  <TabsTrigger
+                    value="Resume"
+                    className="text-xs rounded-lg gap-1.5 cursor-pointer"
+                  >
                     <FileText className="h-3.5 w-3.5" />
                     {t('createdCv') || 'Saved CV'}
                   </TabsTrigger>
-                  <TabsTrigger value="Profile" className="text-xs rounded-lg gap-1.5 cursor-pointer">
+                  <TabsTrigger
+                    value="Profile"
+                    className="text-xs rounded-lg gap-1.5 cursor-pointer"
+                  >
                     <User className="h-3.5 w-3.5" />
                     {t('profile') || 'Profile'}
                   </TabsTrigger>
                 </TabsList>
 
                 {/* Option 1: Upload Custom CV */}
-                <TabsContent value="Upload" className="mt-4 flex flex-col gap-3">
-                  <Label className="text-xs font-semibold">Candidate CV File / Attachment</Label>
+                <TabsContent
+                  value="Upload"
+                  className="mt-4 flex flex-col gap-3"
+                >
+                  <Label className="text-xs font-semibold">
+                    Candidate CV File / Attachment
+                  </Label>
 
                   {attachedFile ? (
                     /* Attachment Card Component */
@@ -331,9 +408,13 @@ export const OutreachGeneratorClient: React.FC<OutreachGeneratorClientProps> = (
                           <Paperclip className="h-5 w-5" />
                         </div>
                         <div className="flex flex-col min-w-0">
-                          <span className="text-xs font-bold text-foreground truncate">{attachedFile.name}</span>
+                          <span className="text-xs font-bold text-foreground truncate">
+                            {attachedFile.name}
+                          </span>
                           <div className="flex items-center gap-2 mt-0.5 text-[11px] text-muted-foreground">
-                            <span>{(attachedFile.size / 1024).toFixed(1)} KB</span>
+                            <span>
+                              {(attachedFile.size / 1024).toFixed(1)} KB
+                            </span>
                             <span>•</span>
                             <span className="text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
                               <FileCheck className="h-3 w-3" /> File Attached
@@ -359,8 +440,13 @@ export const OutreachGeneratorClient: React.FC<OutreachGeneratorClientProps> = (
                         <Paperclip className="h-5 w-5" />
                       </div>
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-xs font-semibold text-foreground">{t('attachDoc') || 'Attach CV Document (.pdf, .txt, .docx)'}</span>
-                        <span className="text-[11px] text-muted-foreground">{t('maxSize') || 'File size up to 10MB'}</span>
+                        <span className="text-xs font-semibold text-foreground">
+                          {t('attachDoc') ||
+                            'Attach CV Document (.pdf, .txt, .docx)'}
+                        </span>
+                        <span className="text-[11px] text-muted-foreground">
+                          {t('maxSize') || 'File size up to 10MB'}
+                        </span>
                       </div>
                       <input
                         type="file"
@@ -382,7 +468,9 @@ export const OutreachGeneratorClient: React.FC<OutreachGeneratorClientProps> = (
                   {/* Textarea is hidden when a file is attached */}
                   {!attachedFile && (
                     <div className="flex flex-col gap-1.5 mt-1">
-                      <Label className="text-[11px] text-muted-foreground">Or paste raw CV text directly:</Label>
+                      <Label className="text-[11px] text-muted-foreground">
+                        Or paste raw CV text directly:
+                      </Label>
                       <Textarea
                         placeholder="Paste your raw CV text here directly..."
                         rows={4}
@@ -395,15 +483,22 @@ export const OutreachGeneratorClient: React.FC<OutreachGeneratorClientProps> = (
                 </TabsContent>
 
                 {/* Option 2: Select Created Resume */}
-                <TabsContent value="Resume" className="mt-4 flex flex-col gap-3">
-                  <Label className="text-xs font-semibold">Select Created Resume Session</Label>
+                <TabsContent
+                  value="Resume"
+                  className="mt-4 flex flex-col gap-3"
+                >
+                  <Label className="text-xs font-semibold">
+                    Select Created Resume Session
+                  </Label>
                   {isLoadingLists ? (
                     <div className="flex items-center gap-2 text-xs text-muted-foreground py-2">
-                      <Loader2 className="h-4 w-4 animate-spin text-emerald-500" /> Loading your resumes...
+                      <Loader2 className="h-4 w-4 animate-spin text-emerald-500" />{' '}
+                      Loading your resumes...
                     </div>
                   ) : resumes.length === 0 ? (
                     <div className="text-xs text-muted-foreground bg-muted/40 p-3 rounded-xl">
-                      No created resumes found. Please generate a resume session first or choose another option.
+                      No created resumes found. Please generate a resume session
+                      first or choose another option.
                     </div>
                   ) : (
                     <select
@@ -412,14 +507,28 @@ export const OutreachGeneratorClient: React.FC<OutreachGeneratorClientProps> = (
                       className="w-full text-xs p-2.5 rounded-xl border border-border bg-background focus:ring-2 focus:ring-emerald-500 focus:outline-hidden"
                     >
                       {resumes.map((r) => {
-                        const trans = r.translations?.find((t) => t.languageCode === languageCode) || r.translations?.[0];
-                        const titleText = trans?.title || r.title || r.profile?.title;
-                        const displayTitle = formatCompanyAndRole(titleText, r.externalJobLink);
-                        const langStr = (trans?.languageCode || r.languageCode || 'en').toUpperCase();
-                        const dateStr = r.createdAt ? new Date(r.createdAt).toLocaleDateString() : '';
+                        const trans =
+                          r.translations?.find(
+                            (t) => t.languageCode === languageCode,
+                          ) || r.translations?.[0];
+                        const titleText =
+                          trans?.title || r.title || r.profile?.title;
+                        const displayTitle = formatCompanyAndRole(
+                          titleText,
+                          r.externalJobLink,
+                        );
+                        const langStr = (
+                          trans?.languageCode ||
+                          r.languageCode ||
+                          'en'
+                        ).toUpperCase();
+                        const dateStr = r.createdAt
+                          ? new Date(r.createdAt).toLocaleDateString()
+                          : '';
                         return (
                           <option key={r.id} value={r.id}>
-                            {displayTitle} ({langStr}){dateStr ? ` • ${dateStr}` : ''}
+                            {displayTitle} ({langStr})
+                            {dateStr ? ` • ${dateStr}` : ''}
                           </option>
                         );
                       })}
@@ -428,15 +537,22 @@ export const OutreachGeneratorClient: React.FC<OutreachGeneratorClientProps> = (
                 </TabsContent>
 
                 {/* Option 3: Select Profile */}
-                <TabsContent value="Profile" className="mt-4 flex flex-col gap-3">
-                  <Label className="text-xs font-semibold">Select Candidate Profile</Label>
+                <TabsContent
+                  value="Profile"
+                  className="mt-4 flex flex-col gap-3"
+                >
+                  <Label className="text-xs font-semibold">
+                    Select Candidate Profile
+                  </Label>
                   {isLoadingLists ? (
                     <div className="flex items-center gap-2 text-xs text-muted-foreground py-2">
-                      <Loader2 className="h-4 w-4 animate-spin text-emerald-500" /> Loading your profiles...
+                      <Loader2 className="h-4 w-4 animate-spin text-emerald-500" />{' '}
+                      Loading your profiles...
                     </div>
                   ) : profiles.length === 0 ? (
                     <div className="text-xs text-muted-foreground bg-muted/40 p-3 rounded-xl">
-                      No profiles found. Please create a candidate profile first or choose another option.
+                      No profiles found. Please create a candidate profile first
+                      or choose another option.
                     </div>
                   ) : (
                     <select
@@ -467,7 +583,9 @@ export const OutreachGeneratorClient: React.FC<OutreachGeneratorClientProps> = (
             <CardContent className="flex flex-col gap-4">
               {/* Job Link */}
               <div className="flex flex-col gap-1.5">
-                <Label className="text-xs font-semibold">External Job Link (Auto-Scraped & Decrypted)</Label>
+                <Label className="text-xs font-semibold">
+                  External Job Link (Auto-Scraped & Decrypted)
+                </Label>
                 <Input
                   type="url"
                   placeholder="https://www.linkedin.com/jobs/view/..."
@@ -479,7 +597,9 @@ export const OutreachGeneratorClient: React.FC<OutreachGeneratorClientProps> = (
 
               {/* Job Description Text */}
               <div className="flex flex-col gap-1.5">
-                <Label className="text-xs font-semibold">Or Job Description Text</Label>
+                <Label className="text-xs font-semibold">
+                  Or Job Description Text
+                </Label>
                 <Textarea
                   placeholder="Paste job posting details here..."
                   rows={3}
@@ -519,7 +639,12 @@ export const OutreachGeneratorClient: React.FC<OutreachGeneratorClientProps> = (
                 ) : (
                   <>
                     <Sparkles className="h-4 w-4" />
-                    <span>{t('btnGenerate') || 'Generate'} {outreachType === 'CoverLetter' ? t('coverLetter') : t('coldMessage')}</span>
+                    <span>
+                      {t('btnGenerate') || 'Generate'}{' '}
+                      {outreachType === 'CoverLetter'
+                        ? t('coverLetter')
+                        : t('coldMessage')}
+                    </span>
                   </>
                 )}
               </Button>
@@ -533,8 +658,15 @@ export const OutreachGeneratorClient: React.FC<OutreachGeneratorClientProps> = (
             <CardHeader className="pb-3 border-b border-border">
               <div className="flex items-center justify-between gap-2">
                 <CardTitle className="text-base font-bold flex items-center gap-2">
-                  {outreachType === 'CoverLetter' ? <Mail className="h-4 w-4 text-emerald-500" /> : <Send className="h-4 w-4 text-emerald-500" />}
-                  Generated {outreachType === 'CoverLetter' ? 'Cover Letter' : 'Cold Message'}
+                  {outreachType === 'CoverLetter' ? (
+                    <Mail className="h-4 w-4 text-emerald-500" />
+                  ) : (
+                    <Send className="h-4 w-4 text-emerald-500" />
+                  )}
+                  Generated{' '}
+                  {outreachType === 'CoverLetter'
+                    ? 'Cover Letter'
+                    : 'Cold Message'}
                 </CardTitle>
 
                 {activeResult?.isCached && (
@@ -551,9 +683,16 @@ export const OutreachGeneratorClient: React.FC<OutreachGeneratorClientProps> = (
                 <div className="flex flex-col items-center justify-center text-center p-8 border border-dashed border-border rounded-xl my-auto text-muted-foreground gap-3">
                   <Sparkles className="h-8 w-8 text-emerald-500/40" />
                   <div>
-                    <h4 className="text-sm font-semibold text-foreground">Ready to Generate</h4>
+                    <h4 className="text-sm font-semibold text-foreground">
+                      Ready to Generate
+                    </h4>
                     <p className="text-xs max-w-xs mt-1">
-                      Choose your candidate data source and click Generate to produce a high-converting {outreachType === 'CoverLetter' ? 'Cover Letter' : 'Cold Message'}.
+                      Choose your candidate data source and click Generate to
+                      produce a high-converting{' '}
+                      {outreachType === 'CoverLetter'
+                        ? 'Cover Letter'
+                        : 'Cold Message'}
+                      .
                     </p>
                   </div>
                 </div>
@@ -594,8 +733,14 @@ export const OutreachGeneratorClient: React.FC<OutreachGeneratorClientProps> = (
                         onClick={handleCopy}
                         className="rounded-xl gap-1.5 cursor-pointer text-xs"
                       >
-                        {copied ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
-                        {copied ? t('copied') || 'Copied!' : t('copy') || 'Copy Text'}
+                        {copied ? (
+                          <Check className="h-3.5 w-3.5 text-emerald-500" />
+                        ) : (
+                          <Copy className="h-3.5 w-3.5" />
+                        )}
+                        {copied
+                          ? t('copied') || 'Copied!'
+                          : t('copy') || 'Copy Text'}
                       </Button>
 
                       <Button
@@ -614,10 +759,14 @@ export const OutreachGeneratorClient: React.FC<OutreachGeneratorClientProps> = (
                       size="sm"
                       onClick={() => setIsEditing(!isEditing)}
                       className={`rounded-xl text-xs cursor-pointer ${
-                        isEditing ? 'bg-emerald-600 text-white hover:bg-emerald-700' : ''
+                        isEditing
+                          ? 'bg-emerald-600 text-white hover:bg-emerald-700'
+                          : ''
                       }`}
                     >
-                      {isEditing ? (t('doneEditing') || 'Done Editing') : (t('edit') || 'Edit')}
+                      {isEditing
+                        ? t('doneEditing') || 'Done Editing'
+                        : t('edit') || 'Edit'}
                     </Button>
                   </div>
                 </div>
@@ -626,6 +775,13 @@ export const OutreachGeneratorClient: React.FC<OutreachGeneratorClientProps> = (
           </Card>
         </div>
       </div>
+
+      <PaddleSubscribeModal
+        isOpen={isSubscribeModalOpen}
+        onClose={() => setIsSubscribeModalOpen(false)}
+        userId={user?.id}
+        userEmail={user?.email}
+      />
     </div>
   );
 };
