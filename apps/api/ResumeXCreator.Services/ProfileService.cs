@@ -108,6 +108,7 @@ public class ProfileService(
         {
           ProfileId = profile.Id,
           ProjectId = project.Id,
+          Project = project,
           SortOrder = sortOrder++
         });
       }
@@ -154,6 +155,7 @@ public class ProfileService(
         {
           ProfileId = profile.Id,
           EducationId = education.Id,
+          Education = education,
           SortOrder = sortOrder++
         });
       }
@@ -202,12 +204,13 @@ public class ProfileService(
         {
           ProfileId = profile.Id,
           ExperienceId = experience.Id,
+          Experience = experience,
           SortOrder = sortOrder++
         });
       }
     }
 
-    if (dto.ProjectId != null)
+    if (dto.Projects == null && dto.ProjectId != null)
     {
       int sortOrder = 0;
       foreach (var projId in dto.ProjectId)
@@ -221,7 +224,7 @@ public class ProfileService(
       }
     }
 
-    if (dto.EducationId != null)
+    if (dto.Educations == null && dto.EducationId != null)
     {
       int sortOrder = 0;
       foreach (var eduId in dto.EducationId)
@@ -235,7 +238,7 @@ public class ProfileService(
       }
     }
 
-    if (dto.ExperienceId != null)
+    if (dto.Experiences == null && dto.ExperienceId != null)
     {
       int sortOrder = 0;
       foreach (var expId in dto.ExperienceId)
@@ -281,7 +284,7 @@ public class ProfileService(
     if (dto.Projects != null)
     {
       var linksToRemove = profile.ProfileProjects
-          .Where(pp => !dto.Projects.Any(dp => dp.Id == pp.ProjectId))
+          .Where(pp => !dto.Projects.Any(dp => dp.Id != Guid.Empty && dp.Id == pp.ProjectId))
           .ToList();
       foreach (var link in linksToRemove)
       {
@@ -341,6 +344,7 @@ public class ProfileService(
           {
             ProfileId = profile.Id,
             ProjectId = project.Id,
+            Project = project,
             SortOrder = sortOrder++
           });
         }
@@ -351,7 +355,7 @@ public class ProfileService(
     if (dto.Educations != null)
     {
       var linksToRemove = profile.ProfileEducations
-          .Where(pe => !dto.Educations.Any(de => de.Id == pe.EducationId))
+          .Where(pe => !dto.Educations.Any(de => de.Id != Guid.Empty && de.Id == pe.EducationId))
           .ToList();
       foreach (var link in linksToRemove)
       {
@@ -414,6 +418,7 @@ public class ProfileService(
           {
             ProfileId = profile.Id,
             EducationId = education.Id,
+            Education = education,
             SortOrder = sortOrder++
           });
         }
@@ -424,7 +429,7 @@ public class ProfileService(
     if (dto.Experiences != null)
     {
       var linksToRemove = profile.ProfileExperiences
-          .Where(pe => !dto.Experiences.Any(de => de.Id == pe.ExperienceId))
+          .Where(pe => !dto.Experiences.Any(de => de.Id != Guid.Empty && de.Id == pe.ExperienceId))
           .ToList();
       foreach (var link in linksToRemove)
       {
@@ -490,14 +495,15 @@ public class ProfileService(
           {
             ProfileId = profile.Id,
             ExperienceId = experience.Id,
+            Experience = experience,
             SortOrder = sortOrder++
           });
         }
       }
     }
 
-    // --- Update Project IDs ---
-    if (dto.ProjectId != null)
+    // --- Update Project IDs (only if full Projects object list was not provided) ---
+    if (dto.Projects == null && dto.ProjectId != null)
     {
       var linksToRemove = profile.ProfileProjects
           .Where(pp => !dto.ProjectId.Contains(pp.ProjectId))
@@ -527,8 +533,8 @@ public class ProfileService(
       }
     }
 
-    // --- Update Education IDs ---
-    if (dto.EducationId != null)
+    // --- Update Education IDs (only if full Educations object list was not provided) ---
+    if (dto.Educations == null && dto.EducationId != null)
     {
       var linksToRemove = profile.ProfileEducations
           .Where(pe => !dto.EducationId.Contains(pe.EducationId))
@@ -558,8 +564,8 @@ public class ProfileService(
       }
     }
 
-    // --- Update Experience IDs ---
-    if (dto.ExperienceId != null)
+    // --- Update Experience IDs (only if full Experiences object list was not provided) ---
+    if (dto.Experiences == null && dto.ExperienceId != null)
     {
       var linksToRemove = profile.ProfileExperiences
           .Where(pe => !dto.ExperienceId.Contains(pe.ExperienceId))

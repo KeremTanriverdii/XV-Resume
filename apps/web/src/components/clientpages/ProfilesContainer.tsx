@@ -13,6 +13,7 @@ import { AuthModal } from '@/components/auth/AuthModal';
 import { createProfile, updateProfile, fetchProfiles } from '@/services/profileService';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface ProfilesContainerProps {
   token: string | undefined;
@@ -26,6 +27,7 @@ export default function ProfilesContainer({
   metaData,
 }: ProfilesContainerProps) {
   const t = useTranslations('profiles');
+  const queryClient = useQueryClient();
   const [editingProfile, setEditingProfile] = useState<Profile | null>(null);
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateId>('modern');
@@ -77,6 +79,22 @@ export default function ProfilesContainer({
 
     setIsSaving(true);
     try {
+      const isValidGuid = (id?: string) =>
+        id ? /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(id) : false;
+
+      const rawExps = previewProfile.experiences || [];
+      const rawEdus = previewProfile.educations || [];
+      const rawProjs = previewProfile.projects || [];
+
+      const parseDateToIso = (dateStr?: string | null): string => {
+        if (!dateStr || dateStr === 'Present') return new Date().toISOString();
+        try {
+          const d = new Date(dateStr);
+          if (!isNaN(d.getTime())) return d.toISOString();
+        } catch {}
+        return new Date().toISOString();
+      };
+
       const payload = {
         profileName: previewProfile.profileName || 'Master CV Profile',
         fullName: previewProfile.fullName || '',
@@ -88,21 +106,64 @@ export default function ProfilesContainer({
         skills: previewProfile.skills || [],
         languages: previewProfile.languages || [],
         socialLinks: previewProfile.socialLinks || [],
-        militaryStatus: (previewProfile.militaryStatus as any) || 'Default',
+        militaryStatus: (previewProfile.militaryStatus as any) || 'None',
+        militaryPostponedUntil: previewProfile.militaryPostponedUntil
+          ? parseDateToIso(previewProfile.militaryPostponedUntil)
+          : null,
         showPhoto: previewProfile.showPhoto || false,
         photoUrl: previewProfile.photoUrl || '',
-        experienceId: (previewProfile.experiences || []).map((e) => e.id),
-        educationId: (previewProfile.educations || []).map((e) => e.id),
-        projectId: (previewProfile.projects || []).map((p) => p.id),
+        experienceJson: JSON.stringify(rawExps),
+        educationJson: JSON.stringify(rawEdus),
+        experiences: rawExps.map((e: any) => ({
+          id: isValidGuid(e.id) ? e.id : undefined,
+          companyName: e.companyName || '',
+          role: e.role || e.jobTitle || '',
+          startDate: parseDateToIso(e.startDate),
+          endDate: e.endDate === 'Present' || !e.endDate ? null : parseDateToIso(e.endDate),
+          isOngoing: e.isOngoing || e.endDate === 'Present' || !e.endDate,
+          description: e.description || '',
+          location: e.location || '',
+        })),
+        educations: rawEdus.map((e: any) => ({
+          id: isValidGuid(e.id) ? e.id : undefined,
+          schoolName: (e.schoolName && e.schoolName.trim() !== '') ? e.schoolName : (e.institutionName || ''),
+          degree: e.degree || '',
+          fieldOfStudy: e.fieldOfStudy || '',
+          startDate: parseDateToIso(e.startDate),
+          endDate: e.endDate === 'Present' || !e.endDate ? null : parseDateToIso(e.endDate),
+          isOngoing: e.isOngoing || e.endDate === 'Present' || !e.endDate,
+          gpa: e.gpa || null,
+        })),
+        projects: rawProjs.map((p: any) => ({
+          id: isValidGuid(p.id) ? p.id : undefined,
+          title: (p.title && p.title.trim() !== '') ? p.title : (p.projectName || p.projectTitle || ''),
+          description: p.description || '',
+          links: (p.links && p.links.trim() !== '') ? p.links : (p.projectUrl || p.url || ''),
+          repositoryUrl: (p.repositoryUrl && p.repositoryUrl.trim() !== '') ? p.repositoryUrl : (p.repoUrl || ''),
+          techologiesUsed: Array.isArray(p.skills) && p.skills.length > 0
+            ? p.skills.join(', ')
+            : (p.techologiesUsed || p.technologies || ''),
+        })),
       };
 
+      let savedResult: Profile | null = null;
       if (editingProfile?.id) {
-        await updateProfile(editingProfile.id, payload as any, token);
+        savedResult = await updateProfile(editingProfile.id, payload as any, token);
       } else {
-        await createProfile(payload as any, token);
+        savedResult = await createProfile(payload as any, token);
       }
-    } catch (err) {
+
+      if (savedResult) {
+        setEditingProfile(savedResult);
+        setPreviewProfile(savedResult);
+        toast.success(t('profileSavedSuccess') || 'Profil başarıyla kaydedildi!');
+        queryClient.invalidateQueries({ queryKey: ['profiles', userId] });
+      } else {
+        toast.error('Profil kaydedilemedi. Lütfen bilgilerinizi kontrol edin.');
+      }
+    } catch (err: any) {
       console.error('Failed to save profile:', err);
+      toast.error(`Profil kaydedilirken hata oluştu: ${err?.message || 'Bilinmeyen hata'}`);
     } finally {
       setIsSaving(false);
     }

@@ -14,9 +14,11 @@ import { Button } from '../ui/button';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
+import { useResumeStore } from '@/store/useResumeStore';
 
 export default function Navbar() {
   const { session, user, isLoading } = useAuth();
+  const setSessions = useResumeStore((state) => state.setSessions);
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
@@ -43,6 +45,7 @@ export default function Navbar() {
   ];
 
   const handleLogout = async () => {
+    setSessions([]);
     const { error } = await supabase.auth.signOut();
     if (error) {
       console.error('Error signing out:', error);

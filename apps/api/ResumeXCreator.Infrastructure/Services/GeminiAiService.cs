@@ -298,6 +298,7 @@ STRICT DATA INTEGRITY & HALLUCINATION GUARDS
 ==================================================
 RELEVANCE-BASED WRITING & SECTION OPTIMIZATION
 ==================================================
+0. TARGET JOB TITLE ('title'): Generate a concise, formal target job role title strictly in '{languageCode}' (e.g., 'Kıdemli Yazılım Geliştirici' or 'Senior Software Engineer') based on the analyzed target job posting.
 1. ATS-FRIENDLY SUMMARY: Write a focused 2-4 sentence summary strictly in '{languageCode}'. Synthesize: Current professional identity, Years of experience (if inferable), Domain expertise, Top matching skills, Industry keywords, and Value proposition aligned with the target role.
 2. RELEVANCE-BASED EXPERIENCE REWRITING:
    - Rewrite bullet points to emphasize responsibilities that overlap with the target job persona.

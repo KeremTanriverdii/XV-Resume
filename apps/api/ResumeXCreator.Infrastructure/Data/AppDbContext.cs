@@ -75,7 +75,7 @@ v => v);
       entity.Property(e => e.EducationJson);
       entity.Property(e => e.Skills);       // text[] with Npgsql
       entity.Property(e => e.SocialLinks);  // text[] with Npgsql
-      entity.Property(e => e.PhotoUrl).HasMaxLength(500);
+      entity.Property(e => e.PhotoUrl).HasColumnType("text");
 
       entity.HasOne(d => d.User)
             .WithMany(p => p.Profiles)

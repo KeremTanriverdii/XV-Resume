@@ -1,9 +1,13 @@
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using ResumeXCreator.Domain.Entities;
 
 namespace ResumeXCreator.Domain.Interfaces;
 
 public interface IResumeRepository : IGenericRepository<Resume>
 {
-    System.Threading.Tasks.Task<Resume?> GetWithTranslationsByIdAsync(System.Guid id);
+    Task<Resume?> GetWithTranslationsByIdAsync(System.Guid id);
+    Task<IEnumerable<Resume>> GetAllWithTranslationsAsync();
+    Task<IEnumerable<Resume>> GetByUserIdWithTranslationsAsync(string userId);
 }
-// 
+

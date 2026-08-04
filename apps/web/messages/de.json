@@ -6,8 +6,15 @@
     "title": "Meine Lebensläufe",
     "templates": "Vorlagen",
     "settings": "Einstellungen",
-    "createTitle": "Erstellen Sie einen maßgeschneiderten Lebenslauf",
-    "createSubtitle": "Fügen Sie den Link zur Stellenbeschreibung ein, für die Sie sich bewerben. Unsere KI analysiert die Anforderungen und passt Ihren Lebenslauf perfekt an.",
+    "createTitle": "Erstellen Sie Ihr All-in-One Karriere-Paket",
+    "createSubtitle": "Fügen Sie den Stellenlink ein. Unsere KI analysiert die Anforderungen und erstellt gleichzeitig Ihren ATS-Lebenslauf, Anschreiben, Cold Message und ATS-Score.",
+    "badgeText": "All-in-One KI-Karriere-Suite",
+    "features": {
+      "resume": "ATS-optimierter Lebenslauf",
+      "coverLetter": "Persönliches Anschreiben",
+      "coldMessage": "Wirkungsvolle Cold Message",
+      "atsScore": "Echtzeit-ATS-Bewertung"
+    },
     "placeholderUrl": "https://linkedin.com/jobs/view/...",
     "btnStartAi": "KI starten",
     "generating": "Generiert...",
@@ -156,6 +163,7 @@
   },
   "profiles": {
     "title": "Profile",
+    "profile": "Profil",
     "myProfiles": "Gespeicherte Kandidatenprofile",
     "myProfilesSubtitle": "Gespeicherte Kandidatenprofile zur Erstellung von Lebensläufen und KI-Bewerbungen.",
     "builderTitle": "Mehrstufiger Profil-Builder",
@@ -424,5 +432,35 @@
     "btnSaveProfile": "Profil speichern",
     "currentlyWorkingHere": "Ich arbeite derzeit hier",
     "currentlyStudyingHere": "Ich studiere derzeit hier"
+  },
+  "languageGeneration": {
+    "title": "Ziel-Erstellungssprachen",
+    "selectedCount": "{count} Sprache ausgewählt",
+    "selectedCountPlural": "{count} Sprachen ausgewählt",
+    "description": "Lebenslauf, Anschreiben und Cold Message werden für alle ausgewählten Sprachen separat mit KI erstellt."
+  },
+  "subscription": {
+    "premiumAccess": "✨ Premium-Zugang",
+    "upgradeTitle": "Auf ResumeX Pro upgraden",
+    "upgradeSubtitle": "Erstellen Sie unbegrenzt ATS-optimierte Lebensläufe in 6+ Sprachen mit KI-Präzision.",
+    "monthlyBilling": "Monatliche Abrechnung ($15/Monat)",
+    "annualBilling": "Jährliche Abrechnung",
+    "savePercent": "20% sparen",
+    "proPlan": "Pro-Tarif",
+    "perMonth": "/ Monat",
+    "unlimitedGenerations": "Unbegrenzte ATS-Lebenslauf-Generierungen",
+    "multiLanguageTranslations": "Mehrsprachige Übersetzungen (TR, EN, DE, FR, ES, IT)",
+    "pdfExport": "PDF-Export mit Anti-Umbruch-Seitenabstand",
+    "instantScraper": "Sofortige KI-Stellenanalyse & Übereinstimmung",
+    "subscribeNowMonthly": "Jetzt abonnieren — $15/Monat",
+    "subscribeNowYearly": "Jetzt abonnieren — $144/Jahr",
+    "openingCheckout": "Kasse wird geöffnet...",
+    "secureCheckout": "🔒 Sichere 256-Bit-Verschlüsselung über Paddle. Jederzeit kündbar.",
+    "trialActiveTitle": "Testphase aktiv",
+    "trialActiveText": "Sie haben noch {days} Tage in Ihrer kostenlosen Testphase.",
+    "upgradeToPro": "Auf Pro upgraden →",
+    "upgradeToProBadge": "Auf Pro upgraden ✨",
+    "subscriptionExpiredTitle": "Abonnement abgelaufen",
+    "subscriptionExpiredText": "Ihre 14-tägige Testphase oder Ihr Monatsabonnement ist abgelaufen."
   }
 }

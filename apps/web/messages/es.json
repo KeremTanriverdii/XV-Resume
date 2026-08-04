@@ -5,9 +5,16 @@
   "Dashboard": {
     "title": "Mis Currículums",
     "templates": "Plantillas",
-    "settings": "Configuración",
-    "createTitle": "Crea un currículum a medida",
-    "createSubtitle": "Pega el enlace a la descripción del puesto al que aspiras. Nuestra IA analizará los requisitos y adaptará tu currículum para que encaje a la perfección.",
+    "settings": "Ajustes",
+    "createTitle": "Genere su paquete de carrera todo en uno",
+    "createSubtitle": "Pegue el enlace del empleo. Nuestra IA analizará los requisitos para generar simultáneamente su currículum ATS, carta de presentación, Cold Message y puntuación ATS.",
+    "badgeText": "Suite de Carrera IA Todo en Uno",
+    "features": {
+      "resume": "Currículum ATS",
+      "coverLetter": "Carta de presentación",
+      "coldMessage": "Cold Message efectivo",
+      "atsScore": "Puntuación ATS en tiempo real"
+    },
     "placeholderUrl": "https://linkedin.com/jobs/view/...",
     "btnStartAi": "Iniciar IA",
     "generating": "Generando...",
@@ -156,6 +163,7 @@
   },
   "profiles": {
     "title": "Perfiles",
+    "profile": "Perfil",
     "myProfiles": "Perfiles de Candidatos Guardados",
     "myProfilesSubtitle": "Perfiles guardados disponibles para la creación de CV y postulaciones IA.",
     "builderTitle": "Creador de Perfil Multietapa",
@@ -345,8 +353,38 @@
     "postponedUntilDate": "Postergado hasta",
     "btnPrevious": "Anterior",
     "btnNext": "Siguiente",
-    "btnSaveProfile": "Guardar perfil",
-    "currentlyWorkingHere": "Trabajo aquí actualmente",
-    "currentlyStudyingHere": "Estudio aquí actualmente"
+    "btnSaveProfile": "Guardar Perfil",
+    "currentlyWorkingHere": "Actualmente trabajo aquí",
+    "currentlyStudyingHere": "Actualmente estudio aquí"
+  },
+  "languageGeneration": {
+    "title": "Idiomas de generación objetivo",
+    "selectedCount": "{count} idioma seleccionado",
+    "selectedCountPlural": "{count} idiomas seleccionados",
+    "description": "El currículum, la carta de presentación y el mensaje directo se generarán por separado con IA en todos los idiomas seleccionados."
+  },
+  "subscription": {
+    "premiumAccess": "✨ Acceso Premium",
+    "upgradeTitle": "Actualizar a ResumeX Pro",
+    "upgradeSubtitle": "Cree currículums ilimitados adaptados a ATS en más de 6 idiomas con precisión de IA.",
+    "monthlyBilling": "Facturación mensual ($15/mes)",
+    "annualBilling": "Facturación anual",
+    "savePercent": "Ahorre un 20%",
+    "proPlan": "Plan Pro",
+    "perMonth": "/ mes",
+    "unlimitedGenerations": "Generaciones ilimitadas de currículums ATS",
+    "multiLanguageTranslations": "Traducciones multilingües (TR, EN, DE, FR, ES, IT)",
+    "pdfExport": "Exportación PDF con espaciado anti-corte de página",
+    "instantScraper": "Análisis de ofertas y coincidencias instantáneo con IA",
+    "subscribeNowMonthly": "Suscribirse ahora — $15/mes",
+    "subscribeNowYearly": "Suscribirse ahora — $144/año",
+    "openingCheckout": "Abriendo pago...",
+    "secureCheckout": "🔒 Pago seguro con cifrado de 256 bits a través de Paddle. Cancele cuando quiera.",
+    "trialActiveTitle": "Prueba activa",
+    "trialActiveText": "Le quedan {days} días de prueba gratuita.",
+    "upgradeToPro": "Actualizar a Pro →",
+    "upgradeToProBadge": "Actualizar a Pro ✨",
+    "subscriptionExpiredTitle": "Suscripción expirada",
+    "subscriptionExpiredText": "Su prueba gratuita de 14 días o suscripción mensual ha expirado."
   }
 }

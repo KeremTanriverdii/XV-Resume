@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Globe, Check } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export interface LanguageOption {
   code: string;
@@ -29,6 +30,8 @@ export const LanguageGenerationSelector: React.FC<LanguageGenerationSelectorProp
   onChange,
   disabled = false,
 }) => {
+  const t = useTranslations('languageGeneration');
+
   const toggleLanguage = (code: string) => {
     if (disabled) return;
     if (selectedLanguages.includes(code)) {
@@ -45,10 +48,10 @@ export const LanguageGenerationSelector: React.FC<LanguageGenerationSelectorProp
       <label className="text-xs font-semibold text-muted-foreground flex items-center justify-between">
         <span className="flex items-center gap-1.5">
           <Globe className="h-3.5 w-3.5 text-primary" />
-          Hedef Üretim Dilleri / Generation Languages
+          {t('title')}
         </span>
         <span className="text-[11px] font-normal text-muted-foreground">
-          {selectedLanguages.length} Dil Seçildi
+          {t(selectedLanguages.length > 1 ? 'selectedCountPlural' : 'selectedCount', { count: selectedLanguages.length })}
         </span>
       </label>
 
@@ -79,7 +82,7 @@ export const LanguageGenerationSelector: React.FC<LanguageGenerationSelectorProp
         })}
       </div>
       <p className="text-[11px] text-muted-foreground italic">
-        Özgeçmiş, Ön Yazı ve Cold Message seçilen tüm dillerde AI ile ayrı ayrı üretilir.
+        {t('description')}
       </p>
     </div>
   );

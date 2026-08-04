@@ -135,6 +135,7 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
     if (!newEdu.institutionName || !newEdu.degree) return;
     const finalEdu = {
       id: `temp-${Date.now()}`,
+      schoolName: newEdu.institutionName,
       institutionName: newEdu.institutionName,
       degree: newEdu.degree,
       startDate: newEdu.startDate,
@@ -153,11 +154,16 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
     if (!newProj.projectName) return;
     const finalProj = {
       id: `temp-${Date.now()}`,
+      title: newProj.projectName,
       projectName: newProj.projectName,
+      projectTitle: newProj.projectName,
       description: newProj.description,
+      links: newProj.projectUrl,
       projectUrl: newProj.projectUrl,
+      repositoryUrl: newProj.repoUrl,
       repoUrl: newProj.repoUrl,
       skills: newProj.skills,
+      techologiesUsed: newProj.skills.join(", "),
     };
     updateField("projects", [...safeProjects, finalProj]);
     setNewProj({ projectName: "", description: "", projectUrl: "", repoUrl: "", skills: [] });
@@ -176,6 +182,31 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
 
   const handleRemoveLanguage = (idx: number) => {
     updateField("languages", safeLanguages.filter((_, i) => i !== idx));
+  };
+
+  const commitPendingInputs = () => {
+    if (newExp.companyName && newExp.jobTitle) {
+      handleAddExperience();
+    }
+    if (newEdu.institutionName && newEdu.degree) {
+      handleAddEducation();
+    }
+    if (newProj.projectName) {
+      handleAddProject();
+    }
+    if (categorySkillsTags.length > 0) {
+      handleAddCategorizedSkill();
+    }
+  };
+
+  const handleSaveWrapper = () => {
+    commitPendingInputs();
+    onSaveProfile();
+  };
+
+  const handleNextWrapper = () => {
+    commitPendingInputs();
+    onNextStep();
   };
 
   // STEP 0: Personal Info, Photo, Military & Links
@@ -381,8 +412,8 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
 
         <StepNavigationFooter
           onPrev={onPrevStep}
-          onNext={onNextStep}
-          onSave={onSaveProfile}
+          onNext={handleNextWrapper}
+          onSave={handleSaveWrapper}
           isFirst={isFirstStep}
           isLast={isLastStep}
           isSaving={isSaving}
@@ -501,8 +532,8 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
 
         <StepNavigationFooter
           onPrev={onPrevStep}
-          onNext={onNextStep}
-          onSave={onSaveProfile}
+          onNext={handleNextWrapper}
+          onSave={handleSaveWrapper}
           isFirst={isFirstStep}
           isLast={isLastStep}
           isSaving={isSaving}
@@ -614,8 +645,8 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
 
         <StepNavigationFooter
           onPrev={onPrevStep}
-          onNext={onNextStep}
-          onSave={onSaveProfile}
+          onNext={handleNextWrapper}
+          onSave={handleSaveWrapper}
           isFirst={isFirstStep}
           isLast={isLastStep}
           isSaving={isSaving}
@@ -685,52 +716,66 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
         {/* Active List of Added Projects */}
         <div className="flex flex-col gap-2">
           <label className="text-xs font-semibold text-muted-foreground">Added Projects ({safeProjects.length})</label>
-          {safeProjects.map((proj: Project, idx: number) => (
-            <div key={idx} className="p-3 rounded-xl bg-background border border-border/70 text-xs flex justify-between items-start gap-2">
-              <div>
-                <p className="font-bold text-foreground">{proj.projectName}</p>
-                {proj.description && <p className="text-muted-foreground text-[11px] line-clamp-2">{proj.description}</p>}
-                
-                {/* Project Links & Tech tags */}
-                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                  {proj.projectUrl && (
-                    <a href={proj.projectUrl} target="_blank" rel="noreferrer" className="text-[11px] text-primary hover:underline flex items-center gap-1 font-semibold">
-                      <ExternalLink className="h-3 w-3" /> Live Demo
-                    </a>
+          {safeProjects.map((proj: any, idx: number) => {
+            const title = proj.title || proj.projectName || proj.projectTitle || "Untitled Project";
+            const liveUrl = proj.links || proj.projectUrl || proj.url;
+            const repoUrl = proj.repositoryUrl || proj.repoUrl;
+            const techList = Array.isArray(proj.skills) && proj.skills.length > 0
+              ? proj.skills
+              : (proj.techologiesUsed || proj.technologies || '')
+                  .split(',')
+                  .map((s: string) => s.trim())
+                  .filter(Boolean);
+
+            return (
+              <div key={idx} className="p-3 rounded-xl bg-background border border-border/70 text-xs flex justify-between items-start gap-2">
+                <div>
+                  <p className="font-bold text-foreground">{title}</p>
+                  {proj.description && <p className="text-muted-foreground text-[11px] line-clamp-2">{proj.description}</p>}
+                  
+                  {/* Project Links & Tech tags */}
+                  {(liveUrl || repoUrl) && (
+                    <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                      {liveUrl && (
+                        <a href={liveUrl} target="_blank" rel="noreferrer" className="text-[11px] text-primary hover:underline flex items-center gap-1 font-semibold">
+                          <ExternalLink className="h-3 w-3" /> Live Demo
+                        </a>
+                      )}
+                      {repoUrl && (
+                        <a href={repoUrl} target="_blank" rel="noreferrer" className="text-[11px] text-muted-foreground hover:underline flex items-center gap-1 font-semibold">
+                          <FolderGit2 className="h-3 w-3" /> GitHub Repo
+                        </a>
+                      )}
+                    </div>
                   )}
-                  {proj.repoUrl && (
-                    <a href={proj.repoUrl} target="_blank" rel="noreferrer" className="text-[11px] text-muted-foreground hover:underline flex items-center gap-1 font-semibold">
-                      <FolderGit2 className="h-3 w-3" /> GitHub Repo
-                    </a>
+
+                  {techList.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1.5">
+                      {techList.map((s: string, sIdx: number) => (
+                        <span key={sIdx} className="px-1.5 py-0.5 rounded bg-muted text-[10px] text-muted-foreground font-mono">
+                          {s}
+                        </span>
+                      ))}
+                    </div>
                   )}
                 </div>
-
-                {Array.isArray(proj.skills) && proj.skills.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-1.5">
-                    {proj.skills.map((s: string, sIdx: number) => (
-                      <span key={sIdx} className="px-1.5 py-0.5 rounded bg-muted text-[10px] text-muted-foreground font-mono">
-                        {s}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => handleRemoveProject(idx)}
+                  className="h-7 w-7 text-destructive hover:bg-destructive/10 shrink-0"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
               </div>
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={() => handleRemoveProject(idx)}
-                className="h-7 w-7 text-destructive hover:bg-destructive/10 shrink-0"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-              </Button>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <StepNavigationFooter
           onPrev={onPrevStep}
-          onNext={onNextStep}
-          onSave={onSaveProfile}
+          onNext={handleNextWrapper}
+          onSave={handleSaveWrapper}
           isFirst={isFirstStep}
           isLast={isLastStep}
           isSaving={isSaving}
@@ -892,8 +937,8 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
 
       <StepNavigationFooter
         onPrev={onPrevStep}
-        onNext={onNextStep}
-        onSave={onSaveProfile}
+        onNext={handleNextWrapper}
+        onSave={handleSaveWrapper}
         isFirst={isFirstStep}
         isLast={isLastStep}
         isSaving={isSaving}

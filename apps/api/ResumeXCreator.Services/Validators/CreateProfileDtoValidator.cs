@@ -16,15 +16,12 @@ public class CreateProfileDtoValidator : AbstractValidator<CreateProfileDto>
       .MaximumLength(200).WithMessage("Full Name must not exceed 200 characters.");
 
     RuleFor(x => x.Title)
-      .NotEmpty().WithMessage("Title is required.")
       .MaximumLength(100).WithMessage("Title must not exceed 100 characters.");
 
     RuleFor(x => x.Summary)
       .MaximumLength(4000).WithMessage("Summary must not exceed 4000 characters.");
 
     RuleFor(x => x.Email)
-      .NotEmpty().WithMessage("Email is required.")
-      .EmailAddress().WithMessage("Email must be a valid email address.")
       .MaximumLength(256).WithMessage("Email must not exceed 256 characters.");
 
     RuleFor(x => x.Phone)

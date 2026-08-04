@@ -12,9 +12,12 @@ public static class ResumeEndpoints
     var group = app.MapGroup("/api/v1/resumes").RequireAuthorization();
 
     // GET /api/v1/resumes
-    group.MapGet("/", async (IResumeService resumeService) =>
+    group.MapGet("/", async (IResumeService resumeService, HttpContext ctx) =>
     {
-      var resumes = await resumeService.GetAllResumesAsync();
+      var userId = ctx.User.FindFirstValue(ClaimTypes.NameIdentifier)
+                ?? ctx.User.FindFirstValue("sub");
+
+      var resumes = await resumeService.GetAllResumesAsync(userId);
       return Results.Ok(resumes);
     })
     .WithName("GetAllResumes");

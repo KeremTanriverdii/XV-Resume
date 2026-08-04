@@ -3,11 +3,18 @@
     "title": "XV Resume"
   },
   "Dashboard": {
-    "title": "マイ履歴書",
+    "title": "履歴書一覧",
     "templates": "テンプレート",
     "settings": "設定",
-    "createTitle": "最適化された履歴書の作成",
-    "createSubtitle": "応募する求人情報のリンクを貼り付けてください。当社のAIが要件を分析し、あなたの履歴書を完璧にマッチするように最適化します。",
+    "createTitle": "オールインワン・キャリアスイートを一括生成",
+    "createSubtitle": "求人URLを貼り付けるだけで、AIが要件を解析。ATS最適化職務経歴書、カバーレター、コールドメッセージ、ATSマッチングスコアをワンクリックで同時生成します。",
+    "badgeText": "オールインワン AI キャリアスイート",
+    "features": {
+      "resume": "ATS最適化 職務経歴書",
+      "coverLetter": "パーソナライズ カバーレター",
+      "coldMessage": "高返信率 コールドメッセージ",
+      "atsScore": "リアルタイム ATSスコア"
+    },
     "placeholderUrl": "https://linkedin.com/jobs/view/...",
     "btnStartAi": "AIを開始",
     "generating": "生成中...",
@@ -156,6 +163,7 @@
   },
   "profiles": {
     "title": "プロフィール",
+    "profile": "プロフィール",
     "myProfiles": "保存された候補者プロフィール",
     "myProfilesSubtitle": "履歴書作成およびAI応募に使用できる保存済みプロフィール。",
     "builderTitle": "マルチステップ・プロフィール・ビルダー",
@@ -345,8 +353,38 @@
     "postponedUntilDate": "延期期限日",
     "btnPrevious": "前へ",
     "btnNext": "次へ",
-    "btnSaveProfile": "プロフィールを保存",
-    "currentlyWorkingHere": "現在ここで勤務中",
-    "currentlyStudyingHere": "現在ここで在学中"
+    "btnSaveProfile": "プロファイルを保存",
+    "currentlyWorkingHere": "現在ここに在職中",
+    "currentlyStudyingHere": "現在ここに在学中"
+  },
+  "languageGeneration": {
+    "title": "生成対象言語",
+    "selectedCount": "{count} 言語を選択中",
+    "selectedCountPlural": "{count} 言語を選択中",
+    "description": "職務経歴書、カバーレター、コールドメッセージは選択した全言語でAIにより個別に生成されます。"
+  },
+  "subscription": {
+    "premiumAccess": "✨ プレミアムアクセス",
+    "upgradeTitle": "ResumeX Proにアップグレード",
+    "upgradeSubtitle": "最高精度のAIで、6言語以上のATS最適化職務経歴書を無制限に作成できます。",
+    "monthlyBilling": "月額プラン ($15/月)",
+    "annualBilling": "年額プラン",
+    "savePercent": "20%割引",
+    "proPlan": "Proプラン",
+    "perMonth": "/ 月",
+    "unlimitedGenerations": "ATS最適化職務経歴書の無制限生成",
+    "multiLanguageTranslations": "多言語自動翻訳 (TR, EN, DE, FR, ES, IT)",
+    "pdfExport": "改ページ保護機能付きPDFエクスポート",
+    "instantScraper": "即時AI求人情報抽出＆マッチング分析",
+    "subscribeNowMonthly": "今すぐ登録 — $15/月",
+    "subscribeNowYearly": "今すぐ登録 — $144/年",
+    "openingCheckout": "チェックアウトを開いています...",
+    "secureCheckout": "🔒 Paddleによる256ビット暗号化安全決済。いつでもキャンセル可能。",
+    "trialActiveTitle": "無料体験版適用中",
+    "trialActiveText": "無料体験期間の残りは {days} 日です。",
+    "upgradeToPro": "Pro版にアップグレード →",
+    "upgradeToProBadge": "Pro版にアップグレード ✨",
+    "subscriptionExpiredTitle": "サブスクリプション有効期限切れ",
+    "subscriptionExpiredText": "14日間の無料体験または月額サブスクリプションの期限が切れました。"
   }
 }

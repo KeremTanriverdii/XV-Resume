@@ -17,12 +17,11 @@ public class CreateEducationDtoValidator : AbstractValidator<CreateEducationDto>
       .MaximumLength(100).WithMessage("Degree must not exceed 100 characters.");
 
     RuleFor(x => x.FieldOfStudy)
-      .NotEmpty().WithMessage("Field of study is required.")
       .MaximumLength(100).WithMessage("Field of study must not exceed 100 characters.");
 
     RuleFor(x => x.StartDate)
-      .NotEmpty().WithMessage("Start Date is required.")
-      .LessThanOrEqualTo(DateTime.Now).WithMessage("Start Date cannot be in the future.");
+      .LessThanOrEqualTo(DateTime.Now).WithMessage("Start Date cannot be in the future.")
+      .When(x => x.StartDate != default);
 
     RuleFor(x => x.EndDate)
       .GreaterThan(x => x.StartDate).WithMessage("End Date must be after Start Date.")

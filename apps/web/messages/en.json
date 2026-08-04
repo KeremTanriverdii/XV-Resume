@@ -6,8 +6,15 @@
     "title": "My Resumes",
     "templates": "Templates",
     "settings": "Settings",
-    "createTitle": "Create a Tailored Resume",
-    "createSubtitle": "Paste the link to the job description you are applying for. Our AI will analyze the requirements and tailor your resume to perfectly match.",
+    "createTitle": "Generate Your All-in-One Career Suite",
+    "createSubtitle": "Paste the job posting link. Our AI instantly analyzes requirements to simultaneously generate your ATS Resume, Cover Letter, Cold Message, and ATS Match Score in one pass.",
+    "badgeText": "All-in-One AI Career Suite",
+    "features": {
+      "resume": "ATS-Tailored Resume",
+      "coverLetter": "Tailored Cover Letter",
+      "coldMessage": "High-Converting Cold Message",
+      "atsScore": "Real-Time ATS Score"
+    },
     "placeholderUrl": "https://linkedin.com/jobs/view/...",
     "btnStartAi": "Start AI",
     "generating": "Generating...",
@@ -156,6 +163,7 @@
   },
   "profiles": {
     "title": "Profiles",
+    "profile": "Profile",
     "myProfiles": "Saved Candidate Profiles",
     "myProfilesSubtitle": "Saved candidate profiles available for resume building and AI job applications.",
     "builderTitle": "Multi-Step Profile Builder",
@@ -426,5 +434,35 @@
     "btnSaveProfile": "Save Profile",
     "currentlyWorkingHere": "Currently Working Here",
     "currentlyStudyingHere": "Currently Studying Here"
+  },
+  "languageGeneration": {
+    "title": "Target Generation Languages",
+    "selectedCount": "{count} Language Selected",
+    "selectedCountPlural": "{count} Languages Selected",
+    "description": "Resume, Cover Letter, and Cold Message will be generated separately with AI in all selected languages."
+  },
+  "subscription": {
+    "premiumAccess": "✨ Premium Access",
+    "upgradeTitle": "Upgrade to ResumeX Pro",
+    "upgradeSubtitle": "Create unlimited ATS-tailored resumes in 6+ languages with executive-level AI precision.",
+    "monthlyBilling": "Monthly Billing ($15/mo)",
+    "annualBilling": "Annual Billing",
+    "savePercent": "Save 20%",
+    "proPlan": "Pro Plan",
+    "perMonth": "/ month",
+    "unlimitedGenerations": "Unlimited ATS-Tailored Resume Generations",
+    "multiLanguageTranslations": "Multi-language Translations (TR, EN, DE, FR, ES, IT)",
+    "pdfExport": "PDF Export with Anti-Break Page Spacing",
+    "instantScraper": "Instant AI Scraper & Match Analysis",
+    "subscribeNowMonthly": "Subscribe Now — $15/mo",
+    "subscribeNowYearly": "Subscribe Now — $144/year",
+    "openingCheckout": "Opening Checkout...",
+    "secureCheckout": "🔒 Secure 256-bit encrypted checkout via Paddle Merchant of Record. Cancel anytime.",
+    "trialActiveTitle": "Trial Active",
+    "trialActiveText": "You have {days} days left in your free trial.",
+    "upgradeToPro": "Upgrade to Pro →",
+    "upgradeToProBadge": "Upgrade to Pro ✨",
+    "subscriptionExpiredTitle": "Subscription Expired",
+    "subscriptionExpiredText": "Your 14-day free trial or monthly subscription has expired."
   }
 }

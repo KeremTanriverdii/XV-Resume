@@ -6,8 +6,15 @@
     "title": "Özgeçmişlerim",
     "templates": "Şablonlar",
     "settings": "Ayarlar",
-    "createTitle": "Özelleştirilmiş Özgeçmiş Oluşturun",
-    "createSubtitle": "Başvurduğunuz iş tanımının linkini yapıştırın. Yapay zekamız gereksinimleri analiz edecek ve özgeçmişinizi mükemmel şekilde eşleşecek şekilde uyarlayacaktır.",
+    "createTitle": "Tüm Kariyer Paketinizi Tek Adımda Oluşturun",
+    "createSubtitle": "İş ilanı linkini yapıştırın; yapay zekamız tek tıkla ATS uyumlu Özgeçmiş, kişiselleştirilmiş Ön Yazı, Cold Message ve anlık ATS Uyum Analizini bir arada üretsin.",
+    "badgeText": "All-in-One AI Kariyer Süiti",
+    "features": {
+      "resume": "ATS Uyumlu Özgeçmiş",
+      "coverLetter": "Kişiselleştirilmiş Ön Yazı",
+      "coldMessage": "Etkili Cold Message",
+      "atsScore": "Anlık ATS Puanı"
+    },
     "placeholderUrl": "https://linkedin.com/jobs/view/...",
     "btnStartAi": "Yapay Zekayı Başlat",
     "generating": "Oluşturuluyor...",
@@ -156,6 +163,7 @@
   },
   "profiles": {
     "title": "Profiller",
+    "profile": "Profil",
     "myProfiles": "Kayıtlı Profillerim",
     "myProfilesSubtitle": "Özgeçmiş oluştururken ve AI ilan başvurularında kullanabileceğiniz kayıtlı aday profilleriniz.",
     "builderTitle": "Çok Adımlı Profil Oluşturucu",
@@ -426,5 +434,35 @@
     "btnSaveProfile": "Profili Kaydet",
     "currentlyWorkingHere": "Hala Burada Çalışıyorum",
     "currentlyStudyingHere": "Hala Burada Okuyorum"
+  },
+  "languageGeneration": {
+    "title": "Hedef Üretim Dilleri",
+    "selectedCount": "{count} Dil Seçildi",
+    "selectedCountPlural": "{count} Dil Seçildi",
+    "description": "Özgeçmiş, Ön Yazı ve Cold Message seçilen tüm dillerde AI ile ayrı ayrı üretilir."
+  },
+  "subscription": {
+    "premiumAccess": "✨ Premium Erişim",
+    "upgradeTitle": "ResumeX Pro'ya Yükseltin",
+    "upgradeSubtitle": "Üst düzey yapay zeka hassasiyetiyle 6+ dilde sınırsız ATS uyumlu özgeçmiş oluşturun.",
+    "monthlyBilling": "Aylık Ödeme ($15/ay)",
+    "annualBilling": "Yıllık Ödeme",
+    "savePercent": "%20 Tasarruf",
+    "proPlan": "Pro Plan",
+    "perMonth": "/ ay",
+    "unlimitedGenerations": "Sınırsız ATS Uyumlu Özgeçmiş Üretimi",
+    "multiLanguageTranslations": "Çoklu Dil Çevirileri (TR, EN, DE, FR, ES, IT)",
+    "pdfExport": "Sayfa Düzeni Korumalı PDF İhracatı",
+    "instantScraper": "Anlık AI İlan Taraması ve Uyum Analizi",
+    "subscribeNowMonthly": "Hemen Abone Ol — $15/ay",
+    "subscribeNowYearly": "Hemen Abone Ol — $144/yıl",
+    "openingCheckout": "Ödeme Sayfası Açılıyor...",
+    "secureCheckout": "🔒 Paddle altyapısı ile 256-bit güvenli ödeme. İstediğiniz zaman iptal edin.",
+    "trialActiveTitle": "Deneme Sürümü Aktif",
+    "trialActiveText": "Ücretsiz deneme sürenizin bitmesine {days} gün kaldı.",
+    "upgradeToPro": "Pro'ya Yükselt →",
+    "upgradeToProBadge": "Pro'ya Yükselt ✨",
+    "subscriptionExpiredTitle": "Abonelik Süresi Doldu",
+    "subscriptionExpiredText": "14 günlük ücretsiz deneme süreniz veya aylık aboneliğiniz sona erdi."
   }
 }

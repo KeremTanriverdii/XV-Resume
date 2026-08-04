@@ -7,7 +7,7 @@ namespace ResumeXCreator.Services.Abstraction;
 
 public interface IResumeService
 {
-    Task<IEnumerable<ResumeDto>> GetAllResumesAsync();
+    Task<IEnumerable<ResumeDto>> GetAllResumesAsync(string? userId = null);
     Task<ResumeDto?> GetResumeByIdAsync(Guid id);
     Task<ResumeDto> CreateResumeAsync(CreateResumeDto createResumeDto);
     Task<ResumeDto> GenerateResumeAsync(CreateResumeDto dto, string authenticatedUserId);

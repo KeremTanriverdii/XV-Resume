@@ -6,8 +6,15 @@
     "title": "Mes CV",
     "templates": "Modèles",
     "settings": "Paramètres",
-    "createTitle": "Créer un CV sur mesure",
-    "createSubtitle": "Collez le lien vers la description du poste auquel vous postulez. Notre IA analysera les exigences et adaptera votre CV pour qu'il corresponde parfaitement.",
+    "createTitle": "Générez votre suite de carrière tout-en-un",
+    "createSubtitle": "Collez le lien de l'offre d'emploi. Notre IA analyse les exigences pour générer simultanément votre CV ATS, lettre de motivation, Cold Message et score ATS.",
+    "badgeText": "Suite Carrière IA Tout-en-Un",
+    "features": {
+      "resume": "CV adapté ATS",
+      "coverLetter": "Lettre de motivation sur mesure",
+      "coldMessage": "Cold Message efficace",
+      "atsScore": "Score ATS en temps réel"
+    },
     "placeholderUrl": "https://linkedin.com/jobs/view/...",
     "btnStartAi": "Lancer l'IA",
     "generating": "Génération...",
@@ -156,6 +163,7 @@
   },
   "profiles": {
     "title": "Profils",
+    "profile": "Profil",
     "myProfiles": "Profils Candidats Enregistrés",
     "myProfilesSubtitle": "Profils enregistrés disponibles pour la création de CV et candidatures IA.",
     "builderTitle": "Générateur de Profil Multi-Étapes",
@@ -348,5 +356,35 @@
     "btnSaveProfile": "Enregistrer le profil",
     "currentlyWorkingHere": "J'y travaille actuellement",
     "currentlyStudyingHere": "J'y étudie actuellement"
+  },
+  "languageGeneration": {
+    "title": "Langues de génération cibles",
+    "selectedCount": "{count} langue sélectionnée",
+    "selectedCountPlural": "{count} langues sélectionnées",
+    "description": "Le CV, la lettre de motivation et le Cold Message seront générés séparément par l'IA dans toutes les langues sélectionnées."
+  },
+  "subscription": {
+    "premiumAccess": "✨ Accès Premium",
+    "upgradeTitle": "Passez à ResumeX Pro",
+    "upgradeSubtitle": "Créez des CV illimités adaptés aux ATS dans plus de 6 langues avec la précision de l'IA.",
+    "monthlyBilling": "Facturation mensuelle (15 $/mois)",
+    "annualBilling": "Facturation annuelle",
+    "savePercent": "Économisez 20%",
+    "proPlan": "Offre Pro",
+    "perMonth": "/ mois",
+    "unlimitedGenerations": "Générations de CV adaptées aux ATS illimitées",
+    "multiLanguageTranslations": "Traductions multilingues (TR, EN, DE, FR, ES, IT)",
+    "pdfExport": "Exportation PDF avec espacement anti-coupure de page",
+    "instantScraper": "Analyse d'offre et de correspondance instantanée par IA",
+    "subscribeNowMonthly": "S'abonner maintenant — 15 $/mois",
+    "subscribeNowYearly": "S'abonner maintenant — 144 $/an",
+    "openingCheckout": "Ouverture du paiement...",
+    "secureCheckout": "🔒 Paiement sécurisé 256 bits via Paddle. Annulez à tout moment.",
+    "trialActiveTitle": "Essai gratuit actif",
+    "trialActiveText": "Il vous reste {days} jours d'essai gratuit.",
+    "upgradeToPro": "Passer à la version Pro →",
+    "upgradeToProBadge": "Passer à la version Pro ✨",
+    "subscriptionExpiredTitle": "Abonnement expiré",
+    "subscriptionExpiredText": "Votre essai gratuit de 14 jours ou votre abonnement mensuel a expiré."
   }
 }

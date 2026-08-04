@@ -144,6 +144,20 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+// Ensure Database Schema migrations (e.g. PhotoUrl column type text)
+using (var scope = app.Services.CreateScope())
+{
+  var db = scope.ServiceProvider.GetRequiredService<ResumeXCreator.Infrastructure.Data.AppDbContext>();
+  try
+  {
+    db.Database.ExecuteSqlRaw("ALTER TABLE \"Profiles\" ALTER COLUMN \"PhotoUrl\" TYPE text;");
+  }
+  catch (Exception ex)
+  {
+    Console.WriteLine($"[DB Startup] Note: {ex.Message}");
+  }
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

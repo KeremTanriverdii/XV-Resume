@@ -145,10 +145,13 @@ export function AppSidebar() {
         });
         setSessions(mappedSessions);
       });
+    } else {
+      setSessions([]);
     }
   }, [token, locale, setSessions]);
 
   const handleLogout = async () => {
+    setSessions([]);
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push('/login');
