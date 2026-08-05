@@ -20,10 +20,10 @@ public class ResumeService(
   private readonly IUserRepository _userRepository = userRepository;
   private readonly IAiService _aiService = aiService;
 
-  public async Task<IEnumerable<ResumeDto>> GetAllResumesAsync(string? userId = null)
+  public async Task<IEnumerable<ResumeDto>> GetAllResumesAsync(string? userId = null, int page = 1, int pageSize = 10)
   {
     var resumes = !string.IsNullOrWhiteSpace(userId)
-        ? await _resumeRepository.GetByUserIdWithTranslationsAsync(userId)
+        ? await _resumeRepository.GetPagedByUserIdWithTranslationsAsync(userId, page, pageSize)
         : await _resumeRepository.GetAllWithTranslationsAsync();
 
     return resumes.Select(MapToDto);

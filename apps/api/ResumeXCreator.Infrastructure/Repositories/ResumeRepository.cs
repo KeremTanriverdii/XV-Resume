@@ -13,6 +13,8 @@ public class ResumeRepository(AppDbContext context) : GenericRepository<Resume>(
     public async Task<Resume?> GetWithTranslationsByIdAsync(System.Guid id)
     {
         return await _context.Resumes
+            .AsNoTracking()
+            .AsSplitQuery()
             .Include(r => r.Translations)
             .Include(r => r.Profile)
                 .ThenInclude(p => p!.ProfileProjects)
@@ -29,6 +31,8 @@ public class ResumeRepository(AppDbContext context) : GenericRepository<Resume>(
     public async Task<IEnumerable<Resume>> GetAllWithTranslationsAsync()
     {
         return await _context.Resumes
+            .AsNoTracking()
+            .AsSplitQuery()
             .Include(r => r.Translations)
             .Include(r => r.Profile)
             .OrderByDescending(r => r.CreatedAt)
@@ -38,10 +42,26 @@ public class ResumeRepository(AppDbContext context) : GenericRepository<Resume>(
     public async Task<IEnumerable<Resume>> GetByUserIdWithTranslationsAsync(string userId)
     {
         return await _context.Resumes
+            .AsNoTracking()
+            .AsSplitQuery()
             .Include(r => r.Translations)
             .Include(r => r.Profile)
             .Where(r => r.Profile != null && r.Profile.UserId == userId)
             .OrderByDescending(r => r.CreatedAt)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Resume>> GetPagedByUserIdWithTranslationsAsync(string userId, int page, int pageSize)
+    {
+        return await _context.Resumes
+            .AsNoTracking()
+            .AsSplitQuery()
+            .Include(r => r.Translations)
+            .Include(r => r.Profile)
+            .Where(r => r.Profile != null && r.Profile.UserId == userId)
+            .OrderByDescending(r => r.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
     }
 }

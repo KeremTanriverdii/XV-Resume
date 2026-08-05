@@ -9,5 +9,6 @@ public interface IResumeRepository : IGenericRepository<Resume>
     Task<Resume?> GetWithTranslationsByIdAsync(System.Guid id);
     Task<IEnumerable<Resume>> GetAllWithTranslationsAsync();
     Task<IEnumerable<Resume>> GetByUserIdWithTranslationsAsync(string userId);
+    Task<IEnumerable<Resume>> GetPagedByUserIdWithTranslationsAsync(string userId, int page, int pageSize);
 }
 

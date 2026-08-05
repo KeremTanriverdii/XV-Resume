@@ -3,7 +3,14 @@
 import { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/providers/AuthProvider';
-import { fetchResumeById, generateResume, deleteResume, updateResumeTranslation } from '@/services/resumeService';
+import {
+  fetchResumeById,
+  generateResume,
+  deleteResume,
+  updateResumeTranslation,
+} from '@/services/resumeService';
+import { useQueryClient } from '@tanstack/react-query';
+import { useResumeSession, resumeKeys } from '@/hooks/useResume';
 import { useResumeStore } from '@/store/useResumeStore';
 import { ResumeDto, ResumeTranslationDto } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -18,8 +25,6 @@ import {
   Sparkles,
   FileText,
   Briefcase,
-  TrendingUp,
-  AlertTriangle,
   CheckCircle2,
   Download,
   Layout,
@@ -37,15 +42,14 @@ import {
   COLOR_THEMES,
 } from '@/components/resume/ResumeTemplates';
 import { exportToPdf } from '@/utils/pdfExport';
-import { StepFormSidebar, StepItem } from '@/components/resume/StepFormSidebar';
-import { StepFormFields } from '@/components/resume/StepFormFields';
 import { AtsMatcherTab } from '@/components/resume/AtsMatcherTab';
 import { CoverLetterTab } from '@/components/resume/CoverLetterTab';
 import { ColdMessageTab } from '@/components/resume/ColdMessageTab';
 import { LanguageGenerationSelector } from '@/components/resume/LanguageGenerationSelector';
 import { ProtectedPreviewOverlay } from '@/components/resume/ProtectedPreviewOverlay';
+import { SessionDetailSkeleton } from '@/components/resume/SessionDetailSkeleton';
 import { AuthModal } from '@/components/auth/AuthModal';
-import { User, GraduationCap, Wrench, Edit3, Mail, Send } from 'lucide-react';
+import { Mail, Send } from 'lucide-react';
 
 const parseBold = (text: string) => {
   const parts = text.split(/\*\*([^*]+)\*\*/g);
@@ -174,9 +178,11 @@ export default function ResumeSessionPage() {
   const searchParams = useSearchParams();
   const id = params?.id as string;
 
+  const queryClient = useQueryClient();
+
   const t = useTranslations('resume');
   const tToast = useTranslations('toast');
-  const { session } = useAuth();
+  const { session, isLoading: isAuthLoading } = useAuth();
   const token = session?.access_token;
   const router = useRouter();
 
@@ -190,8 +196,6 @@ export default function ResumeSessionPage() {
   const initialColor = (searchParams?.get('color') as ColorThemeId) || 'blue';
 
   // State
-  const [resume, setResume] = useState<ResumeDto | null>(null);
-  const [loading, setLoading] = useState(true);
   const [regenerating, setRegenerating] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [selectedLang, setSelectedLang] = useState<string>('en');
@@ -200,7 +204,10 @@ export default function ResumeSessionPage() {
     useState<TemplateId>(initialTemplate);
   const [selectedColor, setSelectedColor] =
     useState<ColorThemeId>(initialColor);
-  const [selectedRegenLangs, setSelectedRegenLangs] = useState<string[]>(['en', 'tr']);
+  const [selectedRegenLangs, setSelectedRegenLangs] = useState<string[]>([
+    'en',
+    'tr',
+  ]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<
@@ -208,8 +215,12 @@ export default function ResumeSessionPage() {
   >('preview');
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
-  const [authActionTitle, setAuthActionTitle] = useState<string>('Save & Export Your CV');
-  const [pendingAction, setPendingAction] = useState<'download' | 'email' | 'save' | 'ats' | null>(null);
+  const [authActionTitle, setAuthActionTitle] = useState<string>(
+    'Save & Export Your CV',
+  );
+  const [pendingAction, setPendingAction] = useState<
+    'download' | 'email' | 'save' | 'ats' | null
+  >(null);
 
   const handleActionTrigger = (action: 'download' | 'email' | 'save') => {
     if (!session) {
@@ -218,8 +229,8 @@ export default function ResumeSessionPage() {
         action === 'download'
           ? 'Sign in to Download High-Res PDF'
           : action === 'email'
-          ? 'Sign in to Email Your CV'
-          : 'Save Your CV Progress'
+            ? 'Sign in to Email Your CV'
+            : 'Save Your CV Progress',
       );
       setIsAuthModalOpen(true);
       return;
@@ -238,9 +249,7 @@ export default function ResumeSessionPage() {
 
   const handleAuthSuccess = () => {
     setIsAuthModalOpen(false);
-    // Execute the pending action after successful login
     if (pendingAction === 'download') {
-      // Small delay to let auth state propagate
       setTimeout(() => handleDownloadPdf(), 500);
     } else if (pendingAction === 'ats') {
       setActiveTab('ats');
@@ -248,58 +257,46 @@ export default function ResumeSessionPage() {
     setPendingAction(null);
   };
 
-  // Fetch Resume details
-  const loadResumeData = async (selectLatest = false) => {
-    if (!id || !token) return;
-    try {
-      const data = await fetchResumeById(id, token);
-      if (data) {
-        setResume(data);
-        const activeT =
-          data.translations.find((t) => t.languageCode === selectedLang) ||
-          data.translations[0];
-        const formattedTitle = formatCompanyAndRole(
-          activeT?.title,
-          data.externalJobLink,
-        );
-        updateSessionTitle(data.id, formattedTitle);
+  // TanStack Query Session Detail Cache Hook
+  const {
+    data: fetchedResume,
+    isLoading: isSessionLoading,
+    isFetching,
+    isPending,
+    refetch: refetchSession,
+  } = useResumeSession(id, token);
 
-        // Find all available languages and versions
-        const langs = Array.from(
-          new Set(data.translations.map((t) => t.languageCode)),
-        );
-        const versions = Array.from(
-          new Set(data.translations.map((t) => t.version)),
-        );
+  const resume = fetchedResume;
 
-        // Default language selection to first available or fallback to current
-        if (langs.length > 0 && !langs.includes(selectedLang)) {
-          setSelectedLang(langs[0]);
-        }
-
-        // Default version selection
-        if (selectLatest && versions.length > 0) {
-          const maxVer = Math.max(...versions);
-          setSelectedVersion(maxVer);
-        } else if (versions.length > 0 && !versions.includes(selectedVersion)) {
-          setSelectedVersion(versions[0]);
-        }
-      } else {
-        setErrorMsg('Resume not found');
-      }
-    } catch (err) {
-      console.error(err);
-      setErrorMsg('Failed to load resume details');
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Sync title and selected language/version when fetchedResume changes
   useEffect(() => {
-    if (token && id) {
-      loadResumeData();
+    if (fetchedResume) {
+      const activeT =
+        fetchedResume.translations.find(
+          (t) => t.languageCode === selectedLang,
+        ) || fetchedResume.translations[0];
+      const formattedTitle = formatCompanyAndRole(
+        activeT?.title,
+        fetchedResume.externalJobLink,
+      );
+      updateSessionTitle(fetchedResume.id, formattedTitle);
+
+      const langs = Array.from(
+        new Set(fetchedResume.translations.map((t) => t.languageCode)),
+      );
+      const versions = Array.from(
+        new Set(fetchedResume.translations.map((t) => t.version)),
+      );
+
+      if (langs.length > 0 && !langs.includes(selectedLang)) {
+        setSelectedLang(langs[0]);
+      }
+
+      if (versions.length > 0 && !versions.includes(selectedVersion)) {
+        setSelectedVersion(versions[0]);
+      }
     }
-  }, [token, id]);
+  }, [fetchedResume, selectedLang, selectedVersion, updateSessionTitle]);
 
   // Handle CV Regeneration (New Version)
   const handleRegenerate = async () => {
@@ -320,8 +317,15 @@ export default function ResumeSessionPage() {
 
       if (result) {
         setSuccessMsg(t('regenerateSuccess'));
-        // Reload and force selecting the newly generated version
-        await loadResumeData(true);
+        const { data: updated } = await refetchSession();
+        if (updated) {
+          const versions = Array.from(
+            new Set(updated.translations.map((t) => t.version)),
+          );
+          if (versions.length > 0) {
+            setSelectedVersion(Math.max(...versions));
+          }
+        }
       } else {
         setErrorMsg(t('regenerateError'));
       }
@@ -354,7 +358,7 @@ export default function ResumeSessionPage() {
           languagesHtml: activeTranslation.languagesHtml,
           projectsHtml: activeTranslation.projectsHtml,
         },
-        token
+        token,
       );
       if (ok) {
         setSaveSuccess(true);
@@ -373,7 +377,12 @@ export default function ResumeSessionPage() {
 
   const handleDeleteResume = async () => {
     if (!resume || isDeleting) return;
-    if (!window.confirm('Bu özgeçmiş oturumunu silmek istediğinizden emin misiniz?')) return;
+    if (
+      !window.confirm(
+        'Bu özgeçmiş oturumunu silmek istediğinizden emin misiniz?',
+      )
+    )
+      return;
 
     setIsDeleting(true);
     try {
@@ -408,15 +417,12 @@ export default function ResumeSessionPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex h-[70vh] w-full flex-col items-center justify-center gap-4">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <p className="text-muted-foreground animate-pulse">
-          Loading AI Resume Session...
-        </p>
-      </div>
-    );
+  if (
+    isAuthLoading ||
+    (isSessionLoading && !resume) ||
+    (isPending && isFetching && !resume)
+  ) {
+    return <SessionDetailSkeleton />;
   }
 
   if (!resume) {
@@ -859,10 +865,16 @@ export default function ResumeSessionPage() {
                   isAuthenticated={!!session}
                   onRequestLogin={handleRequestAtsLogin}
                   onApplyTailoredTranslation={(updatedTranslation) => {
+                    if (!resume || !activeTranslation) return;
                     const updatedTranslations = resume.translations.map((tr) =>
-                      tr.id === activeTranslation.id ? { ...tr, ...updatedTranslation } : tr
+                      tr.id === activeTranslation.id
+                        ? { ...tr, ...updatedTranslation }
+                        : tr,
                     );
-                    setResume({ ...resume, translations: updatedTranslations } as ResumeDto);
+                    queryClient.setQueryData(resumeKeys.detail(resume.id), {
+                      ...resume,
+                      translations: updatedTranslations,
+                    } as ResumeDto);
                   }}
                 />
               )}
@@ -873,7 +885,8 @@ export default function ResumeSessionPage() {
                   translation={activeTranslation}
                   profile={resume?.profile}
                   onSaveTranslation={async (updated) => {
-                    if (!resume || !token || !activeTranslation.id) return false;
+                    if (!resume || !token || !activeTranslation.id)
+                      return false;
                     try {
                       setIsSaving(true);
                       const ok = await updateResumeTranslation(
@@ -883,10 +896,16 @@ export default function ResumeSessionPage() {
                         token,
                       );
                       if (ok) {
-                        const updatedTranslations = resume.translations.map((tr) =>
-                          tr.id === activeTranslation.id ? { ...tr, ...updated } : tr
+                        const updatedTranslations = resume.translations.map(
+                          (tr) =>
+                            tr.id === activeTranslation.id
+                              ? { ...tr, ...updated }
+                              : tr,
                         );
-                        setResume({ ...resume, translations: updatedTranslations } as ResumeDto);
+                        queryClient.setQueryData(resumeKeys.detail(resume.id), {
+                          ...resume,
+                          translations: updatedTranslations,
+                        } as ResumeDto);
                         return true;
                       }
                       return false;
@@ -906,7 +925,8 @@ export default function ResumeSessionPage() {
                   translation={activeTranslation}
                   profile={resume?.profile}
                   onSaveTranslation={async (updated) => {
-                    if (!resume || !token || !activeTranslation.id) return false;
+                    if (!resume || !token || !activeTranslation.id)
+                      return false;
                     try {
                       setIsSaving(true);
                       const ok = await updateResumeTranslation(
@@ -916,10 +936,16 @@ export default function ResumeSessionPage() {
                         token,
                       );
                       if (ok) {
-                        const updatedTranslations = resume.translations.map((tr) =>
-                          tr.id === activeTranslation.id ? { ...tr, ...updated } : tr
+                        const updatedTranslations = resume.translations.map(
+                          (tr) =>
+                            tr.id === activeTranslation.id
+                              ? { ...tr, ...updated }
+                              : tr,
                         );
-                        setResume({ ...resume, translations: updatedTranslations } as ResumeDto);
+                        queryClient.setQueryData(resumeKeys.detail(resume.id), {
+                          ...resume,
+                          translations: updatedTranslations,
+                        } as ResumeDto);
                         return true;
                       }
                       return false;

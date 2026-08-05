@@ -4,16 +4,17 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 export const profileKeys = {
     all: ['profiles'] as const,
-    profiles: (userId?: string) => [...profileKeys.all, userId] as const,
+    list: (token?: string) => ['profiles', 'list', token] as const,
 };
 
 export function useProfiles(token: string | undefined) {
     return useQuery<Profile[], Error>({
-        queryKey: profileKeys.all,
+        queryKey: profileKeys.list(token),
         queryFn: () => fetchProfiles(token!),
         enabled: !!token,
         staleTime: 5 * 60 * 1000, 
         gcTime: 10 * 60 * 1000, 
+        refetchOnWindowFocus: false, // Prevents background re-fetching when switching tabs
     });
 }
 
