@@ -56,7 +56,8 @@
     "deleteConfirmTitle": "Delete Resume",
     "deleteConfirmDesc": "Are you sure you want to delete this resume? This action cannot be undone.",
     "deleteConfirmCancel": "Cancel",
-    "deleteConfirmAction": "Delete"
+    "deleteConfirmAction": "Delete",
+    "loading": "Loading session..."
   },
   "common": {
     "light": "Light",

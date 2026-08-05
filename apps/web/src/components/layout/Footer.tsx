@@ -27,7 +27,7 @@ export default function Footer() {
             <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">Ürün Özellikleri</h4>
             <ul className="space-y-2 text-xs text-muted-foreground">
               <li>
-                <Link href="/dashboard" className="hover:text-primary transition-colors">
+                <Link href="/dashboard/profiles" className="hover:text-primary transition-colors">
                   AI CV Oluşturucu
                 </Link>
               </li>

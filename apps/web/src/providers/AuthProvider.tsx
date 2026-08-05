@@ -20,38 +20,40 @@ export function AuthProvider ({children}: {children:React.ReactNode}) {
     // Create client
     const supabase = createClient();
 
-    useEffect(()=>{
+    useEffect(() => {
         // Get session from supabase for first time
-        const checkSession = async()=>{
-            const {data:{session}} = await supabase.auth.getSession();
+        const checkSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
             setSession(session);
             if (session) {
-                const {data:{user}} = await supabase.auth.getUser();
-                setUser(user);
+                setUser(session.user);
+                setIsLoading(false);
+                // Validate user in background without blocking token availability
+                supabase.auth.getUser().then(({ data }) => {
+                    if (data.user) setUser(data.user);
+                });
             } else {
                 setUser(null);
+                setIsLoading(false);
             }
-            setIsLoading(false);
-        }
+        };
         checkSession();
 
         // Listen for auth changes
-        const {data: {subscription}} = supabase.auth.onAuthStateChange(async (_event,session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             setSession(session);
             if (session) {
-                const {data:{user}} = await supabase.auth.getUser();
-                setUser(user);
+                setUser(session.user);
             } else {
                 setUser(null);
             }
             setIsLoading(false);
-        }
-    );
+        });
 
         return () => {
             subscription.unsubscribe();
         };
-    },[]);
+    }, []);
     return (
         <AuthContext.Provider value={{user,session,isLoading}}>
             {children}

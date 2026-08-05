@@ -56,7 +56,8 @@
     "deleteConfirmTitle": "Özgeçmişi Sil",
     "deleteConfirmDesc": "Bu özgeçmiş oturumunu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
     "deleteConfirmCancel": "İptal",
-    "deleteConfirmAction": "Sil"
+    "deleteConfirmAction": "Sil",
+    "loading": "Oturum Yükleniyor..."
   },
   "common": {
     "light": "Açık",

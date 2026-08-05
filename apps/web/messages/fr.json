@@ -56,7 +56,8 @@
     "deleteConfirmTitle": "Supprimer le CV",
     "deleteConfirmDesc": "Êtes-vous sûr de vouloir supprimer ce CV ? Cette action est irréversible.",
     "deleteConfirmCancel": "Annuler",
-    "deleteConfirmAction": "Supprimer"
+    "deleteConfirmAction": "Supprimer",
+    "loading": "Chargement de la session..."
   },
   "common": {
     "light": "Clair",

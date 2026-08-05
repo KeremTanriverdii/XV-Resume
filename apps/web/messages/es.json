@@ -56,7 +56,8 @@
     "deleteConfirmTitle": "Eliminar Currículum",
     "deleteConfirmDesc": "¿Está seguro de que desea eliminar este currículum? Esta acción no se puede deshacer.",
     "deleteConfirmCancel": "Cancelar",
-    "deleteConfirmAction": "Eliminar"
+    "deleteConfirmAction": "Eliminar",
+    "loading": "Cargando sesión..."
   },
   "common": {
     "light": "Claro",

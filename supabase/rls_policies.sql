@@ -14,6 +14,7 @@ ALTER TABLE IF EXISTS "Experiences" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS "ProfileProjects" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS "ProfileEducations" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS "ProfileExperiences" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS "__EFMigrationsHistory" ENABLE ROW LEVEL SECURITY;
 
 -- ----------------------------------------------------------------------------
 -- 2. Users Table Policies

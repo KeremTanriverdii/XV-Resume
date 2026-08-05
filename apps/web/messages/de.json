@@ -56,7 +56,8 @@
     "deleteConfirmTitle": "Lebenslauf löschen",
     "deleteConfirmDesc": "Möchten Sie diesen Lebenslauf wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
     "deleteConfirmCancel": "Abbrechen",
-    "deleteConfirmAction": "Löschen"
+    "deleteConfirmAction": "Löschen",
+    "loading": "Lade Session..."
   },
   "common": {
     "light": "Hell",

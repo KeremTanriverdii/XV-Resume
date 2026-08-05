@@ -24,6 +24,7 @@ interface MultiStepProfileBuilderProps {
   isSaving: boolean;
   isFirstStep: boolean;
   isLastStep: boolean;
+  isAuthenticated?: boolean;
 }
 
 export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = ({
@@ -36,6 +37,7 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
   isSaving,
   isFirstStep,
   isLastStep,
+  isAuthenticated = false,
 }) => {
   const t = useTranslations("profileBuilder");
   // Inline Experience Form State
@@ -542,6 +544,7 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
           isFirst={isFirstStep}
           isLast={isLastStep}
           isSaving={isSaving}
+          isAuthenticated={isAuthenticated}
         />
       </div>
     );
@@ -689,6 +692,7 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
           isFirst={isFirstStep}
           isLast={isLastStep}
           isSaving={isSaving}
+          isAuthenticated={isAuthenticated}
         />
       </div>
     );
@@ -829,6 +833,7 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
           isFirst={isFirstStep}
           isLast={isLastStep}
           isSaving={isSaving}
+          isAuthenticated={isAuthenticated}
         />
       </div>
     );
@@ -985,6 +990,7 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
           isFirst={isFirstStep}
           isLast={isLastStep}
           isSaving={isSaving}
+          isAuthenticated={isAuthenticated}
         />
       </div>
     );
@@ -1183,9 +1189,18 @@ interface FooterProps {
   isFirst: boolean;
   isLast: boolean;
   isSaving: boolean;
+  isAuthenticated?: boolean;
 }
 
-const StepNavigationFooter: React.FC<FooterProps> = ({ onPrev, onNext, onSave, isFirst, isLast, isSaving }) => {
+const StepNavigationFooter: React.FC<FooterProps> = ({
+  onPrev,
+  onNext,
+  onSave,
+  isFirst,
+  isLast,
+  isSaving,
+  isAuthenticated,
+}) => {
   const t = useTranslations("profileBuilder");
   return (
     <div className="flex items-center justify-between pt-3 mt-2 border-t border-border/60">
@@ -1200,15 +1215,17 @@ const StepNavigationFooter: React.FC<FooterProps> = ({ onPrev, onNext, onSave, i
       </Button>
 
       <div className="flex items-center gap-2">
-        <Button
-          size="sm"
-          variant="secondary"
-          onClick={onSave}
-          disabled={isSaving}
-          className="text-xs gap-1 font-bold cursor-pointer"
-        >
-          <Save className="h-3.5 w-3.5" /> {t('btnSaveProfile')}
-        </Button>
+        {(isAuthenticated || isLast) && (
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={onSave}
+            disabled={isSaving}
+            className="text-xs gap-1 font-bold cursor-pointer"
+          >
+            <Save className="h-3.5 w-3.5" /> {t('btnSaveProfile')}
+          </Button>
+        )}
 
         {!isLast && (
           <Button

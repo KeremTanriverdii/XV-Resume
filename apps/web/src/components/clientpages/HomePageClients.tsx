@@ -200,7 +200,7 @@ export default function HomePageClient() {
 
                 <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
                   <Link
-                    href={session ? "/dashboard" : "/register"}
+                    href="/dashboard/profiles"
                     className="group inline-flex items-center justify-center gap-2 rounded-full bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-bold px-8 py-4 transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/25 active:scale-95 text-center cursor-pointer"
                   >
                     <Sparkles className="h-4.5 w-4.5" />
@@ -629,7 +629,7 @@ export default function HomePageClient() {
               {c.ctaBanner.desc}
             </p>
             <Link
-              href={session ? "/dashboard" : "/register"}
+              href="/dashboard/profiles"
               className="inline-flex items-center gap-2 rounded-full bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-bold px-8 py-4 shadow-lg shadow-emerald-500/10 transition-all duration-300 hover:scale-105 active:scale-95 text-center text-sm cursor-pointer"
             >
               <Sparkles className="h-4.5 w-4.5" />

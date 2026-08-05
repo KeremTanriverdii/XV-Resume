@@ -28,9 +28,11 @@ import {
   fetchProfiles,
 } from '@/services/profileService';
 import { exportToPdf } from '@/utils/pdfExport';
+import { formatDate } from '@/utils/date';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
 import { useQueryClient } from '@tanstack/react-query';
+import { profileKeys } from '@/hooks/useProfile';
 import { Button } from '../ui/button';
 
 interface ProfilesContainerProps {
@@ -250,7 +252,7 @@ export default function ProfilesContainer({
         toast.success(
           t('profileSavedSuccess') || 'Profil başarıyla kaydedildi!',
         );
-        queryClient.invalidateQueries({ queryKey: ['profiles', userId] });
+        queryClient.invalidateQueries({ queryKey: profileKeys.all });
       } else {
         toast.error('Profil kaydedilemedi. Lütfen bilgilerinizi kontrol edin.');
       }
@@ -349,6 +351,20 @@ export default function ProfilesContainer({
     } as any,
   };
 
+  const formatDescriptionToBullets = (desc?: string): string => {
+    if (!desc || !desc.trim()) return '';
+    if (desc.includes('<ul>') || desc.includes('<li>')) {
+      return desc;
+    }
+    const lines = desc
+      .split(/\r?\n/)
+      .map((line) => line.replace(/^[\s\-•*]+/, '').trim())
+      .filter((line) => line.length > 0);
+
+    if (lines.length === 0) return '';
+    return `<ul>${lines.map((l) => `<li>${l}</li>`).join('')}</ul>`;
+  };
+
   const liveTranslation: Partial<ResumeTranslationDto> = {
     languageCode: 'en',
     title: previewProfile.profileName || 'Master CV Profile',
@@ -356,36 +372,67 @@ export default function ProfilesContainer({
       previewProfile.summary ||
       'Professional bio paragraph will render live here as you type...',
     experienceHtml: safeExperiencesList
-      .map(
-        (exp) =>
-          `<h3>${exp.jobTitle || exp.role || 'Position'} @ ${exp.companyName || 'Company'}</h3><p>${exp.startDate || ''} - ${exp.endDate || 'Present'}</p><p>${exp.description || ''}</p>`,
-      )
+      .map((exp) => {
+        const titleLine = `<h3>${exp.jobTitle || exp.role || 'Position'} @ ${exp.companyName || 'Company'}</h3>`;
+        const startStr = exp.startDate ? formatDate(exp.startDate) : '';
+        const endStr =
+          exp.endDate === 'Present' || !exp.endDate
+            ? 'Present'
+            : formatDate(exp.endDate);
+        const dateLine = `<p>${startStr}${startStr && endStr ? ' - ' : ''}${endStr}</p>`;
+        const descBullets = formatDescriptionToBullets(exp.description);
+        return `${titleLine}${dateLine}${descBullets}`;
+      })
       .join('<br/>'),
     educationHtml: safeEducationsList
-      .map(
-        (edu) =>
-          `<h3>${edu.degree || 'Degree'} @ ${edu.institutionName || edu.schoolName || 'University/School'}</h3><p>${edu.startDate || ''} - ${edu.endDate || 'Present'}</p>`,
-      )
+      .map((edu) => {
+        const startStr = edu.startDate ? formatDate(edu.startDate) : '';
+        const endStr =
+          edu.endDate === 'Present' || !edu.endDate
+            ? 'Present'
+            : formatDate(edu.endDate);
+        return `<h3>${edu.degree || 'Degree'} @ ${edu.institutionName || edu.schoolName || 'University/School'}</h3><p>${startStr}${startStr && endStr ? ' - ' : ''}${endStr}</p>`;
+      })
       .join('<br/>'),
     projectsHtml: safeProjectsList
-      .map(
-        (proj) =>
-          `<h3>${proj.projectName}</h3>${proj.description ? `<p>${proj.description}</p>` : ''}`,
-      )
+      .map((proj) => {
+        const titleLine = `<h3>${proj.projectName || proj.title || 'Project'}</h3>`;
+        const descBullets = formatDescriptionToBullets(proj.description);
+        return `${titleLine}${descBullets}`;
+      })
       .join('<br/>'),
-    skillsHtml: safeSkillsList.length
-      ? safeSkillsList
-          .map((s) => {
-            if (s.includes(':')) {
-              const parts = s.split(':');
-              const category = parts[0].trim();
-              const items = parts.slice(1).join(':').trim();
-              return `<p><strong>${category}:</strong> ${items}</p>`;
-            }
-            return `<p>${s}</p>`;
-          })
-          .join('')
-      : '',
+    skillsHtml: (() => {
+      if (!safeSkillsList.length) return '';
+      const categorized: string[] = [];
+      const uncategorized: string[] = [];
+
+      safeSkillsList.forEach((s) => {
+        if (!s || !s.trim()) return;
+        if (s.includes(':')) {
+          const parts = s.split(':');
+          const category = parts[0].trim();
+          const items = parts.slice(1).join(':').trim();
+          if (category && items) {
+            categorized.push(`<p><strong>${category}:</strong> ${items}</p>`);
+          } else {
+            uncategorized.push(s.trim());
+          }
+        } else {
+          uncategorized.push(s.trim());
+        }
+      });
+
+      let uncategorizedHtml = '';
+      if (uncategorized.length > 0) {
+        if (categorized.length > 0) {
+          uncategorizedHtml = `<p><strong>Ek Beceriler:</strong> ${uncategorized.join(', ')}</p>`;
+        } else {
+          uncategorizedHtml = `<p>${uncategorized.join(', ')}</p>`;
+        }
+      }
+
+      return [...categorized, uncategorizedHtml].filter(Boolean).join('');
+    })(),
     languagesHtml: safeLanguagesList.length
       ? `<p><strong>Languages:</strong> ${safeLanguagesList.join(', ')}</p>`
       : '',
@@ -496,6 +543,7 @@ export default function ProfilesContainer({
             isSaving={isSaving}
             isFirstStep={currentStep === 0}
             isLastStep={currentStep === 4}
+            isAuthenticated={!!userId}
           />
         </div>
 
