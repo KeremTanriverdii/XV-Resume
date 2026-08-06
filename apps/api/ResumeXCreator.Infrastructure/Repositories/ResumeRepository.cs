@@ -13,7 +13,6 @@ public class ResumeRepository(AppDbContext context) : GenericRepository<Resume>(
     public async Task<Resume?> GetWithTranslationsByIdAsync(System.Guid id)
     {
         return await _context.Resumes
-            .AsNoTracking()
             .AsSplitQuery()
             .Include(r => r.Translations)
             .Include(r => r.Profile)
