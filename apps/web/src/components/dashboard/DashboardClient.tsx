@@ -26,6 +26,7 @@ import { generateResume } from '@/services/resumeService';
 import { formatCompanyAndRole } from '@/utils/formatTitle';
 import { LanguageGenerationSelector } from '@/components/resume/LanguageGenerationSelector';
 import { useGenerateResume } from '@/hooks/useResume';
+import { AiRegeneratingOverlay } from '@/components/resume/AiRegeneratingOverlay';
 
 const PaddleSubscribeModal = dynamic(
   () =>
@@ -140,6 +141,7 @@ export default function DashboardClient() {
 
   return (
     <div className="w-full min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 relative">
+      <AiRegeneratingOverlay isOpen={isGenerating} />
       <div className="w-full max-w-3xl flex flex-col items-center text-center space-y-6">
         {/* Badge */}
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 text-xs font-bold uppercase tracking-wider shadow-xs backdrop-blur-sm">

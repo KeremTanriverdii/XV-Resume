@@ -341,6 +341,31 @@
     "downloadingPdf": "PDF Hazırlanıyor...",
     "template": "CV Şablonu",
     "colorTheme": "Renk Teması",
+    "save": "Kaydet",
+    "saving": "Kaydediliyor...",
+    "saved": "Kaydedildi!",
+    "delete": "Sil",
+    "deleteConfirm": "Bu özgeçmiş oturumunu silmek istediğinizden emin misiniz?",
+    "aiSessionOptions": "AI Oturum Seçenekleri",
+    "activeVersion": "Aktif Sürüm",
+    "jobDescTitle": "İş İlanı Detayları",
+    "goToJobPosting": "İlan Sayfasına Git",
+    "sessionNotFoundTitle": "Özgeçmiş Oturumu Bulunamadı",
+    "sessionNotFoundDesc": "İstenen AI CV oluşturma oturumu alınamadı.",
+    "tabs": {
+      "cvPreview": "Özelleştirilmiş CV Önizleme",
+      "jobDesc": "İş İlanı",
+      "atsAnalysis": "ATS Analizi",
+      "coverLetter": "Ön Yazı",
+      "coldMessage": "Cold Message"
+    },
+    "authModal": {
+      "saveExportTitle": "CV'nizi Kaydedin ve İndirin",
+      "downloadTitle": "Yüksek Çözünürlüklü PDF İndirmek İçin Giriş Yapın",
+      "emailTitle": "CV'nizi E-postalamak İçin Giriş Yapın",
+      "saveTitle": "CV İlerlemenizi Kaydedin",
+      "atsTitle": "ATS Analizini Açmak İçin Giriş Yapın"
+    },
     "templates": {
       "modern": "Modern Klasik",
       "modernDesc": "Rozetler ve renkli vurgular içeren dengeli 1 sütunlu modern düzen.",
@@ -465,5 +490,41 @@
     "upgradeToProBadge": "Pro'ya Yükselt ✨",
     "subscriptionExpiredTitle": "Abonelik Süresi Doldu",
     "subscriptionExpiredText": "14 günlük ücretsiz deneme süreniz veya aylık aboneliğiniz sona erdi."
+  },
+  "aiOverlay": {
+    "title": "Yapay Zeka Akıllı İşleme Katmanı",
+    "stepCounter": "Adım {current} / {total}",
+    "securityBadge": "Google XYZ & ATS Optimizer Guard",
+    "steps": {
+      "1": {
+        "label": "İş İlanı Analizi",
+        "text": "İş ilanı ve pozisyon gereksinimleri derinlemesine analiz ediliyor..."
+      },
+      "2": {
+        "label": "Deneyim Eşleştirme",
+        "text": "Kariyer profiliniz ve tecrübeleriniz pozisyonla eşleştiriliyor..."
+      },
+      "3": {
+        "label": "XYZ Formülü",
+        "text": "Google XYZ Formülü ile iş tecrübesi cümleleri optimize ediliyor..."
+      },
+      "4": {
+        "label": "ATS Puanlama",
+        "text": "ATS anahtar kelimeleri ve uyumluluk puanı hesaplanıyor..."
+      },
+      "5": {
+        "label": "Ön Yazı & Mesaj",
+        "text": "İş ilanına özel Ön Yazı ve Cold Message oluşturuluyor..."
+      },
+      "6": {
+        "label": "Belge Düzenleme",
+        "text": "Özgeçmiş belgeniz mükemmel şekilde biçimlendiriliyor..."
+      }
+    },
+    "tips": {
+      "1": "Google XYZ Formülü: '[Sonuç] elde edildi, [Ölçüt] ile ölçüldü, [Eylem] yapıldı' kuralı ile cümlelerinizi güçlendirir.",
+      "2": "İş tecrübelerinde ölçülebilir başarılar (Örn: %35 verimlilik artışı) eklemek ATS puanınızı belirgin artırır.",
+      "3": "CV belgenizi dilediğiniz zaman Türkçe, İngilizce veya Almanca olarak yeniden üretebilirsiniz."
+    }
   }
 }

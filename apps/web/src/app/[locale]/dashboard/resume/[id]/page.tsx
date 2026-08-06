@@ -13,7 +13,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useResumeSession, resumeKeys } from '@/hooks/useResume';
 import { useResumeStore } from '@/store/useResumeStore';
 import { ResumeDto, ResumeTranslationDto } from '@/types';
-import { Button } from '@/components/ui/button';
 import {
   Loader2,
   ArrowLeft,
@@ -34,7 +33,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link, useRouter } from '@/i18n/routing';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import {
   ResumeTemplates,
   TemplateId,
@@ -49,6 +48,7 @@ import { LanguageGenerationSelector } from '@/components/resume/LanguageGenerati
 import { ProtectedPreviewOverlay } from '@/components/resume/ProtectedPreviewOverlay';
 import { SessionDetailSkeleton } from '@/components/resume/SessionDetailSkeleton';
 import { AuthModal } from '@/components/auth/AuthModal';
+import { AiRegeneratingOverlay } from '@/components/resume/AiRegeneratingOverlay';
 import { Mail, Send } from 'lucide-react';
 
 const parseBold = (text: string) => {
@@ -130,7 +130,7 @@ const cleanJobDescriptionText = (raw?: string | null) => {
   const noise = [
     /Skip to main content/gi,
     /Expand search/gi,
-    /This button displays the currently selected search type[^\.\n]*/gi,
+    /This Button displays the currently selected search type[^\.\n]*/gi,
     /When expanded it provides a list of search options[^\.\n]*/gi,
     /Clear text/gi,
     /Sign in/gi,
@@ -172,11 +172,13 @@ const cleanJobDescriptionText = (raw?: string | null) => {
 };
 
 import { formatCompanyAndRole } from '@/utils/formatTitle';
+import { Button } from '@/components/ui/button';
 
 export default function ResumeSessionPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const id = params?.id as string;
+  const locale = useLocale();
 
   const queryClient = useQueryClient();
 
@@ -198,7 +200,7 @@ export default function ResumeSessionPage() {
   // State
   const [regenerating, setRegenerating] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
-  const [selectedLang, setSelectedLang] = useState<string>('en');
+  const [selectedLang, setSelectedLang] = useState<string>(locale);
   const [selectedVersion, setSelectedVersion] = useState<number>(1);
   const [selectedTemplate, setSelectedTemplate] =
     useState<TemplateId>(initialTemplate);
@@ -216,7 +218,7 @@ export default function ResumeSessionPage() {
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
   const [authActionTitle, setAuthActionTitle] = useState<string>(
-    'Save & Export Your CV',
+    t('authModal.saveExportTitle'),
   );
   const [pendingAction, setPendingAction] = useState<
     'download' | 'email' | 'save' | 'ats' | null
@@ -227,10 +229,10 @@ export default function ResumeSessionPage() {
       setPendingAction(action);
       setAuthActionTitle(
         action === 'download'
-          ? 'Sign in to Download High-Res PDF'
+          ? t('authModal.downloadTitle')
           : action === 'email'
-            ? 'Sign in to Email Your CV'
-            : 'Save Your CV Progress',
+            ? t('authModal.emailTitle')
+            : t('authModal.saveTitle'),
       );
       setIsAuthModalOpen(true);
       return;
@@ -243,7 +245,7 @@ export default function ResumeSessionPage() {
 
   const handleRequestAtsLogin = () => {
     setPendingAction('ats');
-    setAuthActionTitle('Sign in to Unlock ATS Analysis');
+    setAuthActionTitle(t('authModal.atsTitle'));
     setIsAuthModalOpen(true);
   };
 
@@ -377,12 +379,7 @@ export default function ResumeSessionPage() {
 
   const handleDeleteResume = async () => {
     if (!resume || isDeleting) return;
-    if (
-      !window.confirm(
-        'Bu özgeçmiş oturumunu silmek istediğinizden emin misiniz?',
-      )
-    )
-      return;
+    if (!window.confirm(t('deleteConfirm'))) return;
 
     setIsDeleting(true);
     try {
@@ -431,9 +428,9 @@ export default function ResumeSessionPage() {
         <div className="h-16 w-16 bg-destructive/10 rounded-full flex items-center justify-center text-destructive mb-2">
           ⚠️
         </div>
-        <h2 className="text-xl font-bold">Resume Session Not Found</h2>
+        <h2 className="text-xl font-bold">{t('sessionNotFoundTitle')}</h2>
         <p className="text-sm text-muted-foreground">
-          The requested AI CV generation session could not be retrieved.
+          {t('sessionNotFoundDesc')}
         </p>
         <Button asChild className="rounded-full mt-2">
           <Link href="/dashboard">
@@ -464,6 +461,7 @@ export default function ResumeSessionPage() {
 
   return (
     <div className="flex flex-col gap-6 p-1 max-w-7xl mx-auto w-full">
+      <AiRegeneratingOverlay isOpen={regenerating} colorTheme={selectedColor} />
       {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4">
         <div className="flex items-center gap-3">
@@ -526,17 +524,17 @@ export default function ResumeSessionPage() {
               {isSaving ? (
                 <>
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  <span>Kaydediliyor...</span>
+                  <span>{t('saving')}</span>
                 </>
               ) : saveSuccess ? (
                 <>
                   <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-                  <span>Kaydedildi!</span>
+                  <span>{t('saved')}</span>
                 </>
               ) : (
                 <>
                   <Save className="h-3.5 w-3.5" />
-                  <span>Kaydet</span>
+                  <span>{t('save')}</span>
                 </>
               )}
             </Button>
@@ -573,8 +571,10 @@ export default function ResumeSessionPage() {
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <>
-                <Trash2 className="h-4 w-4" />
-                <span>Sil</span>
+                <Trash2 className="h-4 w-4 text-red-600 dark:text-red-500" />
+                <span className="text-black dark:text-white">
+                  {t('delete')}
+                </span>
               </>
             )}
           </Button>
@@ -600,7 +600,7 @@ export default function ResumeSessionPage() {
           <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm flex flex-col gap-5">
             <h3 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
               <Sparkles className="h-4 w-4 text-amber-500" />
-              AI Session Options
+              {t('aiSessionOptions')}
             </h3>
 
             {/* Language Selector */}
@@ -659,12 +659,12 @@ export default function ResumeSessionPage() {
               </label>
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  { id: 'modern', name: 'Modern' },
-                  { id: 'executive', name: 'Executive' },
-                  { id: 'sidebar', name: 'Left Sidebar' },
-                  { id: 'minimal', name: 'Minimalist' },
+                  { id: 'modern', name: t('templates.modern') },
+                  { id: 'executive', name: t('templates.executive') },
+                  { id: 'sidebar', name: t('templates.sidebar') },
+                  { id: 'minimal', name: t('templates.minimal') },
                 ].map((tmpl) => (
-                  <button
+                  <Button
                     key={tmpl.id}
                     type="button"
                     onClick={() => setSelectedTemplate(tmpl.id as TemplateId)}
@@ -675,7 +675,7 @@ export default function ResumeSessionPage() {
                     }`}
                   >
                     {tmpl.name}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
@@ -688,7 +688,7 @@ export default function ResumeSessionPage() {
               </label>
               <div className="flex items-center gap-2 flex-wrap">
                 {(Object.keys(COLOR_THEMES) as ColorThemeId[]).map((cId) => (
-                  <button
+                  <Button
                     key={cId}
                     type="button"
                     onClick={() => setSelectedColor(cId)}
@@ -738,65 +738,65 @@ export default function ResumeSessionPage() {
           {/* Tab Switcher */}
           <div className="flex flex-wrap items-center justify-between gap-4 px-2 border-b pb-2">
             <div className="flex gap-2 bg-muted/60 p-1 rounded-xl border border-border/60">
-              <button
+              <Button
                 onClick={() => setActiveTab('preview')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer hover:bg-zinc-300/50 border-0 dark:hover:bg-zinc-500/50 ${
                   activeTab === 'preview'
                     ? 'bg-background text-foreground shadow-xs'
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted/80'
                 }`}
               >
                 <FileText className="h-3.5 w-3.5" />
-                Tailored CV Preview
-              </button>
-              <button
+                {t('tabs.cvPreview')}
+              </Button>
+              <Button
                 onClick={() => setActiveTab('jobDesc')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer hover:bg-zinc-300/50 border-0 dark:hover:bg-zinc-500/50 ${
                   activeTab === 'jobDesc'
                     ? 'bg-background text-foreground shadow-xs'
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted/80'
                 }`}
               >
                 <Briefcase className="h-3.5 w-3.5" />
-                Job Description
-              </button>
-              <button
+                {t('tabs.jobDesc')}
+              </Button>
+              <Button
                 onClick={() => setActiveTab('ats')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer  hover:bg-zinc-300/50 border-0 dark:hover:bg-zinc-500/50 ${
                   activeTab === 'ats'
                     ? 'bg-background text-foreground shadow-xs'
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted/80'
                 }`}
               >
                 <Sparkles className="h-3.5 w-3.5" />
-                ATS Analysis
-              </button>
-              <button
+                {t('tabs.atsAnalysis')}
+              </Button>
+              <Button
                 onClick={() => setActiveTab('coverLetter')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer  hover:bg-zinc-300/50 border-0 dark:hover:bg-zinc-500/50 ${
                   activeTab === 'coverLetter'
                     ? 'bg-background text-foreground shadow-xs'
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted/80'
                 }`}
               >
                 <Mail className="h-3.5 w-3.5 text-emerald-500" />
-                Cover Letter
-              </button>
-              <button
+                {t('tabs.coverLetter')}
+              </Button>
+              <Button
                 onClick={() => setActiveTab('coldMessage')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer  hover:bg-zinc-300/50 border-0 dark:hover:bg-zinc-500/50 ${
                   activeTab === 'coldMessage'
                     ? 'bg-background text-foreground shadow-xs'
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted/80'
                 }`}
               >
                 <Send className="h-3.5 w-3.5 text-blue-500" />
-                Cold Message
-              </button>
+                {t('tabs.coldMessage')}
+              </Button>
             </div>
 
             <span className="text-xs text-muted-foreground font-medium">
-              Active Version:{' '}
+              {t('activeVersion')}:{' '}
               <span className="font-semibold text-foreground">
                 v{selectedVersion}
               </span>
@@ -837,7 +837,7 @@ export default function ResumeSessionPage() {
                   <div className="border-b-2 border-primary/20 pb-4 flex items-center justify-between gap-4">
                     <div>
                       <h2 className="text-2xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
-                        Job Advertisement / İş İlanı Detayları
+                        {t('jobDescTitle')}
                       </h2>
                       {resume.externalJobLink && (
                         <a
@@ -846,7 +846,7 @@ export default function ResumeSessionPage() {
                           rel="noopener noreferrer"
                           className="text-xs text-primary hover:underline font-semibold mt-1 flex items-center gap-1"
                         >
-                          <span>Go to Job Posting</span>
+                          <span>{t('goToJobPosting')}</span>
                           <ExternalLink className="h-3 w-3" />
                         </a>
                       )}
