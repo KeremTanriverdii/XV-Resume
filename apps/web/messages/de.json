@@ -339,6 +339,31 @@
     "downloadingPdf": "PDF wird erstellt...",
     "template": "Lebenslauf Vorlage",
     "colorTheme": "Farbthema",
+    "save": "Speichern",
+    "saving": "Wird gespeichert...",
+    "saved": "Gespeichert!",
+    "delete": "Löschen",
+    "deleteConfirm": "Sind Sie sicher, dass Sie diese Lebenslauf-Sitzung löschen möchten?",
+    "aiSessionOptions": "KI-Sitzungsoptionen",
+    "activeVersion": "Aktive Version",
+    "jobDescTitle": "Stellenbeschreibungsdetails",
+    "goToJobPosting": "Zur Stellenanzeige",
+    "sessionNotFoundTitle": "Lebenslauf-Sitzung nicht gefunden",
+    "sessionNotFoundDesc": "Die angeforderte KI-CV-Erstellungssitzung konnte nicht abgerufen werden.",
+    "tabs": {
+      "cvPreview": "Angepasste CV-Vorschau",
+      "jobDesc": "Stellenbeschreibung",
+      "atsAnalysis": "ATS-Analyse",
+      "coverLetter": "Anschreiben",
+      "coldMessage": "Kaltakquise-Nachricht"
+    },
+    "authModal": {
+      "saveExportTitle": "Speichern & Exportieren Sie Ihren Lebenslauf",
+      "downloadTitle": "Anmelden zum Herunterladen des hochauflösenden PDFs",
+      "emailTitle": "Anmelden zum Versenden Ihres Lebenslaufs per E-Mail",
+      "saveTitle": "Speichern Sie Ihren Lebenslauf-Fortschritt",
+      "atsTitle": "Anmelden zur Freischaltung der ATS-Analyse"
+    },
     "templates": {
       "modern": "Klassisch Modern",
       "modernDesc": "Ausgewogenes 1-Spalten-Layout mit modernen Farbakzenten.",
