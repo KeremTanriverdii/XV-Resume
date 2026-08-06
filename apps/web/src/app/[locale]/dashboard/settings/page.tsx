@@ -56,7 +56,7 @@ export default function SettingsPage() {
 
   // Billing portal redirection state
   const [billingLoading, setBillingLoading] = useState(false);
-  const [subStatus, setSubStatus] = useState<string>("Trial");
+  const [subStatus, setSubStatus] = useState<string>("Inactive");
   const [trialEnds, setTrialEnds] = useState<string | null>(null);
   const [subEnds, setSubEnds] = useState<string | null>(null);
 
@@ -91,7 +91,8 @@ export default function SettingsPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to generate billing portal session.');
+        const detailMsg = typeof errorData.details === 'string' ? errorData.details : JSON.stringify(errorData.details || '');
+        alert((errorData.error || 'Failed to generate billing portal session.') + (detailMsg ? `\n\nDetail: ${detailMsg}` : ''));
         return;
       }
 
