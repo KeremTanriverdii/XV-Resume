@@ -24,8 +24,10 @@ public static class ServiceExtensions
     services.AddScoped<IProjectRepository, ProjectRepository>();
     services.AddScoped<IUserRepository, UserRepository>();
     
-    // Register Gemini AI service with HttpClient
-    services.AddHttpClient<IAiService, GeminiAiService>();
+    // Register AI Services (Gemini, DeepSeek, and Switchable Provider)
+    services.AddHttpClient<GeminiAiService>();
+    services.AddHttpClient<DeepSeekAiService>();
+    services.AddScoped<IAiService, SwitchableAiService>();
 
     // Register AI Cache Service
     services.AddSingleton<IAiCacheService, AiCacheService>();
