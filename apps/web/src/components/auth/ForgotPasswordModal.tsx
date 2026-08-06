@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { createClient } from '@/utils/supabase/client';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 
 interface ForgotPasswordModalProps {
@@ -22,6 +22,7 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
 }) => {
   const supabase = createClient();
   const locale = useLocale();
+  const tToast = useTranslations('toast');
 
   const [email, setEmail] = useState(defaultEmail);
   const [isLoading, setIsLoading] = useState(false);
@@ -36,7 +37,7 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
 
     const trimmed = email.trim();
     if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
-      setError('Lütfen geçerli bir e-posta adresi girin.');
+      setError(tToast('sendEmailError'));
       return;
     }
 
@@ -52,7 +53,7 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
 
       if (authError) {
         if (authError.message.includes('rate limit') || authError.message.includes('too many requests')) {
-          setError('Çok fazla istek gönderildi. Lütfen birkaç dakika bekleyip tekrar deneyin.');
+          setError(tToast('rateLimitError'));
         } else {
           setError(authError.message);
         }
@@ -60,9 +61,9 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
       }
 
       setIsSuccess(true);
-      toast.success('Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.');
+      toast.success(tToast('resetPasswordSent'));
     } catch {
-      setError('E-posta gönderilirken bir hata oluştu. Lütfen tekrar deneyin.');
+      setError(tToast('sendEmailError'));
     } finally {
       setIsLoading(false);
     }

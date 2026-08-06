@@ -38,6 +38,13 @@ public static class ProfileEndpoints
     {
       var userId = ctx.User.FindFirstValue(ClaimTypes.NameIdentifier);
       if (userId == null) return Results.Unauthorized();
+
+      var existingProfiles = await profileService.GetProfilesByUserIdAsync(userId);
+      if (existingProfiles != null && existingProfiles.Count() >= 4)
+      {
+        return Results.BadRequest(new { error = "Maximum limit of 4 candidate profiles reached. Please delete an existing profile to create a new one." });
+      }
+
       var dtoWithUser = dto with { UserId = userId };
 
       var result = await profileService.CreateProfileAsync(dtoWithUser);

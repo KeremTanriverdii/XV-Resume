@@ -17,7 +17,7 @@ export const createProfile = async (
     token: string | undefined
 ): Promise<Profile | null> => {
     if (!token) return null;
-    return api.post<Profile>("/profiles", data, token).catch(() => null);
+    return api.post<Profile>("/profiles", data, token);
 };
 
 export const updateProfile = async (
@@ -26,7 +26,7 @@ export const updateProfile = async (
     token: string | undefined
 ): Promise<Profile | null> => {
     if (!token) return null;
-    return api.put<Profile>(`/profiles/${id}`, data, token).catch(() => null);
+    return api.put<Profile>(`/profiles/${id}`, data, token);
 };
 
 export const deleteProfile = async (

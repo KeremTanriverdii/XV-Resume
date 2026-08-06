@@ -6,8 +6,15 @@
     "title": "My Resumes",
     "templates": "Templates",
     "settings": "Settings",
-    "createTitle": "Create a Tailored Resume",
-    "createSubtitle": "Paste the link to the job description you are applying for. Our AI will analyze the requirements and tailor your resume to perfectly match.",
+    "createTitle": "Generate Your All-in-One Career Suite",
+    "createSubtitle": "Paste the job posting link. Our AI instantly analyzes requirements to simultaneously generate your ATS Resume, Cover Letter, Cold Message, and ATS Match Score in one pass.",
+    "badgeText": "All-in-One AI Career Suite",
+    "features": {
+      "resume": "ATS-Tailored Resume",
+      "coverLetter": "Tailored Cover Letter",
+      "coldMessage": "High-Converting Cold Message",
+      "atsScore": "Real-Time ATS Score"
+    },
     "placeholderUrl": "https://linkedin.com/jobs/view/...",
     "btnStartAi": "Start AI",
     "generating": "Generating...",
@@ -43,7 +50,14 @@
     "profiles": "Profiles",
     "educations": "Educations",
     "experiences": "Experiences",
-    "projects": "Projects"
+    "projects": "Projects",
+    "outreach": "Cold Message & Cover Letter",
+    "atsScan": "Quick ATS Match Test",
+    "deleteConfirmTitle": "Delete Resume",
+    "deleteConfirmDesc": "Are you sure you want to delete this resume? This action cannot be undone.",
+    "deleteConfirmCancel": "Cancel",
+    "deleteConfirmAction": "Delete",
+    "loading": "Loading session..."
   },
   "common": {
     "light": "Light",
@@ -150,7 +164,23 @@
   },
   "profiles": {
     "title": "Profiles",
-    "myProfiles": "My Profiles",
+    "profile": "Profile",
+    "myProfiles": "Saved Candidate Profiles",
+    "myProfilesSubtitle": "Saved candidate profiles available for resume building and AI job applications.",
+    "builderTitle": "Multi-Step Profile Builder",
+    "builderSubtitle": "Create or update your CV profile step by step with real-time template preview.",
+    "livePreview": "Live A4 Preview",
+    "realtimeSync": "Real-time Sync",
+    "notFoundDesc": "You can create your first candidate profile using the builder above.",
+    "activeEditing": "Currently Editing",
+    "limitFull": "(Limit Reached)",
+    "maxProfilesReached": "Maximum limit of 4 candidate profiles reached. Please delete an existing profile to create a new one.",
+    "deleting": "Deleting...",
+    "signInToDownload": "Sign in to Download High-Res PDF",
+    "signInToEmail": "Sign in to Email Your CV",
+    "signInToSave": "Save Your Profile",
+    "profileSetupSteps": "Profile Setup Steps",
+    "completeStepsDesc": "Complete each step to build your CV",
     "addProfile": "Create Profile",
     "editProfile": "Edit Profile",
     "newProfile": "New Profile Info",
@@ -311,6 +341,31 @@
     "downloadingPdf": "Generating PDF...",
     "template": "CV Template",
     "colorTheme": "Color Theme",
+    "save": "Save",
+    "saving": "Saving...",
+    "saved": "Saved!",
+    "delete": "Delete",
+    "deleteConfirm": "Are you sure you want to delete this resume session?",
+    "aiSessionOptions": "AI Session Options",
+    "activeVersion": "Active Version",
+    "jobDescTitle": "Job Advertisement Details",
+    "goToJobPosting": "Go to Job Posting",
+    "sessionNotFoundTitle": "Resume Session Not Found",
+    "sessionNotFoundDesc": "The requested AI CV generation session could not be retrieved.",
+    "tabs": {
+      "cvPreview": "Tailored CV Preview",
+      "jobDesc": "Job Description",
+      "atsAnalysis": "ATS Analysis",
+      "coverLetter": "Cover Letter",
+      "coldMessage": "Cold Message"
+    },
+    "authModal": {
+      "saveExportTitle": "Save & Export Your CV",
+      "downloadTitle": "Sign in to Download High-Res PDF",
+      "emailTitle": "Sign in to Email Your CV",
+      "saveTitle": "Save Your CV Progress",
+      "atsTitle": "Sign in to Unlock ATS Analysis"
+    },
     "templates": {
       "modern": "Modern Classic",
       "modernDesc": "Balanced 1-column modern layout with crisp badges and highlights.",
@@ -327,6 +382,149 @@
       "indigo": "Indigo Violet",
       "purple": "Deep Purple",
       "slate": "Dark Slate"
+    }
+  },
+  "outreach": {
+    "title": "Cold Message & Cover Letter AI Generator",
+    "subtitle": "Select candidate details and target job description to generate high-converting outreach content.",
+    "coverLetter": "Cover Letter",
+    "coldMessage": "Cold Message",
+    "step1Title": "1. Select Candidate Data Source (3 Options)",
+    "step1Desc": "Choose how you want to provide your candidate background.",
+    "uploadCv": "Upload CV",
+    "createdCv": "Saved CV",
+    "profile": "Profile",
+    "uploadLabel": "Candidate CV File / Attachment",
+    "attachDoc": "Attach CV Document (.pdf, .txt, .docx)",
+    "maxSize": "File size up to 10MB",
+    "browseFile": "Browse & Attach File",
+    "orPasteRaw": "Or paste raw CV text directly:",
+    "selectCreatedResume": "Select Saved Resume Session",
+    "selectProfile": "Select Candidate Profile",
+    "step2Title": "2. Target Job Posting & Language",
+    "jobUrlLabel": "External Job Link (URL)",
+    "jobUrlPlaceholder": "https://www.linkedin.com/jobs/view/...",
+    "jobDescLabel": "Or Job Description Text",
+    "jobDescPlaceholder": "Paste job posting details here...",
+    "outputLang": "Output Language",
+    "btnGenerate": "Generate",
+    "btnGenerating": "Generating...",
+    "readyTitle": "Ready to Generate",
+    "readyDesc": "Choose candidate data source and click Generate to produce a high-converting message.",
+    "analyzing": "AI is analyzing candidate experience & job details...",
+    "cachedNotice": "Served from Cache ($0 Token Cost)",
+    "copy": "Copy Text",
+    "copied": "Copied!",
+    "download": "Download .txt",
+    "edit": "Edit",
+    "doneEditing": "Done Editing"
+  },
+  "toast": {
+    "authMissing": "Authentication required. Please sign in.",
+    "errorUploadCv": "Please upload your CV file or paste your CV text.",
+    "errorSelectResume": "Please select one of your created resumes.",
+    "errorSelectProfile": "Please select one of your profiles.",
+    "attachedFileSuccess": "Attached file successfully",
+    "fileRemoved": "Attached CV file removed.",
+    "cachedSuccess": "Generated instantly from Cache! ($0 AI token cost)",
+    "generateSuccess": "Outreach content generated successfully!",
+    "generationFailed": "Generation failed. Please try again.",
+    "copiedSuccess": "Copied to clipboard!",
+    "copiedFailed": "Failed to copy text.",
+    "downloadSuccess": "Downloaded (.txt) file",
+    "savedSuccess": "Saved successfully!",
+    "saveError": "Failed to save.",
+    "coverLetterSaved": "Cover Letter saved successfully!",
+    "coldMessageSaved": "Cold Message saved successfully!",
+    "maxProfilesReached": "Maximum limit of 4 candidate profiles reached. Please delete an existing profile to create a new one.",
+    "deleteSuccess": "Resume deleted successfully",
+    "deleteError": "Failed to delete resume",
+    "resetPasswordSent": "Password reset link sent to your email.",
+    "sendEmailError": "Error sending email. Please try again.",
+    "rateLimitError": "Too many requests. Please wait a few minutes and try again."
+  },
+  "profileBuilder": {
+    "step1Header": "Step 1: Profile Name, Photo & Personal Info",
+    "step2Header": "Step 2: Add Work Experience",
+    "step3Header": "Step 3: Add Education",
+    "step4Header": "Step 4: Add Projects & Portfolio",
+    "step5Header": "Step 5: Technical Skills, Languages & Summary",
+    "profileNameLabel": "Profile Name / Identifier",
+    "showPhotoLabel": "Display Photo on CV",
+    "selectImageFile": "Select Image File",
+    "removePhoto": "Remove",
+    "militaryStatusLabel": "Military Status",
+    "postponedUntilDate": "Postponed Until Date",
+    "btnPrevious": "Previous",
+    "btnNext": "Next",
+    "btnSaveProfile": "Save Profile",
+    "currentlyWorkingHere": "Currently Working Here",
+    "currentlyStudyingHere": "Currently Studying Here"
+  },
+  "languageGeneration": {
+    "title": "Target Generation Languages",
+    "selectedCount": "{count} Language Selected",
+    "selectedCountPlural": "{count} Languages Selected",
+    "description": "Resume, Cover Letter, and Cold Message will be generated separately with AI in all selected languages."
+  },
+  "subscription": {
+    "premiumAccess": "✨ Premium Access",
+    "upgradeTitle": "Upgrade to ResumeX Pro",
+    "upgradeSubtitle": "Create unlimited ATS-tailored resumes in 6+ languages with executive-level AI precision.",
+    "monthlyBilling": "Monthly Billing ($15/mo)",
+    "annualBilling": "Annual Billing",
+    "savePercent": "Save 20%",
+    "proPlan": "Pro Plan",
+    "perMonth": "/ month",
+    "unlimitedGenerations": "Unlimited ATS-Tailored Resume Generations",
+    "multiLanguageTranslations": "Multi-language Translations (TR, EN, DE, FR, ES, IT)",
+    "pdfExport": "PDF Export with Anti-Break Page Spacing",
+    "instantScraper": "Instant AI Scraper & Match Analysis",
+    "subscribeNowMonthly": "Subscribe Now — $15/mo",
+    "subscribeNowYearly": "Subscribe Now — $144/year",
+    "openingCheckout": "Opening Checkout...",
+    "secureCheckout": "🔒 Secure 256-bit encrypted checkout via Paddle Merchant of Record. Cancel anytime.",
+    "trialActiveTitle": "Trial Active",
+    "trialActiveText": "You have {days} days left in your free trial.",
+    "upgradeToPro": "Upgrade to Pro →",
+    "upgradeToProBadge": "Upgrade to Pro ✨",
+    "subscriptionExpiredTitle": "Subscription Expired",
+    "subscriptionExpiredText": "Your 14-day free trial or monthly subscription has expired."
+  },
+  "aiOverlay": {
+    "title": "AI Intelligent Generation Pipeline",
+    "stepCounter": "Step {current} / {total}",
+    "securityBadge": "Google XYZ & ATS Optimizer Guard",
+    "steps": {
+      "1": {
+        "label": "Job Analysis",
+        "text": "Deeply analyzing target job posting and role requirements..."
+      },
+      "2": {
+        "label": "Career Mapping",
+        "text": "Mapping your career background against the target position..."
+      },
+      "3": {
+        "label": "XYZ Formula",
+        "text": "Optimizing experience bullets using Google XYZ Impact Formula..."
+      },
+      "4": {
+        "label": "ATS Keywords",
+        "text": "Extracting ATS keywords and calculating match percentage..."
+      },
+      "5": {
+        "label": "Outreach Assets",
+        "text": "Crafting tailored Cover Letter and recruiter Cold Message..."
+      },
+      "6": {
+        "label": "Final Formatting",
+        "text": "Finalizing formatting and generating your ATS-friendly resume..."
+      }
+    },
+    "tips": {
+      "1": "Google XYZ Formula: 'Accomplished [X], as measured by [Y], by doing [Z]' maximizes resume impact.",
+      "2": "Including measurable achievements (e.g. 35% growth) significantly boosts ATS compatibility.",
+      "3": "You can regenerate your CV anytime in English, Turkish, or German with one click."
     }
   }
 }

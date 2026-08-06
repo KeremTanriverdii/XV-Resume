@@ -107,6 +107,23 @@ builder.Services.AddRateLimiter(options =>
         Window = TimeSpan.FromMinutes(aiWindowMinutes)
       });
   });
+
+  options.AddPolicy("outreach-generation", httpContext =>
+  {
+    var userId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                 ?? httpContext.Connection.RemoteIpAddress?.ToString()
+                 ?? "unknown";
+
+    return RateLimitPartition.GetFixedWindowLimiter(
+      partitionKey: $"outreach_{userId}",
+      factory: _ => new FixedWindowRateLimiterOptions
+      {
+        AutoReplenishment = true,
+        PermitLimit = 3, // Elevated permit limit for seamless testing
+        QueueLimit = 0,
+        Window = TimeSpan.FromMinutes(1)
+      });
+  });
 });
 
 
@@ -126,6 +143,20 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+// Ensure Database Schema migrations (e.g. PhotoUrl column type text)
+using (var scope = app.Services.CreateScope())
+{
+  var db = scope.ServiceProvider.GetRequiredService<ResumeXCreator.Infrastructure.Data.AppDbContext>();
+  try
+  {
+    db.Database.ExecuteSqlRaw("ALTER TABLE \"Profiles\" ALTER COLUMN \"PhotoUrl\" TYPE text;");
+  }
+  catch (Exception ex)
+  {
+    Console.WriteLine($"[DB Startup] Note: {ex.Message}");
+  }
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -164,6 +195,7 @@ app.MapProjectEndpoints();
 app.MapResumeEndpoints();
 app.MapUserEndpoints();
 app.MapPaymentEndpoints();
+app.MapOutreachEndpoints();
 app.MapHub<ResumeHub>("/hubs/resume");
 
 app.Run();

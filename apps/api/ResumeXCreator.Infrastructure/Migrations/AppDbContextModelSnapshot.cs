@@ -323,6 +323,12 @@ namespace ResumeXCreator.Infrastructure.Migrations
                     b.Property<string>("AtsFeedback")
                         .HasColumnType("text");
 
+                    b.Property<string>("ColdMessage")
+                        .HasColumnType("text");
+
+                    b.Property<string>("CoverLetter")
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 

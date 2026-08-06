@@ -11,7 +11,8 @@ import AutocompleteInput from "@/components/ui/autocomplete-input";
 import { DatePicker } from "@/components/ui/date-picker";
 import { formatDate } from "@/utils/date";
 import { LOCATIONS, JOB_TITLES, SKILLS, SCHOOL_NAMES, DEGREES } from "@/lib/autocomplete-data";
-import { Plus, Trash2, User, Briefcase, GraduationCap, FolderGit2, Wrench, ChevronLeft, ChevronRight, Save, Globe, ExternalLink, Calendar, CheckSquare, Square } from "lucide-react";
+import { Plus, Trash2, Pencil, User, Briefcase, GraduationCap, FolderGit2, Wrench, ChevronLeft, ChevronRight, Save, Globe, ExternalLink, Calendar, CheckSquare, Square } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface MultiStepProfileBuilderProps {
   currentStep: number;
@@ -23,6 +24,7 @@ interface MultiStepProfileBuilderProps {
   isSaving: boolean;
   isFirstStep: boolean;
   isLastStep: boolean;
+  isAuthenticated?: boolean;
 }
 
 export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = ({
@@ -35,7 +37,9 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
   isSaving,
   isFirstStep,
   isLastStep,
+  isAuthenticated = false,
 }) => {
+  const t = useTranslations("profileBuilder");
   // Inline Experience Form State
   const [newExp, setNewExp] = useState({
     companyName: "",
@@ -67,6 +71,12 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
   // Inline Language Form State
   const [newLangName, setNewLangName] = useState("English");
   const [newLangLevel, setNewLangLevel] = useState("C1 (Advanced)");
+
+  // Edit Mode Tracker States
+  const [editingExpIdx, setEditingExpIdx] = useState<number | null>(null);
+  const [editingEduIdx, setEditingEduIdx] = useState<number | null>(null);
+  const [editingProjIdx, setEditingProjIdx] = useState<number | null>(null);
+  const [editingLangIdx, setEditingLangIdx] = useState<number | null>(null);
 
   // Categorized Skill State
   const [selectedCategory, setSelectedCategory] = useState("Frontend");
@@ -109,71 +119,221 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
   const safeEducations = Array.isArray(profile.educations) ? profile.educations : [];
   const safeProjects = Array.isArray(profile.projects) ? profile.projects : [];
 
-  // Add Experience
+  // --- Experience Handlers ---
+  const handleEditExperience = (idx: number) => {
+    const exp: any = safeExperiences[idx];
+    if (!exp) return;
+    setNewExp({
+      companyName: exp.companyName || "",
+      jobTitle: exp.jobTitle || exp.role || "",
+      startDate: exp.startDate || "",
+      endDate: exp.endDate === "Present" ? "" : (exp.endDate || ""),
+      isOngoing: exp.isOngoing || exp.endDate === "Present" || !exp.endDate,
+      description: exp.description || "",
+    });
+    setEditingExpIdx(idx);
+  };
+
+  const handleCancelEditExperience = () => {
+    setEditingExpIdx(null);
+    setNewExp({ companyName: "", jobTitle: "", startDate: "", endDate: "", isOngoing: false, description: "" });
+  };
+
   const handleAddExperience = () => {
     if (!newExp.companyName || !newExp.jobTitle) return;
+    const existingId = editingExpIdx !== null ? (safeExperiences[editingExpIdx] as any)?.id : null;
     const finalExp = {
-      id: `temp-${Date.now()}`,
+      id: existingId || `temp-${Date.now()}`,
       companyName: newExp.companyName,
       jobTitle: newExp.jobTitle,
+      role: newExp.jobTitle,
       startDate: newExp.startDate,
       endDate: newExp.isOngoing ? "Present" : newExp.endDate,
       description: newExp.description,
     };
-    updateField("experiences", [...safeExperiences, finalExp]);
+
+    if (editingExpIdx !== null) {
+      const updated = [...safeExperiences];
+      updated[editingExpIdx] = finalExp;
+      updateField("experiences", updated);
+      setEditingExpIdx(null);
+    } else {
+      updateField("experiences", [...safeExperiences, finalExp]);
+    }
     setNewExp({ companyName: "", jobTitle: "", startDate: "", endDate: "", isOngoing: false, description: "" });
   };
 
   const handleRemoveExperience = (idx: number) => {
+    if (editingExpIdx === idx) handleCancelEditExperience();
     updateField("experiences", safeExperiences.filter((_, i) => i !== idx));
   };
 
-  // Add Education
+  // --- Education Handlers ---
+  const handleEditEducation = (idx: number) => {
+    const edu: any = safeEducations[idx];
+    if (!edu) return;
+    setNewEdu({
+      institutionName: edu.institutionName || edu.schoolName || "",
+      degree: edu.degree || "",
+      startDate: edu.startDate || "",
+      endDate: edu.endDate === "Present" ? "" : (edu.endDate || ""),
+      isOngoing: edu.isOngoing || edu.endDate === "Present" || !edu.endDate,
+    });
+    setEditingEduIdx(idx);
+  };
+
+  const handleCancelEditEducation = () => {
+    setEditingEduIdx(null);
+    setNewEdu({ institutionName: "", degree: "", startDate: "", endDate: "", isOngoing: false });
+  };
+
   const handleAddEducation = () => {
     if (!newEdu.institutionName || !newEdu.degree) return;
+    const existingId = editingEduIdx !== null ? (safeEducations[editingEduIdx] as any)?.id : null;
     const finalEdu = {
-      id: `temp-${Date.now()}`,
+      id: existingId || `temp-${Date.now()}`,
+      schoolName: newEdu.institutionName,
       institutionName: newEdu.institutionName,
       degree: newEdu.degree,
       startDate: newEdu.startDate,
       endDate: newEdu.isOngoing ? "Present" : newEdu.endDate,
     };
-    updateField("educations", [...safeEducations, finalEdu]);
+
+    if (editingEduIdx !== null) {
+      const updated = [...safeEducations];
+      updated[editingEduIdx] = finalEdu;
+      updateField("educations", updated);
+      setEditingEduIdx(null);
+    } else {
+      updateField("educations", [...safeEducations, finalEdu]);
+    }
     setNewEdu({ institutionName: "", degree: "", startDate: "", endDate: "", isOngoing: false });
   };
 
   const handleRemoveEducation = (idx: number) => {
+    if (editingEduIdx === idx) handleCancelEditEducation();
     updateField("educations", safeEducations.filter((_, i) => i !== idx));
   };
 
-  // Add Project
+  // --- Project Handlers ---
+  const handleEditProject = (idx: number) => {
+    const proj: any = safeProjects[idx];
+    if (!proj) return;
+    const projSkills = Array.isArray(proj.skills) && proj.skills.length > 0
+      ? proj.skills
+      : (proj.techologiesUsed || proj.technologies || '').split(',').map((s: string) => s.trim()).filter(Boolean);
+
+    setNewProj({
+      projectName: proj.title || proj.projectName || proj.projectTitle || "",
+      projectUrl: proj.links || proj.projectUrl || proj.url || "",
+      repoUrl: proj.repositoryUrl || proj.repoUrl || "",
+      skills: projSkills,
+      description: proj.description || "",
+    });
+    setEditingProjIdx(idx);
+  };
+
+  const handleCancelEditProject = () => {
+    setEditingProjIdx(null);
+    setNewProj({ projectName: "", description: "", projectUrl: "", repoUrl: "", skills: [] });
+  };
+
   const handleAddProject = () => {
     if (!newProj.projectName) return;
+    const existingId = editingProjIdx !== null ? (safeProjects[editingProjIdx] as any)?.id : null;
     const finalProj = {
-      id: `temp-${Date.now()}`,
+      id: existingId || `temp-${Date.now()}`,
+      title: newProj.projectName,
       projectName: newProj.projectName,
+      projectTitle: newProj.projectName,
       description: newProj.description,
+      links: newProj.projectUrl,
       projectUrl: newProj.projectUrl,
+      repositoryUrl: newProj.repoUrl,
       repoUrl: newProj.repoUrl,
       skills: newProj.skills,
+      techologiesUsed: newProj.skills.join(", "),
     };
-    updateField("projects", [...safeProjects, finalProj]);
+
+    if (editingProjIdx !== null) {
+      const updated = [...safeProjects];
+      updated[editingProjIdx] = finalProj;
+      updateField("projects", updated);
+      setEditingProjIdx(null);
+    } else {
+      updateField("projects", [...safeProjects, finalProj]);
+    }
     setNewProj({ projectName: "", description: "", projectUrl: "", repoUrl: "", skills: [] });
   };
 
   const handleRemoveProject = (idx: number) => {
+    if (editingProjIdx === idx) handleCancelEditProject();
     updateField("projects", safeProjects.filter((_, i) => i !== idx));
   };
 
-  // Add Language
+  // --- Language Handlers ---
+  const handleEditLanguage = (idx: number) => {
+    const langStr = safeLanguages[idx];
+    if (!langStr) return;
+    const match = langStr.match(/^(.+?)\s*\((.+)\)$/);
+    if (match) {
+      setNewLangName(match[1].trim());
+      setNewLangLevel(match[2].trim());
+    } else {
+      setNewLangName(langStr);
+    }
+    setEditingLangIdx(idx);
+  };
+
+  const handleCancelEditLanguage = () => {
+    setEditingLangIdx(null);
+    setNewLangName("English");
+    setNewLangLevel("C1 (Advanced)");
+  };
+
   const handleAddLanguage = () => {
     if (!newLangName) return;
     const langStr = `${newLangName} (${newLangLevel})`;
-    updateField("languages", [...safeLanguages, langStr]);
+    if (editingLangIdx !== null) {
+      const updated = [...safeLanguages];
+      updated[editingLangIdx] = langStr;
+      updateField("languages", updated);
+      setEditingLangIdx(null);
+    } else {
+      updateField("languages", [...safeLanguages, langStr]);
+    }
+    setNewLangName("English");
+    setNewLangLevel("C1 (Advanced)");
   };
 
   const handleRemoveLanguage = (idx: number) => {
+    if (editingLangIdx === idx) handleCancelEditLanguage();
     updateField("languages", safeLanguages.filter((_, i) => i !== idx));
+  };
+
+  const commitPendingInputs = () => {
+    if (newExp.companyName && newExp.jobTitle) {
+      handleAddExperience();
+    }
+    if (newEdu.institutionName && newEdu.degree) {
+      handleAddEducation();
+    }
+    if (newProj.projectName) {
+      handleAddProject();
+    }
+    if (categorySkillsTags.length > 0) {
+      handleAddCategorizedSkill();
+    }
+  };
+
+  const handleSaveWrapper = () => {
+    commitPendingInputs();
+    onSaveProfile();
+  };
+
+  const handleNextWrapper = () => {
+    commitPendingInputs();
+    onNextStep();
   };
 
   // STEP 0: Personal Info, Photo, Military & Links
@@ -182,12 +342,12 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
       <div className="flex flex-col gap-4 bg-card p-5 rounded-2xl border border-border/80 shadow-xs">
         <div className="flex items-center gap-2 border-b border-border/60 pb-3">
           <User className="h-4 w-4 text-primary" />
-          <h4 className="font-bold text-xs uppercase tracking-wider text-foreground">Step 1: Profile Name, Photo & Personal Info</h4>
+          <h4 className="font-bold text-xs uppercase tracking-wider text-foreground">{t('step1Header')}</h4>
         </div>
 
         {/* Profile Name (Required) */}
         <div className="p-3 bg-primary/10 border border-primary/20 rounded-xl space-y-1">
-          <label className="text-xs font-bold text-primary block">Profile Name / Identifier (Profil Adı)</label>
+          <label className="text-xs font-bold text-primary block">{t('profileNameLabel')}</label>
           <Input
             value={profile.profileName || ""}
             onChange={(e) => updateField("profileName", e.target.value)}
@@ -207,7 +367,7 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
               className="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer"
             />
             <label htmlFor="showPhoto" className="text-xs font-semibold text-foreground cursor-pointer">
-              Display Photo on CV (Fotoğraf Gösterilsin)
+              {t('showPhotoLabel')}
             </label>
           </div>
 
@@ -215,7 +375,7 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
             <div className="pt-2 flex flex-col gap-2.5">
               <div className="flex items-center gap-3">
                 <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-xs font-semibold transition-all">
-                  <span>📁 Fotoğraf Seç (Select Image File)</span>
+                  <span>📁 {t('selectImageFile')}</span>
                   <input
                     type="file"
                     accept="image/*"
@@ -236,7 +396,7 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
                       onClick={() => updateField('photoUrl', '')}
                       className="text-xs text-destructive hover:bg-destructive/10 h-8"
                     >
-                      Kaldır
+                      {t('removePhoto')}
                     </Button>
                   </div>
                 )}
@@ -379,11 +539,12 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
 
         <StepNavigationFooter
           onPrev={onPrevStep}
-          onNext={onNextStep}
-          onSave={onSaveProfile}
+          onNext={handleNextWrapper}
+          onSave={handleSaveWrapper}
           isFirst={isFirstStep}
           isLast={isLastStep}
           isSaving={isSaving}
+          isAuthenticated={isAuthenticated}
         />
       </div>
     );
@@ -395,12 +556,12 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
       <div className="flex flex-col gap-4 bg-card p-5 rounded-2xl border border-border/80 shadow-xs">
         <div className="flex items-center gap-2 border-b border-border/60 pb-3">
           <Briefcase className="h-4 w-4 text-primary" />
-          <h4 className="font-bold text-xs uppercase tracking-wider text-foreground">Step 2: Add Work Experience</h4>
+          <h4 className="font-bold text-xs uppercase tracking-wider text-foreground">{t('step2Header')}</h4>
         </div>
 
-        {/* Form to add a new Work Experience directly */}
+        {/* Form to add/edit a Work Experience */}
         <div className="p-4 rounded-xl bg-muted/30 border border-border space-y-3">
-          <h5 className="text-xs font-bold text-foreground">Add New Work Experience</h5>
+          <h5 className="text-xs font-bold text-foreground">{editingExpIdx !== null ? "Edit Work Experience" : "Add New Work Experience"}</h5>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
             <Input
               placeholder="Company Name (e.g. Google, Trendyol)"
@@ -429,7 +590,7 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
                 />
               ) : (
                 <div className="h-9 rounded-md bg-muted/60 border border-border px-3 flex items-center text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                  Present (Hala Çalışıyorum)
+                  {t('currentlyWorkingHere')}
                 </div>
               )}
             </div>
@@ -452,7 +613,7 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
               className="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer"
             />
             <label htmlFor="expOngoing" className="text-xs font-semibold text-foreground cursor-pointer">
-              Hala Çalışıyorum (Currently Working Here)
+              {t('currentlyWorkingHere')}
             </label>
           </div>
 
@@ -463,21 +624,36 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
             onChange={(e) => setNewExp({ ...newExp, description: e.target.value })}
             className="text-xs"
           />
-          <Button
-            size="sm"
-            onClick={handleAddExperience}
-            disabled={!newExp.companyName || !newExp.jobTitle}
-            className="text-xs font-bold gap-1 bg-primary text-primary-foreground"
-          >
-            <Plus className="h-3.5 w-3.5" /> Add Experience
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              onClick={handleAddExperience}
+              disabled={!newExp.companyName || !newExp.jobTitle}
+              className="text-xs font-bold gap-1 bg-primary text-primary-foreground cursor-pointer"
+            >
+              {editingExpIdx !== null ? (
+                <>
+                  <Pencil className="h-3.5 w-3.5" /> Update Experience
+                </>
+              ) : (
+                <>
+                  <Plus className="h-3.5 w-3.5" /> Add Experience
+                </>
+              )}
+            </Button>
+            {editingExpIdx !== null && (
+              <Button size="sm" variant="ghost" onClick={handleCancelEditExperience} className="text-xs cursor-pointer">
+                Cancel Edit
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Active List of Added Experiences */}
         <div className="flex flex-col gap-2">
           <label className="text-xs font-semibold text-muted-foreground">Added Experiences ({safeExperiences.length})</label>
           {safeExperiences.map((exp: Experience, idx: number) => (
-            <div key={idx} className="p-3 rounded-xl bg-background border border-border/70 text-xs flex justify-between items-start gap-2">
+            <div key={idx} className={`p-3 rounded-xl bg-background border text-xs flex justify-between items-start gap-2 ${editingExpIdx === idx ? 'border-primary ring-1 ring-primary/30' : 'border-border/70'}`}>
               <div>
                 <p className="font-bold text-foreground">{exp.jobTitle || exp.role} <span className="text-primary">@ {exp.companyName}</span></p>
                 <p className="text-muted-foreground text-[11px]">
@@ -485,25 +661,38 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
                 </p>
                 {exp.description && <p className="text-muted-foreground mt-1 line-clamp-2">{exp.description}</p>}
               </div>
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={() => handleRemoveExperience(idx)}
-                className="h-7 w-7 text-destructive hover:bg-destructive/10 shrink-0"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-              </Button>
+              <div className="flex items-center gap-1 shrink-0">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => handleEditExperience(idx)}
+                  className="h-7 w-7 text-primary hover:bg-primary/10 cursor-pointer"
+                  title="Edit Experience"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => handleRemoveExperience(idx)}
+                  className="h-7 w-7 text-destructive hover:bg-destructive/10 cursor-pointer"
+                  title="Delete Experience"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
             </div>
           ))}
         </div>
 
         <StepNavigationFooter
           onPrev={onPrevStep}
-          onNext={onNextStep}
-          onSave={onSaveProfile}
+          onNext={handleNextWrapper}
+          onSave={handleSaveWrapper}
           isFirst={isFirstStep}
           isLast={isLastStep}
           isSaving={isSaving}
+          isAuthenticated={isAuthenticated}
         />
       </div>
     );
@@ -515,12 +704,12 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
       <div className="flex flex-col gap-4 bg-card p-5 rounded-2xl border border-border/80 shadow-xs">
         <div className="flex items-center gap-2 border-b border-border/60 pb-3">
           <GraduationCap className="h-4 w-4 text-primary" />
-          <h4 className="font-bold text-xs uppercase tracking-wider text-foreground">Step 3: Add Education</h4>
+          <h4 className="font-bold text-xs uppercase tracking-wider text-foreground">{t('step3Header')}</h4>
         </div>
 
-        {/* Form to add a new Education entry */}
+        {/* Form to add/edit an Education entry */}
         <div className="p-4 rounded-xl bg-muted/30 border border-border space-y-3">
-          <h5 className="text-xs font-bold text-foreground">Add New Education Entry</h5>
+          <h5 className="text-xs font-bold text-foreground">{editingEduIdx !== null ? "Edit Education Entry" : "Add New Education Entry"}</h5>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
             <AutocompleteInput
               suggestions={SCHOOL_NAMES}
@@ -550,7 +739,7 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
                 />
               ) : (
                 <div className="h-9 rounded-md bg-muted/60 border border-border px-3 flex items-center text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                  Present (Hala Okuyorum)
+                  {t('currentlyStudyingHere')}
                 </div>
               )}
             </div>
@@ -573,50 +762,78 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
               className="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer"
             />
             <label htmlFor="eduOngoing" className="text-xs font-semibold text-foreground cursor-pointer">
-              Hala Okuyorum (Currently Studying Here)
+              {t('currentlyStudyingHere')}
             </label>
           </div>
 
-          <Button
-            size="sm"
-            onClick={handleAddEducation}
-            disabled={!newEdu.institutionName || !newEdu.degree}
-            className="text-xs font-bold gap-1 bg-primary text-primary-foreground"
-          >
-            <Plus className="h-3.5 w-3.5" /> Add Education
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              onClick={handleAddEducation}
+              disabled={!newEdu.institutionName || !newEdu.degree}
+              className="text-xs font-bold gap-1 bg-primary text-primary-foreground cursor-pointer"
+            >
+              {editingEduIdx !== null ? (
+                <>
+                  <Pencil className="h-3.5 w-3.5" /> Update Education
+                </>
+              ) : (
+                <>
+                  <Plus className="h-3.5 w-3.5" /> Add Education
+                </>
+              )}
+            </Button>
+            {editingEduIdx !== null && (
+              <Button size="sm" variant="ghost" onClick={handleCancelEditEducation} className="text-xs cursor-pointer">
+                Cancel Edit
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Active List of Added Educations */}
         <div className="flex flex-col gap-2">
           <label className="text-xs font-semibold text-muted-foreground">Added Educations ({safeEducations.length})</label>
           {safeEducations.map((edu: Education, idx: number) => (
-            <div key={idx} className="p-3 rounded-xl bg-background border border-border/70 text-xs flex justify-between items-center">
+            <div key={idx} className={`p-3 rounded-xl bg-background border text-xs flex justify-between items-center ${editingEduIdx === idx ? 'border-primary ring-1 ring-primary/30' : 'border-border/70'}`}>
               <div>
                 <p className="font-bold text-foreground">{edu.degree}</p>
                 <p className="text-muted-foreground text-[11px]">
                   {edu.institutionName || edu.schoolName} • {formatDate(edu.startDate)} - {edu.endDate === "Present" || !edu.endDate ? "Present" : formatDate(edu.endDate)}
                 </p>
               </div>
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={() => handleRemoveEducation(idx)}
-                className="h-7 w-7 text-destructive hover:bg-destructive/10 shrink-0"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-              </Button>
+              <div className="flex items-center gap-1 shrink-0">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => handleEditEducation(idx)}
+                  className="h-7 w-7 text-primary hover:bg-primary/10 cursor-pointer"
+                  title="Edit Education"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => handleRemoveEducation(idx)}
+                  className="h-7 w-7 text-destructive hover:bg-destructive/10 cursor-pointer"
+                  title="Delete Education"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
             </div>
           ))}
         </div>
 
         <StepNavigationFooter
           onPrev={onPrevStep}
-          onNext={onNextStep}
-          onSave={onSaveProfile}
+          onNext={handleNextWrapper}
+          onSave={handleSaveWrapper}
           isFirst={isFirstStep}
           isLast={isLastStep}
           isSaving={isSaving}
+          isAuthenticated={isAuthenticated}
         />
       </div>
     );
@@ -628,12 +845,12 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
       <div className="flex flex-col gap-4 bg-card p-5 rounded-2xl border border-border/80 shadow-xs">
         <div className="flex items-center gap-2 border-b border-border/60 pb-3">
           <FolderGit2 className="h-4 w-4 text-primary" />
-          <h4 className="font-bold text-xs uppercase tracking-wider text-foreground">Step 4: Add Projects & Portfolio</h4>
+          <h4 className="font-bold text-xs uppercase tracking-wider text-foreground">{t('step4Header')}</h4>
         </div>
 
-        {/* Form to add a new Project */}
+        {/* Form to add/edit a Project */}
         <div className="p-4 rounded-xl bg-muted/30 border border-border space-y-3">
-          <h5 className="text-xs font-bold text-foreground">Add New Project</h5>
+          <h5 className="text-xs font-bold text-foreground">{editingProjIdx !== null ? "Edit Project" : "Add New Project"}</h5>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
             <Input
               placeholder="Project Name (e.g. ResumeX AI Platform)"
@@ -670,68 +887,110 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
             onChange={(e) => setNewProj({ ...newProj, description: e.target.value })}
             className="text-xs"
           />
-          <Button
-            size="sm"
-            onClick={handleAddProject}
-            disabled={!newProj.projectName}
-            className="text-xs font-bold gap-1 bg-primary text-primary-foreground"
-          >
-            <Plus className="h-3.5 w-3.5" /> Add Project
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              onClick={handleAddProject}
+              disabled={!newProj.projectName}
+              className="text-xs font-bold gap-1 bg-primary text-primary-foreground cursor-pointer"
+            >
+              {editingProjIdx !== null ? (
+                <>
+                  <Pencil className="h-3.5 w-3.5" /> Update Project
+                </>
+              ) : (
+                <>
+                  <Plus className="h-3.5 w-3.5" /> Add Project
+                </>
+              )}
+            </Button>
+            {editingProjIdx !== null && (
+              <Button size="sm" variant="ghost" onClick={handleCancelEditProject} className="text-xs cursor-pointer">
+                Cancel Edit
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Active List of Added Projects */}
         <div className="flex flex-col gap-2">
           <label className="text-xs font-semibold text-muted-foreground">Added Projects ({safeProjects.length})</label>
-          {safeProjects.map((proj: Project, idx: number) => (
-            <div key={idx} className="p-3 rounded-xl bg-background border border-border/70 text-xs flex justify-between items-start gap-2">
-              <div>
-                <p className="font-bold text-foreground">{proj.projectName}</p>
-                {proj.description && <p className="text-muted-foreground text-[11px] line-clamp-2">{proj.description}</p>}
-                
-                {/* Project Links & Tech tags */}
-                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                  {proj.projectUrl && (
-                    <a href={proj.projectUrl} target="_blank" rel="noreferrer" className="text-[11px] text-primary hover:underline flex items-center gap-1 font-semibold">
-                      <ExternalLink className="h-3 w-3" /> Live Demo
-                    </a>
+          {safeProjects.map((proj: any, idx: number) => {
+            const title = proj.title || proj.projectName || proj.projectTitle || "Untitled Project";
+            const liveUrl = proj.links || proj.projectUrl || proj.url;
+            const repoUrl = proj.repositoryUrl || proj.repoUrl;
+            const techList = Array.isArray(proj.skills) && proj.skills.length > 0
+              ? proj.skills
+              : (proj.techologiesUsed || proj.technologies || '')
+                  .split(',')
+                  .map((s: string) => s.trim())
+                  .filter(Boolean);
+
+            return (
+              <div key={idx} className={`p-3 rounded-xl bg-background border text-xs flex justify-between items-start gap-2 ${editingProjIdx === idx ? 'border-primary ring-1 ring-primary/30' : 'border-border/70'}`}>
+                <div>
+                  <p className="font-bold text-foreground">{title}</p>
+                  {proj.description && <p className="text-muted-foreground text-[11px] line-clamp-2">{proj.description}</p>}
+                  
+                  {/* Project Links & Tech tags */}
+                  {(liveUrl || repoUrl) && (
+                    <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                      {liveUrl && (
+                        <a href={liveUrl} target="_blank" rel="noreferrer" className="text-[11px] text-primary hover:underline flex items-center gap-1 font-semibold">
+                          <ExternalLink className="h-3 w-3" /> Live Demo
+                        </a>
+                      )}
+                      {repoUrl && (
+                        <a href={repoUrl} target="_blank" rel="noreferrer" className="text-[11px] text-muted-foreground hover:underline flex items-center gap-1 font-semibold">
+                          <FolderGit2 className="h-3 w-3" /> GitHub Repo
+                        </a>
+                      )}
+                    </div>
                   )}
-                  {proj.repoUrl && (
-                    <a href={proj.repoUrl} target="_blank" rel="noreferrer" className="text-[11px] text-muted-foreground hover:underline flex items-center gap-1 font-semibold">
-                      <FolderGit2 className="h-3 w-3" /> GitHub Repo
-                    </a>
+
+                  {techList.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1.5">
+                      {techList.map((s: string, sIdx: number) => (
+                        <span key={sIdx} className="px-1.5 py-0.5 rounded bg-muted text-[10px] text-muted-foreground font-mono">
+                          {s}
+                        </span>
+                      ))}
+                    </div>
                   )}
                 </div>
-
-                {Array.isArray(proj.skills) && proj.skills.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-1.5">
-                    {proj.skills.map((s: string, sIdx: number) => (
-                      <span key={sIdx} className="px-1.5 py-0.5 rounded bg-muted text-[10px] text-muted-foreground font-mono">
-                        {s}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                <div className="flex items-center gap-1 shrink-0">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => handleEditProject(idx)}
+                    className="h-7 w-7 text-primary hover:bg-primary/10 cursor-pointer"
+                    title="Edit Project"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => handleRemoveProject(idx)}
+                    className="h-7 w-7 text-destructive hover:bg-destructive/10 cursor-pointer"
+                    title="Delete Project"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
               </div>
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={() => handleRemoveProject(idx)}
-                className="h-7 w-7 text-destructive hover:bg-destructive/10 shrink-0"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-              </Button>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <StepNavigationFooter
           onPrev={onPrevStep}
-          onNext={onNextStep}
-          onSave={onSaveProfile}
+          onNext={handleNextWrapper}
+          onSave={handleSaveWrapper}
           isFirst={isFirstStep}
           isLast={isLastStep}
           isSaving={isSaving}
+          isAuthenticated={isAuthenticated}
         />
       </div>
     );
@@ -742,7 +1001,7 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
     <div className="flex flex-col gap-4 bg-card p-5 rounded-2xl border border-border/80 shadow-xs">
       <div className="flex items-center gap-2 border-b border-border/60 pb-3">
         <Wrench className="h-4 w-4 text-primary" />
-        <h4 className="font-bold text-xs uppercase tracking-wider text-foreground">Step 5: Technical Skills, Languages & Summary</h4>
+        <h4 className="font-bold text-xs uppercase tracking-wider text-foreground">{t('step5Header')}</h4>
       </div>
 
       <div className="space-y-4">
@@ -848,25 +1107,48 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
               <option value="B2 (Upper Intermediate)">B2 (Upper Intermediate)</option>
               <option value="B1 (Intermediate)">B1 (Intermediate)</option>
             </select>
-            <Button
-              size="sm"
-              onClick={handleAddLanguage}
-              className="text-xs shrink-0 bg-primary text-primary-foreground font-bold"
-            >
-              <Plus className="h-3.5 w-3.5" /> Add
-            </Button>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <Button
+                size="sm"
+                onClick={handleAddLanguage}
+                className="text-xs bg-primary text-primary-foreground font-bold cursor-pointer"
+              >
+                {editingLangIdx !== null ? (
+                  <>
+                    <Pencil className="h-3.5 w-3.5" /> Update
+                  </>
+                ) : (
+                  <>
+                    <Plus className="h-3.5 w-3.5" /> Add
+                  </>
+                )}
+              </Button>
+              {editingLangIdx !== null && (
+                <Button size="sm" variant="ghost" onClick={handleCancelEditLanguage} className="text-xs cursor-pointer">
+                  Cancel
+                </Button>
+              )}
+            </div>
           </div>
 
           <div className="flex flex-wrap gap-1.5 mt-2">
             {safeLanguages.map((lang, idx) => (
               <span
                 key={idx}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted border border-border text-xs font-medium text-foreground"
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-medium text-foreground ${editingLangIdx === idx ? 'bg-primary/10 border-primary text-primary font-bold' : 'bg-muted border-border'}`}
               >
                 <span>{lang}</span>
                 <button
+                  onClick={() => handleEditLanguage(idx)}
+                  className="text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                  title="Edit Language"
+                >
+                  <Pencil className="h-3 w-3" />
+                </button>
+                <button
                   onClick={() => handleRemoveLanguage(idx)}
-                  className="text-muted-foreground hover:text-destructive transition-colors"
+                  className="text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
+                  title="Delete Language"
                 >
                   <Trash2 className="h-3 w-3" />
                 </button>
@@ -890,8 +1172,8 @@ export const MultiStepProfileBuilder: React.FC<MultiStepProfileBuilderProps> = (
 
       <StepNavigationFooter
         onPrev={onPrevStep}
-        onNext={onNextStep}
-        onSave={onSaveProfile}
+        onNext={handleNextWrapper}
+        onSave={handleSaveWrapper}
         isFirst={isFirstStep}
         isLast={isLastStep}
         isSaving={isSaving}
@@ -907,40 +1189,54 @@ interface FooterProps {
   isFirst: boolean;
   isLast: boolean;
   isSaving: boolean;
+  isAuthenticated?: boolean;
 }
 
-const StepNavigationFooter: React.FC<FooterProps> = ({ onPrev, onNext, onSave, isFirst, isLast, isSaving }) => (
-  <div className="flex items-center justify-between pt-3 mt-2 border-t border-border/60">
-    <Button
-      size="sm"
-      variant="outline"
-      onClick={onPrev}
-      disabled={isFirst}
-      className="text-xs gap-1"
-    >
-      <ChevronLeft className="h-3.5 w-3.5" /> Previous
-    </Button>
-
-    <div className="flex items-center gap-2">
+const StepNavigationFooter: React.FC<FooterProps> = ({
+  onPrev,
+  onNext,
+  onSave,
+  isFirst,
+  isLast,
+  isSaving,
+  isAuthenticated,
+}) => {
+  const t = useTranslations("profileBuilder");
+  return (
+    <div className="flex items-center justify-between pt-3 mt-2 border-t border-border/60">
       <Button
         size="sm"
-        variant="secondary"
-        onClick={onSave}
-        disabled={isSaving}
-        className="text-xs gap-1 font-bold"
+        variant="outline"
+        onClick={onPrev}
+        disabled={isFirst}
+        className="text-xs gap-1 cursor-pointer"
       >
-        <Save className="h-3.5 w-3.5" /> Save Profile
+        <ChevronLeft className="h-3.5 w-3.5" /> {t('btnPrevious')}
       </Button>
 
-      {!isLast && (
-        <Button
-          size="sm"
-          onClick={onNext}
-          className="text-xs font-bold gap-1 bg-primary text-primary-foreground"
-        >
-          Next <ChevronRight className="h-3.5 w-3.5" />
-        </Button>
-      )}
+      <div className="flex items-center gap-2">
+        {(isAuthenticated || isLast) && (
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={onSave}
+            disabled={isSaving}
+            className="text-xs gap-1 font-bold cursor-pointer"
+          >
+            <Save className="h-3.5 w-3.5" /> {t('btnSaveProfile')}
+          </Button>
+        )}
+
+        {!isLast && (
+          <Button
+            size="sm"
+            onClick={onNext}
+            className="text-xs font-bold gap-1 bg-primary text-primary-foreground cursor-pointer"
+          >
+            {t('btnNext')} <ChevronRight className="h-3.5 w-3.5" />
+          </Button>
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
+};

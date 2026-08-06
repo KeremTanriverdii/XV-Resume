@@ -3,10 +3,16 @@
 import { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/providers/AuthProvider';
-import { fetchResumeById, generateResume, deleteResume, updateResumeTranslation } from '@/services/resumeService';
+import {
+  fetchResumeById,
+  generateResume,
+  deleteResume,
+  updateResumeTranslation,
+} from '@/services/resumeService';
+import { useQueryClient } from '@tanstack/react-query';
+import { useResumeSession, resumeKeys } from '@/hooks/useResume';
 import { useResumeStore } from '@/store/useResumeStore';
 import { ResumeDto, ResumeTranslationDto } from '@/types';
-import { Button } from '@/components/ui/button';
 import {
   Loader2,
   ArrowLeft,
@@ -18,8 +24,6 @@ import {
   Sparkles,
   FileText,
   Briefcase,
-  TrendingUp,
-  AlertTriangle,
   CheckCircle2,
   Download,
   Layout,
@@ -29,7 +33,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link, useRouter } from '@/i18n/routing';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import {
   ResumeTemplates,
   TemplateId,
@@ -37,15 +41,15 @@ import {
   COLOR_THEMES,
 } from '@/components/resume/ResumeTemplates';
 import { exportToPdf } from '@/utils/pdfExport';
-import { StepFormSidebar, StepItem } from '@/components/resume/StepFormSidebar';
-import { StepFormFields } from '@/components/resume/StepFormFields';
 import { AtsMatcherTab } from '@/components/resume/AtsMatcherTab';
 import { CoverLetterTab } from '@/components/resume/CoverLetterTab';
 import { ColdMessageTab } from '@/components/resume/ColdMessageTab';
 import { LanguageGenerationSelector } from '@/components/resume/LanguageGenerationSelector';
 import { ProtectedPreviewOverlay } from '@/components/resume/ProtectedPreviewOverlay';
+import { SessionDetailSkeleton } from '@/components/resume/SessionDetailSkeleton';
 import { AuthModal } from '@/components/auth/AuthModal';
-import { User, GraduationCap, Wrench, Edit3, Mail, Send } from 'lucide-react';
+import { AiRegeneratingOverlay } from '@/components/resume/AiRegeneratingOverlay';
+import { Mail, Send } from 'lucide-react';
 
 const parseBold = (text: string) => {
   const parts = text.split(/\*\*([^*]+)\*\*/g);
@@ -126,7 +130,7 @@ const cleanJobDescriptionText = (raw?: string | null) => {
   const noise = [
     /Skip to main content/gi,
     /Expand search/gi,
-    /This button displays the currently selected search type[^\.\n]*/gi,
+    /This Button displays the currently selected search type[^\.\n]*/gi,
     /When expanded it provides a list of search options[^\.\n]*/gi,
     /Clear text/gi,
     /Sign in/gi,
@@ -168,14 +172,19 @@ const cleanJobDescriptionText = (raw?: string | null) => {
 };
 
 import { formatCompanyAndRole } from '@/utils/formatTitle';
+import { Button } from '@/components/ui/button';
 
 export default function ResumeSessionPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const id = params?.id as string;
+  const locale = useLocale();
+
+  const queryClient = useQueryClient();
 
   const t = useTranslations('resume');
-  const { session } = useAuth();
+  const tToast = useTranslations('toast');
+  const { session, isLoading: isAuthLoading } = useAuth();
   const token = session?.access_token;
   const router = useRouter();
 
@@ -189,17 +198,18 @@ export default function ResumeSessionPage() {
   const initialColor = (searchParams?.get('color') as ColorThemeId) || 'blue';
 
   // State
-  const [resume, setResume] = useState<ResumeDto | null>(null);
-  const [loading, setLoading] = useState(true);
   const [regenerating, setRegenerating] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
-  const [selectedLang, setSelectedLang] = useState<string>('en');
+  const [selectedLang, setSelectedLang] = useState<string>(locale);
   const [selectedVersion, setSelectedVersion] = useState<number>(1);
   const [selectedTemplate, setSelectedTemplate] =
     useState<TemplateId>(initialTemplate);
   const [selectedColor, setSelectedColor] =
     useState<ColorThemeId>(initialColor);
-  const [selectedRegenLangs, setSelectedRegenLangs] = useState<string[]>(['en', 'tr']);
+  const [selectedRegenLangs, setSelectedRegenLangs] = useState<string[]>([
+    'en',
+    'tr',
+  ]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<
@@ -207,18 +217,22 @@ export default function ResumeSessionPage() {
   >('preview');
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
-  const [authActionTitle, setAuthActionTitle] = useState<string>('Save & Export Your CV');
-  const [pendingAction, setPendingAction] = useState<'download' | 'email' | 'save' | 'ats' | null>(null);
+  const [authActionTitle, setAuthActionTitle] = useState<string>(
+    t('authModal.saveExportTitle'),
+  );
+  const [pendingAction, setPendingAction] = useState<
+    'download' | 'email' | 'save' | 'ats' | null
+  >(null);
 
   const handleActionTrigger = (action: 'download' | 'email' | 'save') => {
     if (!session) {
       setPendingAction(action);
       setAuthActionTitle(
         action === 'download'
-          ? 'Sign in to Download High-Res PDF'
+          ? t('authModal.downloadTitle')
           : action === 'email'
-          ? 'Sign in to Email Your CV'
-          : 'Save Your CV Progress'
+            ? t('authModal.emailTitle')
+            : t('authModal.saveTitle'),
       );
       setIsAuthModalOpen(true);
       return;
@@ -231,15 +245,13 @@ export default function ResumeSessionPage() {
 
   const handleRequestAtsLogin = () => {
     setPendingAction('ats');
-    setAuthActionTitle('Sign in to Unlock ATS Analysis');
+    setAuthActionTitle(t('authModal.atsTitle'));
     setIsAuthModalOpen(true);
   };
 
   const handleAuthSuccess = () => {
     setIsAuthModalOpen(false);
-    // Execute the pending action after successful login
     if (pendingAction === 'download') {
-      // Small delay to let auth state propagate
       setTimeout(() => handleDownloadPdf(), 500);
     } else if (pendingAction === 'ats') {
       setActiveTab('ats');
@@ -247,58 +259,46 @@ export default function ResumeSessionPage() {
     setPendingAction(null);
   };
 
-  // Fetch Resume details
-  const loadResumeData = async (selectLatest = false) => {
-    if (!id || !token) return;
-    try {
-      const data = await fetchResumeById(id, token);
-      if (data) {
-        setResume(data);
-        const activeT =
-          data.translations.find((t) => t.languageCode === selectedLang) ||
-          data.translations[0];
-        const formattedTitle = formatCompanyAndRole(
-          activeT?.title,
-          data.externalJobLink,
-        );
-        updateSessionTitle(data.id, formattedTitle);
+  // TanStack Query Session Detail Cache Hook
+  const {
+    data: fetchedResume,
+    isLoading: isSessionLoading,
+    isFetching,
+    isPending,
+    refetch: refetchSession,
+  } = useResumeSession(id, token);
 
-        // Find all available languages and versions
-        const langs = Array.from(
-          new Set(data.translations.map((t) => t.languageCode)),
-        );
-        const versions = Array.from(
-          new Set(data.translations.map((t) => t.version)),
-        );
+  const resume = fetchedResume;
 
-        // Default language selection to first available or fallback to current
-        if (langs.length > 0 && !langs.includes(selectedLang)) {
-          setSelectedLang(langs[0]);
-        }
-
-        // Default version selection
-        if (selectLatest && versions.length > 0) {
-          const maxVer = Math.max(...versions);
-          setSelectedVersion(maxVer);
-        } else if (versions.length > 0 && !versions.includes(selectedVersion)) {
-          setSelectedVersion(versions[0]);
-        }
-      } else {
-        setErrorMsg('Resume not found');
-      }
-    } catch (err) {
-      console.error(err);
-      setErrorMsg('Failed to load resume details');
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Sync title and selected language/version when fetchedResume changes
   useEffect(() => {
-    if (token && id) {
-      loadResumeData();
+    if (fetchedResume) {
+      const activeT =
+        fetchedResume.translations.find(
+          (t) => t.languageCode === selectedLang,
+        ) || fetchedResume.translations[0];
+      const formattedTitle = formatCompanyAndRole(
+        activeT?.title,
+        fetchedResume.externalJobLink,
+      );
+      updateSessionTitle(fetchedResume.id, formattedTitle);
+
+      const langs = Array.from(
+        new Set(fetchedResume.translations.map((t) => t.languageCode)),
+      );
+      const versions = Array.from(
+        new Set(fetchedResume.translations.map((t) => t.version)),
+      );
+
+      if (langs.length > 0 && !langs.includes(selectedLang)) {
+        setSelectedLang(langs[0]);
+      }
+
+      if (versions.length > 0 && !versions.includes(selectedVersion)) {
+        setSelectedVersion(versions[0]);
+      }
     }
-  }, [token, id]);
+  }, [fetchedResume, selectedLang, selectedVersion, updateSessionTitle]);
 
   // Handle CV Regeneration (New Version)
   const handleRegenerate = async () => {
@@ -319,8 +319,15 @@ export default function ResumeSessionPage() {
 
       if (result) {
         setSuccessMsg(t('regenerateSuccess'));
-        // Reload and force selecting the newly generated version
-        await loadResumeData(true);
+        const { data: updated } = await refetchSession();
+        if (updated) {
+          const versions = Array.from(
+            new Set(updated.translations.map((t) => t.version)),
+          );
+          if (versions.length > 0) {
+            setSelectedVersion(Math.max(...versions));
+          }
+        }
       } else {
         setErrorMsg(t('regenerateError'));
       }
@@ -353,18 +360,18 @@ export default function ResumeSessionPage() {
           languagesHtml: activeTranslation.languagesHtml,
           projectsHtml: activeTranslation.projectsHtml,
         },
-        token
+        token,
       );
       if (ok) {
         setSaveSuccess(true);
-        toast.success('Değişiklikler başarıyla kaydedildi');
+        toast.success(tToast('savedSuccess'));
         setTimeout(() => setSaveSuccess(false), 3000);
       } else {
-        toast.error('Değişiklikler kaydedilemedi');
+        toast.error(tToast('saveError'));
       }
     } catch (err) {
       console.error('Save translation error:', err);
-      toast.error('Kaydetme sırasında bir hata oluştu');
+      toast.error(tToast('saveError'));
     } finally {
       setIsSaving(false);
     }
@@ -372,7 +379,7 @@ export default function ResumeSessionPage() {
 
   const handleDeleteResume = async () => {
     if (!resume || isDeleting) return;
-    if (!window.confirm('Bu özgeçmiş oturumunu silmek istediğinizden emin misiniz?')) return;
+    if (!window.confirm(t('deleteConfirm'))) return;
 
     setIsDeleting(true);
     try {
@@ -380,11 +387,11 @@ export default function ResumeSessionPage() {
         await deleteResume(resume.id, token);
       }
       removeSession(resume.id);
-      toast.success('Özgeçmiş başarıyla silindi');
+      toast.success(tToast('deleteSuccess'));
       router.push('/dashboard');
     } catch (err) {
       console.error('Failed to delete resume:', err);
-      toast.error('Özgeçmiş silinirken hata oluştu');
+      toast.error(tToast('deleteError'));
     } finally {
       setIsDeleting(false);
     }
@@ -407,15 +414,12 @@ export default function ResumeSessionPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex h-[70vh] w-full flex-col items-center justify-center gap-4">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <p className="text-muted-foreground animate-pulse">
-          Loading AI Resume Session...
-        </p>
-      </div>
-    );
+  if (
+    isAuthLoading ||
+    (isSessionLoading && !resume) ||
+    (isPending && isFetching && !resume)
+  ) {
+    return <SessionDetailSkeleton />;
   }
 
   if (!resume) {
@@ -424,9 +428,9 @@ export default function ResumeSessionPage() {
         <div className="h-16 w-16 bg-destructive/10 rounded-full flex items-center justify-center text-destructive mb-2">
           ⚠️
         </div>
-        <h2 className="text-xl font-bold">Resume Session Not Found</h2>
+        <h2 className="text-xl font-bold">{t('sessionNotFoundTitle')}</h2>
         <p className="text-sm text-muted-foreground">
-          The requested AI CV generation session could not be retrieved.
+          {t('sessionNotFoundDesc')}
         </p>
         <Button asChild className="rounded-full mt-2">
           <Link href="/dashboard">
@@ -457,6 +461,7 @@ export default function ResumeSessionPage() {
 
   return (
     <div className="flex flex-col gap-6 p-1 max-w-7xl mx-auto w-full">
+      <AiRegeneratingOverlay isOpen={regenerating} colorTheme={selectedColor} />
       {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4">
         <div className="flex items-center gap-3">
@@ -519,17 +524,17 @@ export default function ResumeSessionPage() {
               {isSaving ? (
                 <>
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  <span>Kaydediliyor...</span>
+                  <span>{t('saving')}</span>
                 </>
               ) : saveSuccess ? (
                 <>
                   <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-                  <span>Kaydedildi!</span>
+                  <span>{t('saved')}</span>
                 </>
               ) : (
                 <>
                   <Save className="h-3.5 w-3.5" />
-                  <span>Kaydet</span>
+                  <span>{t('save')}</span>
                 </>
               )}
             </Button>
@@ -566,8 +571,10 @@ export default function ResumeSessionPage() {
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <>
-                <Trash2 className="h-4 w-4" />
-                <span>Sil</span>
+                <Trash2 className="h-4 w-4 text-red-600 dark:text-red-500" />
+                <span className="text-black dark:text-white">
+                  {t('delete')}
+                </span>
               </>
             )}
           </Button>
@@ -593,7 +600,7 @@ export default function ResumeSessionPage() {
           <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm flex flex-col gap-5">
             <h3 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
               <Sparkles className="h-4 w-4 text-amber-500" />
-              AI Session Options
+              {t('aiSessionOptions')}
             </h3>
 
             {/* Language Selector */}
@@ -652,12 +659,12 @@ export default function ResumeSessionPage() {
               </label>
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  { id: 'modern', name: 'Modern' },
-                  { id: 'executive', name: 'Executive' },
-                  { id: 'sidebar', name: 'Left Sidebar' },
-                  { id: 'minimal', name: 'Minimalist' },
+                  { id: 'modern', name: t('templates.modern') },
+                  { id: 'executive', name: t('templates.executive') },
+                  { id: 'sidebar', name: t('templates.sidebar') },
+                  { id: 'minimal', name: t('templates.minimal') },
                 ].map((tmpl) => (
-                  <button
+                  <Button
                     key={tmpl.id}
                     type="button"
                     onClick={() => setSelectedTemplate(tmpl.id as TemplateId)}
@@ -668,7 +675,7 @@ export default function ResumeSessionPage() {
                     }`}
                   >
                     {tmpl.name}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
@@ -681,7 +688,7 @@ export default function ResumeSessionPage() {
               </label>
               <div className="flex items-center gap-2 flex-wrap">
                 {(Object.keys(COLOR_THEMES) as ColorThemeId[]).map((cId) => (
-                  <button
+                  <Button
                     key={cId}
                     type="button"
                     onClick={() => setSelectedColor(cId)}
@@ -731,65 +738,65 @@ export default function ResumeSessionPage() {
           {/* Tab Switcher */}
           <div className="flex flex-wrap items-center justify-between gap-4 px-2 border-b pb-2">
             <div className="flex gap-2 bg-muted/60 p-1 rounded-xl border border-border/60">
-              <button
+              <Button
                 onClick={() => setActiveTab('preview')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer hover:bg-zinc-300/50 border-0 dark:hover:bg-zinc-500/50 ${
                   activeTab === 'preview'
                     ? 'bg-background text-foreground shadow-xs'
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted/80'
                 }`}
               >
                 <FileText className="h-3.5 w-3.5" />
-                Tailored CV Preview
-              </button>
-              <button
+                {t('tabs.cvPreview')}
+              </Button>
+              <Button
                 onClick={() => setActiveTab('jobDesc')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer hover:bg-zinc-300/50 border-0 dark:hover:bg-zinc-500/50 ${
                   activeTab === 'jobDesc'
                     ? 'bg-background text-foreground shadow-xs'
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted/80'
                 }`}
               >
                 <Briefcase className="h-3.5 w-3.5" />
-                Job Description
-              </button>
-              <button
+                {t('tabs.jobDesc')}
+              </Button>
+              <Button
                 onClick={() => setActiveTab('ats')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer  hover:bg-zinc-300/50 border-0 dark:hover:bg-zinc-500/50 ${
                   activeTab === 'ats'
                     ? 'bg-background text-foreground shadow-xs'
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted/80'
                 }`}
               >
                 <Sparkles className="h-3.5 w-3.5" />
-                ATS Analysis
-              </button>
-              <button
+                {t('tabs.atsAnalysis')}
+              </Button>
+              <Button
                 onClick={() => setActiveTab('coverLetter')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer  hover:bg-zinc-300/50 border-0 dark:hover:bg-zinc-500/50 ${
                   activeTab === 'coverLetter'
                     ? 'bg-background text-foreground shadow-xs'
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted/80'
                 }`}
               >
                 <Mail className="h-3.5 w-3.5 text-emerald-500" />
-                Cover Letter
-              </button>
-              <button
+                {t('tabs.coverLetter')}
+              </Button>
+              <Button
                 onClick={() => setActiveTab('coldMessage')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer  hover:bg-zinc-300/50 border-0 dark:hover:bg-zinc-500/50 ${
                   activeTab === 'coldMessage'
                     ? 'bg-background text-foreground shadow-xs'
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted/80'
                 }`}
               >
                 <Send className="h-3.5 w-3.5 text-blue-500" />
-                Cold Message
-              </button>
+                {t('tabs.coldMessage')}
+              </Button>
             </div>
 
             <span className="text-xs text-muted-foreground font-medium">
-              Active Version:{' '}
+              {t('activeVersion')}:{' '}
               <span className="font-semibold text-foreground">
                 v{selectedVersion}
               </span>
@@ -830,7 +837,7 @@ export default function ResumeSessionPage() {
                   <div className="border-b-2 border-primary/20 pb-4 flex items-center justify-between gap-4">
                     <div>
                       <h2 className="text-2xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
-                        Job Advertisement / İş İlanı Detayları
+                        {t('jobDescTitle')}
                       </h2>
                       {resume.externalJobLink && (
                         <a
@@ -839,7 +846,7 @@ export default function ResumeSessionPage() {
                           rel="noopener noreferrer"
                           className="text-xs text-primary hover:underline font-semibold mt-1 flex items-center gap-1"
                         >
-                          <span>Go to Job Posting</span>
+                          <span>{t('goToJobPosting')}</span>
                           <ExternalLink className="h-3 w-3" />
                         </a>
                       )}
@@ -858,10 +865,16 @@ export default function ResumeSessionPage() {
                   isAuthenticated={!!session}
                   onRequestLogin={handleRequestAtsLogin}
                   onApplyTailoredTranslation={(updatedTranslation) => {
+                    if (!resume || !activeTranslation) return;
                     const updatedTranslations = resume.translations.map((tr) =>
-                      tr.id === activeTranslation.id ? { ...tr, ...updatedTranslation } : tr
+                      tr.id === activeTranslation.id
+                        ? { ...tr, ...updatedTranslation }
+                        : tr,
                     );
-                    setResume({ ...resume, translations: updatedTranslations } as ResumeDto);
+                    queryClient.setQueryData(resumeKeys.detail(resume.id), {
+                      ...resume,
+                      translations: updatedTranslations,
+                    } as ResumeDto);
                   }}
                 />
               )}
@@ -872,7 +885,8 @@ export default function ResumeSessionPage() {
                   translation={activeTranslation}
                   profile={resume?.profile}
                   onSaveTranslation={async (updated) => {
-                    if (!resume || !token || !activeTranslation.id) return false;
+                    if (!resume || !token || !activeTranslation.id)
+                      return false;
                     try {
                       setIsSaving(true);
                       const ok = await updateResumeTranslation(
@@ -882,10 +896,16 @@ export default function ResumeSessionPage() {
                         token,
                       );
                       if (ok) {
-                        const updatedTranslations = resume.translations.map((tr) =>
-                          tr.id === activeTranslation.id ? { ...tr, ...updated } : tr
+                        const updatedTranslations = resume.translations.map(
+                          (tr) =>
+                            tr.id === activeTranslation.id
+                              ? { ...tr, ...updated }
+                              : tr,
                         );
-                        setResume({ ...resume, translations: updatedTranslations } as ResumeDto);
+                        queryClient.setQueryData(resumeKeys.detail(resume.id), {
+                          ...resume,
+                          translations: updatedTranslations,
+                        } as ResumeDto);
                         return true;
                       }
                       return false;
@@ -905,7 +925,8 @@ export default function ResumeSessionPage() {
                   translation={activeTranslation}
                   profile={resume?.profile}
                   onSaveTranslation={async (updated) => {
-                    if (!resume || !token || !activeTranslation.id) return false;
+                    if (!resume || !token || !activeTranslation.id)
+                      return false;
                     try {
                       setIsSaving(true);
                       const ok = await updateResumeTranslation(
@@ -915,10 +936,16 @@ export default function ResumeSessionPage() {
                         token,
                       );
                       if (ok) {
-                        const updatedTranslations = resume.translations.map((tr) =>
-                          tr.id === activeTranslation.id ? { ...tr, ...updated } : tr
+                        const updatedTranslations = resume.translations.map(
+                          (tr) =>
+                            tr.id === activeTranslation.id
+                              ? { ...tr, ...updated }
+                              : tr,
                         );
-                        setResume({ ...resume, translations: updatedTranslations } as ResumeDto);
+                        queryClient.setQueryData(resumeKeys.detail(resume.id), {
+                          ...resume,
+                          translations: updatedTranslations,
+                        } as ResumeDto);
                         return true;
                       }
                       return false;

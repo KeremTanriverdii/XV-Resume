@@ -192,6 +192,8 @@ export interface ResumeTranslationDto {
 export interface ResumeDto {
   id: string;
   profileId?: string | null;
+  title?: string;
+  languageCode?: string;
   externalJobLink: string;
   jobDescription: string;
   createdAt: string;

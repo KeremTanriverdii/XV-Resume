@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { useTranslations } from 'next-intl';
+
 interface CoverLetterTabProps {
   translation: Partial<ResumeTranslationDto>;
   profile?: Profile | null;
@@ -26,6 +28,8 @@ export const CoverLetterTab: React.FC<CoverLetterTabProps> = ({
   onSaveTranslation,
   isSaving = false,
 }) => {
+  const tToast = useTranslations('toast');
+
   const getFallbackCoverLetter = () => {
     const lang = (translation.languageCode || 'en').toLowerCase();
     const title = translation.title || 'Software Specialist';
@@ -58,10 +62,10 @@ export const CoverLetterTab: React.FC<CoverLetterTabProps> = ({
     try {
       await navigator.clipboard.writeText(content);
       setCopied(true);
-      toast.success('Cover Letter copied to clipboard!');
+      toast.success(tToast('copiedSuccess'));
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error('Failed to copy text.');
+      toast.error(tToast('copiedFailed'));
     }
   };
 
@@ -70,7 +74,7 @@ export const CoverLetterTab: React.FC<CoverLetterTabProps> = ({
       const success = await onSaveTranslation({ coverLetter: content });
       if (success) {
         setIsEditing(false);
-        toast.success('Cover Letter saved successfully!');
+        toast.success(tToast('coverLetterSaved'));
       }
     } else {
       setIsEditing(false);
@@ -87,7 +91,7 @@ export const CoverLetterTab: React.FC<CoverLetterTabProps> = ({
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    toast.success('Downloaded Cover Letter (.txt)');
+    toast.success(tToast('downloadSuccess'));
   };
 
   return (

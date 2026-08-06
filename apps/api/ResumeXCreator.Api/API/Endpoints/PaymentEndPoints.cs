@@ -30,15 +30,9 @@ public static class PaymentEndpoints
         user = new User
         {
           Id = userId,
-          SubscriptionsStatus = "Trial",
-          TrialsEndsAt = DateTime.UtcNow.AddDays(14)
+          SubscriptionsStatus = "Inactive"
         };
         dbContext.Users.Add(user);
-        await dbContext.SaveChangesAsync();
-      }
-      else if (!user.TrialsEndsAt.HasValue && user.SubscriptionsStatus == "Trial")
-      {
-        user.TrialsEndsAt = DateTime.UtcNow.AddDays(14);
         await dbContext.SaveChangesAsync();
       }
 
@@ -135,6 +129,11 @@ public static class PaymentEndpoints
               user.SubscriptionsStatus = "Active";
               user.SubscriptionEndsAt = billingPeriodEndsAt ?? DateTime.UtcNow.AddMonths(1);
             }
+            else if (status == "trialing" || eventType == "subscription.created")
+            {
+              user.SubscriptionsStatus = "Trialing";
+              user.SubscriptionEndsAt = billingPeriodEndsAt ?? DateTime.UtcNow.AddDays(14);
+            }
             else if (status == "canceled" || eventType == "subscription.canceled")
             {
               user.SubscriptionsStatus = "Canceled";
@@ -172,9 +171,9 @@ public static class PaymentEndpoints
       }
 
       var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
-      if (user == null || string.IsNullOrEmpty(user.PaddleCustomerId))
+      if (user == null || string.IsNullOrEmpty(user.PaddleCustomerId) || !user.PaddleCustomerId.StartsWith("ctm_"))
       {
-        return Results.BadRequest(new { error = "No active subscription profile found. Please subscribe to Pro first." });
+        return Results.BadRequest(new { error = "Aktif bir Paddle abonelik profili bulunamadı. Lütfen önce Pro planına abone olun." });
       }
 
       var apiKey = config["Paddle:ApiKey"];

@@ -15,6 +15,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { useTranslations } from 'next-intl';
+
 interface ColdMessageTabProps {
   translation: Partial<ResumeTranslationDto>;
   profile?: Profile | null;
@@ -28,6 +30,8 @@ export const ColdMessageTab: React.FC<ColdMessageTabProps> = ({
   onSaveTranslation,
   isSaving = false,
 }) => {
+  const tToast = useTranslations('toast');
+
   const getFallbackColdMessage = () => {
     const lang = (translation.languageCode || 'en').toLowerCase();
     const title = translation.title || 'Software Specialist';
@@ -60,10 +64,10 @@ export const ColdMessageTab: React.FC<ColdMessageTabProps> = ({
     try {
       await navigator.clipboard.writeText(content);
       setCopied(true);
-      toast.success('Cold Message copied to clipboard!');
+      toast.success(tToast('copiedSuccess'));
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error('Failed to copy message.');
+      toast.error(tToast('copiedFailed'));
     }
   };
 
@@ -72,7 +76,7 @@ export const ColdMessageTab: React.FC<ColdMessageTabProps> = ({
       const success = await onSaveTranslation({ coldMessage: content });
       if (success) {
         setIsEditing(false);
-        toast.success('Cold Message saved successfully!');
+        toast.success(tToast('coldMessageSaved'));
       }
     } else {
       setIsEditing(false);
@@ -89,7 +93,7 @@ export const ColdMessageTab: React.FC<ColdMessageTabProps> = ({
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    toast.success('Downloaded Cold Message (.txt)');
+    toast.success(tToast('downloadSuccess'));
   };
 
   return (

@@ -5,7 +5,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 
 type FieldErrors = {
   fullName?: string;
@@ -21,6 +21,7 @@ interface EmailAndPasswordRegisterProps {
 export default function EmailAndPasswordRegister({ onSuccess }: EmailAndPasswordRegisterProps) {
   const supabase = createClient();
   const t = useTranslations('register');
+  const locale = useLocale();
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +62,12 @@ export default function EmailAndPasswordRegister({ onSuccess }: EmailAndPassword
         email,
         password,
         options: {
-          data: { full_name: fullName },
+          data: {
+            full_name: fullName,
+            name: fullName,
+            display_name: fullName,
+          },
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=/${locale}/dashboard&locale=${locale}`,
         },
       });
 

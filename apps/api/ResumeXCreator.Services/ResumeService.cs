@@ -20,9 +20,12 @@ public class ResumeService(
   private readonly IUserRepository _userRepository = userRepository;
   private readonly IAiService _aiService = aiService;
 
-  public async Task<IEnumerable<ResumeDto>> GetAllResumesAsync()
+  public async Task<IEnumerable<ResumeDto>> GetAllResumesAsync(string? userId = null, int page = 1, int pageSize = 10)
   {
-    var resumes = await _resumeRepository.GetAllAsync();
+    var resumes = !string.IsNullOrWhiteSpace(userId)
+        ? await _resumeRepository.GetPagedByUserIdWithTranslationsAsync(userId, page, pageSize)
+        : await _resumeRepository.GetAllWithTranslationsAsync();
+
     return resumes.Select(MapToDto);
   }
 
@@ -149,28 +152,21 @@ public class ResumeService(
   /// </summary>
   public async Task<ResumeDto> GenerateResumeAsync(CreateResumeDto dto, string authenticatedUserId)
   {
-    // ── Check Trial & Subscription Status ──
     var userObj = await _userRepository.GetByIdAsync(authenticatedUserId);
     if (userObj == null)
     {
       userObj = new User
       {
         Id = authenticatedUserId,
-        SubscriptionsStatus = "Trial",
-        TrialsEndsAt = DateTime.UtcNow.AddDays(14)
+        SubscriptionsStatus = "Inactive"
       };
       await _userRepository.AddAsync(userObj);
-      await _userRepository.SaveChangesAsync();
-    }
-    else if (!userObj.TrialsEndsAt.HasValue && userObj.SubscriptionsStatus == "Trial")
-    {
-      userObj.TrialsEndsAt = DateTime.UtcNow.AddDays(14);
       await _userRepository.SaveChangesAsync();
     }
 
     if (!userObj.CanGenerateResume)
     {
-      throw new InvalidOperationException("Your 14-day free trial or subscription has expired. Please subscribe to Pro to continue generating resumes.");
+      throw new InvalidOperationException("Active subscription required. Please subscribe to Pro to continue generating resumes.");
     }
 
     // ── 0. Version Update (Adding a new version to the existing CV session) ──
@@ -471,21 +467,15 @@ public class ResumeService(
       userObj = new User
       {
         Id = authenticatedUserId,
-        SubscriptionsStatus = "Trial",
-        TrialsEndsAt = DateTime.UtcNow.AddDays(14)
+        SubscriptionsStatus = "Inactive"
       };
       await _userRepository.AddAsync(userObj);
-      await _userRepository.SaveChangesAsync();
-    }
-    else if (!userObj.TrialsEndsAt.HasValue && userObj.SubscriptionsStatus == "Trial")
-    {
-      userObj.TrialsEndsAt = DateTime.UtcNow.AddDays(14);
       await _userRepository.SaveChangesAsync();
     }
 
     if (!userObj.CanGenerateResume)
     {
-      throw new InvalidOperationException("Your free trial or subscription has expired. Please subscribe to Pro to access ATS analysis.");
+      throw new InvalidOperationException("Active subscription required. Please subscribe to Pro to access ATS analysis.");
     }
 
     var aiProfile = MapToAiProfileInput(profile);

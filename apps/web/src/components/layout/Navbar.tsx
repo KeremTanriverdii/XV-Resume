@@ -14,9 +14,11 @@ import { Button } from '../ui/button';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
+import { useResumeStore } from '@/store/useResumeStore';
 
 export default function Navbar() {
   const { session, user, isLoading } = useAuth();
+  const setSessions = useResumeStore((state) => state.setSessions);
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
@@ -42,12 +44,27 @@ export default function Navbar() {
     { name: '日本語', code: 'jp' },
   ];
 
+  const getUserDisplayName = (usr: any) => {
+    if (!usr) return 'Kullanıcı';
+    const meta = usr.user_metadata || {};
+    const name = meta.full_name || meta.name || meta.display_name;
+    if (name && typeof name === 'string' && name.trim() !== '') {
+      return name.trim();
+    }
+    if (usr.email && typeof usr.email === 'string' && usr.email.trim() !== '') {
+      return usr.email.split('@')[0];
+    }
+    return 'Kullanıcı';
+  };
+
   const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error('Error signing out:', error);
-    } else {
-      router.push('/');
+    try {
+      setSessions([]);
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error('Error signing out:', err);
+    } finally {
+      window.location.href = `/${locale}/login`;
     }
   };
 
@@ -125,7 +142,7 @@ export default function Navbar() {
           {session ? (
             <>
               <Link
-                href="/dashboard"
+                href="/dashboard/profiles"
                 locale={locale as any}
                 className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-bold px-4 py-2 text-xs transition-all duration-300 shadow-md shadow-emerald-500/10 hover:shadow-emerald-500/25 active:scale-95 cursor-pointer"
               >
@@ -140,16 +157,16 @@ export default function Navbar() {
                   >
                     <User className="mr-1 h-4 w-4" />
                     <span className="font-semibold text-xs">
-                      {user?.user_metadata?.full_name || user?.email}
+                      {getUserDisplayName(user)}
                     </span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 text-zinc-800 dark:text-zinc-300">
                   <DropdownMenuItem
-                    onClick={() => router.push('/dashboard')}
+                    onClick={() => router.push('/dashboard/profiles')}
                     className="hover:bg-zinc-100 dark:hover:bg-zinc-900 focus:bg-zinc-100 dark:focus:bg-zinc-900 hover:text-zinc-900 dark:hover:text-zinc-100 focus:text-zinc-100 transition-colors"
                   >
-                    <span className="text-xs">Dashboard / CV Oluştur</span>
+                    <span className="text-xs">CV Profil Oluşturucu</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => router.push('/profile')}
@@ -181,7 +198,7 @@ export default function Navbar() {
                 Giriş Yap
               </Link>
               <Link
-                href="/register"
+                href="/dashboard/profiles"
                 className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-bold px-5 py-2 text-xs transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/10 active:scale-95 cursor-pointer"
               >
                 <Sparkles className="h-3.5 w-3.5" />

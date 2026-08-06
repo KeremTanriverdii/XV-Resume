@@ -12,7 +12,6 @@ public class CreateProjectDtoValidator : AbstractValidator<CreateProjectDto>
       .MaximumLength(200).WithMessage("Project Title must not exceed 200 characters.");
 
     RuleFor(x => x.Description)
-      .NotEmpty().WithMessage("Project Description is required.")
       .MaximumLength(2000).WithMessage("Project Description must not exceed 2000 characters.");
 
     RuleFor(x => x.TechologiesUsed)

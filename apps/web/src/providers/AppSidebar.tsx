@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Sidebar,
@@ -16,7 +16,6 @@ import {
 } from '@/components/ui/sidebar';
 import { Link, useRouter, usePathname } from '@/i18n/routing';
 import { useResumeStore, ResumeSession } from '@/store/useResumeStore';
-import { deleteResume, fetchResumes } from '@/services/resumeService';
 import {
   LayoutDashboard,
   LayoutTemplate,
@@ -27,15 +26,27 @@ import {
   Moon,
   Globe,
   Laptop,
-  GraduationCap,
-  Briefcase,
-  FolderGit2,
   Trash2,
   Zap,
+  Mail,
+  Check,
+  Loader2,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
+
+const LANGUAGES = [
+  { code: 'tr', name: 'Türkçe', flag: '🇹🇷' },
+  { code: 'en', name: 'English', flag: '🇺🇸' },
+  { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
+  { code: 'es', name: 'Español', flag: '🇪🇸' },
+  { code: 'fr', name: 'Français', flag: '🇫🇷' },
+  { code: 'jp', name: '日本語', flag: '🇯🇵' },
+];
 import { createClient } from '@/utils/supabase/client';
 import { useAuth } from './AuthProvider';
+import { useResumes, useInfiniteResumes, useDeleteResume, resumeKeys } from '@/hooks/useResume';
+import { useQueryClient } from '@tanstack/react-query';
+import { fetchResumeById } from '@/services/resumeService';
 
 const QuickAtsScanModal = dynamic(
   () =>
@@ -58,43 +69,131 @@ import { useTheme } from 'next-themes';
 import { useLocale, useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+
 import { formatCompanyAndRole } from '@/utils/formatTitle';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export function AppSidebar() {
   const { user, session } = useAuth();
   const token = session?.access_token;
+  const queryClient = useQueryClient();
   const { theme, setTheme } = useTheme();
   const { sessions, setSessions, removeSession } = useResumeStore();
+  const {
+    data: infiniteData,
+    isLoading: isResumesLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteResumes(token, 10);
+  const locale = useLocale();
+
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!loadMoreRef.current || !hasNextPage || isFetchingNextPage) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      { threshold: 0.2 }
+    );
+
+    observer.observe(loadMoreRef.current);
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const allResumes = useMemo(() => {
+    if (!infiniteData?.pages) return null;
+    return infiniteData.pages.flat();
+  }, [infiniteData]);
+
   const router = useRouter();
   const pathname = usePathname();
-  const locale = useLocale();
   const t = useTranslations();
 
+  const handlePrefetchSession = (id: string) => {
+    if (!token || !id) return;
+    queryClient.prefetchQuery({
+      queryKey: resumeKeys.detail(id),
+      queryFn: () => fetchResumeById(id, token),
+      staleTime: 5 * 60 * 1000,
+    });
+  };
+
+  const displaySessions: ResumeSession[] = useMemo(() => {
+    if (allResumes) {
+      return allResumes.map((r) => {
+        const prefTrans =
+          r.translations?.find((t) => t.languageCode === locale) ||
+          r.translations?.[0];
+        const calculatedTitle = formatCompanyAndRole(
+          prefTrans?.title,
+          r.externalJobLink,
+        );
+
+        return {
+          id: r.id,
+          jobTitle: calculatedTitle,
+          jobLink: r.externalJobLink,
+          createdAt: r.createdAt,
+        };
+      });
+    }
+    return sessions || [];
+  }, [allResumes, locale, sessions]);
+
   const [mounted, setMounted] = useState(false);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [sessionToDelete, setSessionToDelete] = useState<ResumeSession | null>(
+    null,
+  );
   const [isAtsModalOpen, setIsAtsModalOpen] = useState(false);
 
-  const handleDeleteSession = async (e: React.MouseEvent, id: string) => {
+  const openDeleteModal = (e: React.MouseEvent, sessionItem: ResumeSession) => {
     e.preventDefault();
     e.stopPropagation();
+    setSessionToDelete(sessionItem);
+  };
 
-    if (deletingId === id) return;
-    setDeletingId(id);
+  const deleteMutation = useDeleteResume();
+
+  const confirmDeleteSession = async () => {
+    if (!sessionToDelete) return;
+    const targetId = sessionToDelete.id;
+    const previousSessions = [...sessions];
+
+    // OPTIMISTIC UPDATE: Instantly remove session from local store
+    removeSession(targetId);
+    setSessionToDelete(null);
+
+    if (pathname.includes(`/dashboard/resume/${targetId}`)) {
+      router.push('/dashboard');
+    }
 
     try {
       if (token) {
-        await deleteResume(id, token);
+        await deleteMutation.mutateAsync({ id: targetId, token });
       }
-      removeSession(id);
-      toast.success('Özgeçmiş başarıyla silindi');
-      if (pathname.includes(`/dashboard/resume/${id}`)) {
-        router.push('/dashboard');
-      }
+      toast.success(t('toast.deleteSuccess'));
     } catch (err) {
-      console.error('Failed to delete resume session:', err);
-      toast.error('Özgeçmiş silinirken bir hata oluştu');
-    } finally {
-      setDeletingId(null);
+      console.error('Optimistic delete failed, rolling back:', err);
+      // ROLLBACK ON FAILURE
+      setSessions(previousSessions);
+      toast.error(t('toast.deleteError'));
     }
   };
 
@@ -103,38 +202,45 @@ export function AppSidebar() {
     setMounted(true);
   }, []);
 
+  // Keep Zustand store in sync for components that might read from it
   useEffect(() => {
-    if (token) {
-      fetchResumes(token).then((resumes) => {
-        const mappedSessions: ResumeSession[] = resumes.map((r) => {
-          const prefTrans =
-            r.translations.find((t) => t.languageCode === locale) ||
-            r.translations[0];
-          const calculatedTitle = formatCompanyAndRole(
-            prefTrans?.title,
-            r.externalJobLink,
-          );
+    if (allResumes) {
+      const mappedSessions: ResumeSession[] = allResumes.map((r) => {
+        const prefTrans =
+          r.translations?.find((t) => t.languageCode === locale) ||
+          r.translations?.[0];
+        const calculatedTitle = formatCompanyAndRole(
+          prefTrans?.title,
+          r.externalJobLink,
+        );
 
-          return {
-            id: r.id,
-            jobTitle: calculatedTitle,
-            jobLink: r.externalJobLink,
-            createdAt: r.createdAt,
-          };
-        });
-        setSessions(mappedSessions);
+        return {
+          id: r.id,
+          jobTitle: calculatedTitle,
+          jobLink: r.externalJobLink,
+          createdAt: r.createdAt,
+        };
       });
+      useResumeStore.setState({ sessions: mappedSessions });
+    } else if (!token) {
+      useResumeStore.setState({ sessions: [] });
     }
-  }, [token, locale, setSessions]);
+  }, [allResumes, locale, token]);
 
   const handleLogout = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push('/login');
+    try {
+      setSessions([]);
+      const supabase = createClient();
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error('Logout error:', err);
+    } finally {
+      window.location.href = `/${locale}/login`;
+    }
   };
 
-  const toggleLanguage = () => {
-    const nextLocale = locale === 'tr' ? 'en' : 'tr';
+  const changeLanguage = (nextLocale: string) => {
+    if (nextLocale === locale) return;
 
     const cleanPath = pathname.startsWith(`/${locale}`)
       ? pathname.slice(locale.length + 1)
@@ -155,19 +261,9 @@ export function AppSidebar() {
       icon: LayoutTemplate,
     },
     {
-      name: t('sidebar.educations'),
-      href: '/dashboard/educations',
-      icon: GraduationCap,
-    },
-    {
-      name: t('sidebar.experiences'),
-      href: '/dashboard/experiences',
-      icon: Briefcase,
-    },
-    {
-      name: t('sidebar.projects'),
-      href: '/dashboard/projects',
-      icon: FolderGit2,
+      name: t('sidebar.outreach') || 'Cold Message & Cover Letter',
+      href: '/dashboard/outreach',
+      icon: Mail,
     },
   ];
 
@@ -218,47 +314,70 @@ export function AppSidebar() {
         {/* Session History */}
         <SidebarGroup>
           <div className="px-2 pb-2">
-            <button
+            <Button
               type="button"
               onClick={() => setIsAtsModalOpen(true)}
               className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-xs font-bold transition-all cursor-pointer group"
             >
               <div className="flex items-center gap-2">
                 <Zap className="h-4 w-4 text-amber-500 group-hover:scale-110 transition-transform" />
-                <span>Hızlı ATS Uyum Testi</span>
+                <span>{t('sidebar.atsScan') || 'Hızlı ATS Uyum Testi'}</span>
               </div>
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-500 font-extrabold border border-amber-500/40 shadow-xs">PRO</span>
-            </button>
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-500 font-extrabold border border-amber-500/40 shadow-xs">
+                PRO
+              </span>
+            </Button>
           </div>
           <SidebarGroupLabel>{t('sidebar.recent-resumes')}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {sessions.length === 0 ? (
+              {isResumesLoading && displaySessions.length === 0 ? (
+                <div className="px-2 py-1 space-y-2">
+                  <Skeleton className="h-8 w-full rounded-lg" />
+                  <Skeleton className="h-8 w-full rounded-lg" />
+                  <Skeleton className="h-8 w-full rounded-lg" />
+                </div>
+              ) : displaySessions.length === 0 ? (
                 <div className="px-4 py-2 text-xs text-muted-foreground">
                   {t('sidebar.no-recent-resumes')}
                 </div>
               ) : (
-                sessions.map((session) => (
-                  <SidebarMenuItem
-                    key={session.id}
-                    className="group/item relative flex items-center"
-                  >
-                    <SidebarMenuButton asChild className="pr-8">
-                      <Link href={`/dashboard/resume/${session.id}`} prefetch={true}>
-                        <MessageSquare className="mr-2 h-4 w-4 shrink-0" />
-                        <span className="truncate">{session.jobTitle}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                    <button
-                      type="button"
-                      onClick={(e) => handleDeleteSession(e, session.id)}
-                      title="Özgeçmişi Sil"
-                      className="absolute right-2 text-zinc-400 hover:text-red-500 opacity-0 group-hover/item:opacity-100 transition-opacity p-1 rounded-md hover:bg-red-500/10 cursor-pointer"
+                <>
+                  {displaySessions.map((session) => (
+                    <SidebarMenuItem
+                      key={session.id}
+                      className="group/item relative flex items-center"
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </SidebarMenuItem>
-                ))
+                      <SidebarMenuButton asChild className="pr-8">
+                        <Link
+                          href={`/dashboard/resume/${session.id}`}
+                          prefetch={true}
+                          onMouseEnter={() => handlePrefetchSession(session.id)}
+                        >
+                          <MessageSquare className="mr-2 h-4 w-4 shrink-0" />
+                          <span className="truncate">{session.jobTitle}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                      <Button
+                        type="button"
+                        onClick={(e) => openDeleteModal(e, session)}
+                        title={t('sidebar.deleteConfirmTitle')}
+                        className="absolute right-2 border-0 text-zinc-400 hover:text-red-500 opacity-0 group-hover/item:opacity-100 transition-opacity  rounded-md hover:bg-red-500/10 cursor-pointer"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </SidebarMenuItem>
+                  ))}
+                  {/* Sentinel element for infinite scroll */}
+                  <div ref={loadMoreRef} className="py-1 text-center w-full">
+                    {isFetchingNextPage && (
+                      <div className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground py-1">
+                        <Loader2 className="h-3 w-3 animate-spin text-primary shrink-0" />
+                        <span>Yükleniyor...</span>
+                      </div>
+                    )}
+                  </div>
+                </>
               )}
             </SidebarMenu>
           </SidebarGroupContent>
@@ -267,108 +386,175 @@ export function AppSidebar() {
 
       {/* User Profile & Settings Dropdown at Bottom */}
       <SidebarFooter className="p-2">
-        {user && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="flex w-full items-center gap-3 text-left focus:outline-none hover:bg-accent hover:text-accent-foreground p-2 rounded-lg transition-colors cursor-pointer">
-                <Avatar className="h-9 w-9">
-                  <AvatarImage src={user.user_metadata.avatar_url} />
-                  <AvatarFallback className="bg-primary/10 text-primary">
-                    {user.user_metadata.name?.charAt(0) || 'U'}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex flex-col overflow-hidden flex-1">
-                  <span className="text-sm font-medium truncate">
-                    {user.user_metadata.name}
-                  </span>
-                  <span className="text-xs text-muted-foreground truncate">
-                    {user.email}
-                  </span>
-                </div>
-              </button>
-            </DropdownMenuTrigger>
+        {(() => {
+          const userName =
+            user?.user_metadata?.full_name ||
+            user?.user_metadata?.name ||
+            user?.user_metadata?.display_name ||
+            user?.email?.split('@')[0] ||
+            'Kullanıcı';
+          const userEmail = user?.email || '';
+          const userAvatar =
+            user?.user_metadata?.avatar_url || user?.user_metadata?.picture;
 
-            <DropdownMenuContent
-              className="w-56"
-              align="end"
-              side="top"
-              sideOffset={8}
-            >
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger className="cursor-pointer">
-                  {mounted ? (
-                    theme === 'dark' ? (
-                      <Moon className="mr-2 h-4 w-4" />
-                    ) : theme === 'light' ? (
-                      <Sun className="mr-2 h-4 w-4" />
+          return (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="flex w-full border-2 items-center gap-2 text-left focus:outline-none hover:bg-accent hover:text-accent-foreground py-6 border-[accent] rounded-lg transition-colors cursor-pointer">
+                  <Avatar className="h-9 w-9">
+                    {userAvatar && <AvatarImage src={userAvatar} />}
+                    <AvatarFallback className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold text-xs">
+                      {userName.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col overflow-hidden flex-1">
+                    <span className="text-sm font-semibold truncate text-foreground">
+                      {userName}
+                    </span>
+                    {userEmail && (
+                      <span className="text-xs text-muted-foreground truncate">
+                        {userEmail}
+                      </span>
+                    )}
+                  </div>
+                </Button>
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent
+                className="w-56"
+                align="end"
+                side="top"
+                sideOffset={8}
+              >
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger className="cursor-pointer">
+                    {mounted ? (
+                      theme === 'dark' ? (
+                        <Moon className="mr-2 h-4 w-4" />
+                      ) : theme === 'light' ? (
+                        <Sun className="mr-2 h-4 w-4" />
+                      ) : (
+                        <Laptop className="mr-2 h-4 w-4" />
+                      )
                     ) : (
-                      <Laptop className="mr-2 h-4 w-4" />
-                    )
-                  ) : (
-                    <Sun className="mr-2 h-4 w-4" />
-                  )}
-                  <span>{t('settings.theme')}</span>
-                </DropdownMenuSubTrigger>
-                <DropdownMenuPortal>
-                  <DropdownMenuSubContent sideOffset={7}>
-                    <DropdownMenuItem
-                      onClick={() => setTheme('light')}
-                      className={`cursor-pointer ${theme === 'light' ? 'bg-accent text-accent-foreground font-semibold' : ''}`}
-                    >
                       <Sun className="mr-2 h-4 w-4" />
-                      <span>{t('common.light')}</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setTheme('dark')}
-                      className={`cursor-pointer ${theme === 'dark' ? 'bg-accent text-accent-foreground font-semibold' : ''}`}
-                    >
-                      <Moon className="mr-2 h-4 w-4" />
-                      <span>{t('common.dark')}</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setTheme('system')}
-                      className={`cursor-pointer ${theme === 'system' ? 'bg-accent text-accent-foreground font-semibold' : ''}`}
-                    >
-                      <Laptop className="mr-2 h-4 w-4" />
-                      <span>{t('common.system')}</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuSubContent>
-                </DropdownMenuPortal>
-              </DropdownMenuSub>
+                    )}
+                    <span>{t('settings.theme')}</span>
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuPortal>
+                    <DropdownMenuSubContent sideOffset={7}>
+                      <DropdownMenuItem
+                        onClick={() => setTheme('light')}
+                        className={`cursor-pointer ${theme === 'light' ? 'bg-accent text-accent-foreground font-semibold' : ''}`}
+                      >
+                        <Sun className="mr-2 h-4 w-4" />
+                        <span>{t('common.light')}</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setTheme('dark')}
+                        className={`cursor-pointer ${theme === 'dark' ? 'bg-accent text-accent-foreground font-semibold' : ''}`}
+                      >
+                        <Moon className="mr-2 h-4 w-4" />
+                        <span>{t('common.dark')}</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setTheme('system')}
+                        className={`cursor-pointer ${theme === 'system' ? 'bg-accent text-accent-foreground font-semibold' : ''}`}
+                      >
+                        <Laptop className="mr-2 h-4 w-4" />
+                        <span>{t('common.system')}</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuPortal>
+                </DropdownMenuSub>
 
-              {/* Language Toggle */}
-              <DropdownMenuItem
-                onClick={toggleLanguage}
-                className="cursor-pointer"
-              >
-                <Globe className="mr-2 h-4 w-4" />
-                <span>{locale === 'tr' ? 'English' : 'Türkçe'}</span>
-              </DropdownMenuItem>
+                {/* Language Submenu */}
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger className="cursor-pointer">
+                    <Globe className="mr-2 h-4 w-4" />
+                    <span>{t('settings.language') || 'Dil / Language'}</span>
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuPortal>
+                    <DropdownMenuSubContent sideOffset={7}>
+                      {LANGUAGES.map((lang) => (
+                        <DropdownMenuItem
+                          key={lang.code}
+                          onClick={() => changeLanguage(lang.code)}
+                          className={`cursor-pointer flex items-center justify-between min-w-[130px] ${
+                            locale === lang.code
+                              ? 'bg-accent text-accent-foreground font-semibold'
+                              : ''
+                          }`}
+                        >
+                          <span className="flex items-center gap-2">
+                            <span className="text-base leading-none">
+                              {lang.flag}
+                            </span>
+                            <span>{lang.name}</span>
+                          </span>
+                          {locale === lang.code && (
+                            <Check className="h-3.5 w-3.5 ml-2 text-emerald-500 shrink-0" />
+                          )}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuSubContent>
+                  </DropdownMenuPortal>
+                </DropdownMenuSub>
 
-              {/* Settings */}
-              <DropdownMenuItem asChild>
-                <Link
-                  href="/dashboard/settings"
-                  className="flex items-center w-full cursor-pointer"
+                {/* Settings */}
+                <DropdownMenuItem asChild>
+                  <Link
+                    href="/dashboard/settings"
+                    className="flex items-center w-full cursor-pointer"
+                  >
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>{t('settings.title')}</span>
+                  </Link>
+                </DropdownMenuItem>
+
+                {/* Logout */}
+                <DropdownMenuItem
+                  onClick={handleLogout}
+                  className="flex items-center w-full cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10 dark:focus:bg-destructive/20"
                 >
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>{t('settings.title')}</span>
-                </Link>
-              </DropdownMenuItem>
-
-              {/* Logout */}
-              <DropdownMenuItem
-                onClick={handleLogout}
-                className="flex items-center w-full cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10 dark:focus:bg-destructive/20"
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>{t('auth.logout')}</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>{t('auth.logout')}</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          );
+        })()}
       </SidebarFooter>
-      <QuickAtsScanModal isOpen={isAtsModalOpen} onClose={() => setIsAtsModalOpen(false)} />
+      <QuickAtsScanModal
+        isOpen={isAtsModalOpen}
+        onClose={() => setIsAtsModalOpen(false)}
+      />
+
+      {/* Shadcn Alert Dialog for Delete Confirmation */}
+      <AlertDialog
+        open={!!sessionToDelete}
+        onOpenChange={(open) => !open && setSessionToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-red-600 dark:text-red-400 font-bold">
+              <Trash2 className="h-4.5 w-4.5 text-red-500 shrink-0" />
+              <span>{t('sidebar.deleteConfirmTitle')}</span>
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('sidebar.deleteConfirmDesc')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              {t('sidebar.deleteConfirmCancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteSession}>
+              {t('sidebar.deleteConfirmAction')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Sidebar>
   );
 }

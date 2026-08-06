@@ -4,9 +4,13 @@ import { api } from "./apiClient";
 /**
  * Fetch all resumes (sessions) owned by the current authenticated user.
  */
-export const fetchResumes = async (token: string | undefined): Promise<ResumeDto[]> => {
+export const fetchResumes = async (
+  token: string | undefined,
+  page: number = 1,
+  pageSize: number = 10
+): Promise<ResumeDto[]> => {
   if (!token) return [];
-  return api.get<ResumeDto[]>("/resumes", token).catch(() => []);
+  return api.get<ResumeDto[]>(`/resumes?page=${page}&pageSize=${pageSize}`, token).catch(() => []);
 };
 
 /**

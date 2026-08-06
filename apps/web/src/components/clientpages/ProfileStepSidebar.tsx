@@ -3,6 +3,8 @@
 import React from "react";
 import { User, Briefcase, GraduationCap, FolderGit2, Wrench, CheckCircle2, ChevronRight, Sparkles } from "lucide-react";
 
+import { useTranslations } from 'next-intl';
+
 export interface ProfileStepInfo {
   id: number;
   key: string;
@@ -26,6 +28,7 @@ export const ProfileStepSidebar: React.FC<ProfileStepSidebarProps> = ({
   steps,
   profileName,
 }) => {
+  const t = useTranslations('profiles');
   return (
     <aside className="flex flex-col gap-3 p-4 bg-card rounded-2xl border border-border/80 shadow-xs">
       <div className="flex items-center gap-2 border-b border-border/60 pb-3 px-1">
@@ -34,9 +37,9 @@ export const ProfileStepSidebar: React.FC<ProfileStepSidebarProps> = ({
         </div>
         <div className="min-w-0">
           <h3 className="text-xs font-bold uppercase tracking-wider text-foreground truncate">
-            {profileName || "Profile Setup Steps"}
+            {profileName || t('profileSetupSteps')}
           </h3>
-          <p className="text-[11px] text-muted-foreground">Complete each step to build your CV</p>
+          <p className="text-[11px] text-muted-foreground">{t('completeStepsDesc')}</p>
         </div>
       </div>
 

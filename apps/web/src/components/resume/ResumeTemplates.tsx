@@ -370,6 +370,7 @@ export const ResumeTemplates: React.FC<ResumeTemplatesProps> = ({
     label?: string,
     styleVariant: 'modern' | 'executive' | 'sidebar' | 'minimal' = 'modern',
     isCompact: boolean = false,
+    extraClass?: string,
   ) => {
     if (!htmlContent) return null;
     const cleanedHtml = cleanExperienceHtml(htmlContent);
@@ -377,7 +378,7 @@ export const ResumeTemplates: React.FC<ResumeTemplatesProps> = ({
     if (isCompact) {
       return (
         <div
-          className="flex flex-col gap-0.5 mb-2.5 last:mb-0 cv-section cv-section-compact avoid-break [break-inside:avoid] [page-break-inside:avoid]"
+          className={`flex flex-col gap-0.5 mb-2.5 last:mb-0 cv-section cv-section-compact avoid-break [break-inside:avoid] [page-break-inside:avoid] ${extraClass || ''}`}
         >
           {label && renderSectionHeader(label, styleVariant)}
           <div
@@ -396,7 +397,9 @@ export const ResumeTemplates: React.FC<ResumeTemplatesProps> = ({
       : cleanedHtml;
 
     return (
-      <div className="flex flex-col gap-0.5 mb-2.5 last:mb-0 cv-section">
+      <div
+        className={`flex flex-col gap-0.5 mb-2.5 last:mb-0 cv-section ${extraClass || ''}`}
+      >
         {label && renderSectionHeader(label, styleVariant)}
         <div
           className="prose prose-zinc dark:prose-invert text-sm max-w-none prose-headings:mt-1 prose-headings:mb-0.5 prose-headings:first:mt-0 prose-h3:mt-1 prose-h3:mb-0.5 prose-h3:first:mt-0 prose-h3:text-xs sm:prose-h3:text-sm prose-h3:font-bold prose-h3:[break-after:avoid] prose-h3:[page-break-after:avoid] prose-headings:text-zinc-900 dark:prose-headings:text-zinc-100 prose-p:my-0.5 prose-p:first:mt-0 prose-p:leading-snug prose-p:text-zinc-700 dark:prose-p:text-zinc-300 prose-p:[break-inside:avoid] prose-ul:my-0.5 prose-ul:first:mt-0 prose-ul:list-disc prose-ul:pl-4 prose-li:my-0.5 prose-li:leading-snug prose-li:[break-inside:avoid]"
@@ -493,6 +496,7 @@ export const ResumeTemplates: React.FC<ResumeTemplatesProps> = ({
           labels.languages,
           'modern',
           true,
+          'mt-6',
         )}
       </div>
     );

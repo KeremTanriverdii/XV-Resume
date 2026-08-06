@@ -298,6 +298,7 @@ STRICT DATA INTEGRITY & HALLUCINATION GUARDS
 ==================================================
 RELEVANCE-BASED WRITING & SECTION OPTIMIZATION
 ==================================================
+0. TARGET JOB TITLE ('title'): Generate a concise, formal target job role title strictly in '{languageCode}' (e.g., 'Kıdemli Yazılım Geliştirici' or 'Senior Software Engineer') based on the analyzed target job posting.
 1. ATS-FRIENDLY SUMMARY: Write a focused 2-4 sentence summary strictly in '{languageCode}'. Synthesize: Current professional identity, Years of experience (if inferable), Domain expertise, Top matching skills, Industry keywords, and Value proposition aligned with the target role.
 2. RELEVANCE-BASED EXPERIENCE REWRITING:
    - Rewrite bullet points to emphasize responsibilities that overlap with the target job persona.
@@ -483,5 +484,167 @@ RETURN JSON STRICTLY matching this schema:
       ScrapedJobTitle = root.TryGetProperty("scrapedJobTitle", out var titleProp) ? titleProp.GetString() ?? string.Empty : string.Empty,
       ScrapedJobDescription = jobDescription
     };
+  }
+
+  public async Task<string> GenerateOutreachTextAsync(
+      string outreachType,
+      string candidateSummaryText,
+      string? jobUrl = null,
+      string? jobDescriptionText = null,
+      string languageCode = "en")
+  {
+    if (string.IsNullOrWhiteSpace(_apiKey))
+    {
+      throw new InvalidOperationException("Gemini API key is not configured.");
+    }
+
+    string jobDetails = jobDescriptionText ?? string.Empty;
+    if (string.IsNullOrWhiteSpace(jobDetails) && !string.IsNullOrWhiteSpace(jobUrl))
+    {
+      jobDetails = await ScrapeJobDescriptionAsync(jobUrl);
+    }
+    if (string.IsNullOrWhiteSpace(jobDetails))
+    {
+      jobDetails = "No specific job posting provided. Write a compelling general outreach targeting top engineering / professional roles.";
+    }
+
+    string extractedCompanyHint = ExtractCompanyFromJobUrlOrText(jobUrl, jobDetails);
+    bool isColdMessage = outreachType.Equals("ColdMessage", StringComparison.OrdinalIgnoreCase);
+
+    string prompt = $@"
+You are an expert career strategist and executive copywriter specializing in high-converting professional communication.
+Your task is to generate a powerful, personalized, and highly compelling {(isColdMessage ? "LinkedIn / Email Cold Message" : "Tailored Cover Letter")} for a candidate in specified language: '{languageCode}'.
+
+==================================================
+CANDIDATE BACKGROUND DATA
+==================================================
+{candidateSummaryText}
+
+==================================================
+TARGET JOB DETAILS
+==================================================
+{jobDetails}
+
+{(string.IsNullOrWhiteSpace(jobUrl) ? "" : $@"
+TARGET JOB URL:
+{jobUrl}
+")}
+
+{(string.IsNullOrWhiteSpace(extractedCompanyHint) ? "" : $@"
+DETECTED COMPANY NAME / HINT:
+{extractedCompanyHint}
+")}
+
+==================================================
+CRITICAL COMPANY NAME & PLACEHOLDER RULES
+==================================================
+1. DETECT ACTUAL COMPANY NAME: Thoroughly inspect the TARGET JOB DETAILS, JOB URL, and DETECTED COMPANY NAME for the employer/company name.
+2. ABSOLUTELY NO BRACKETED PLACEHOLDERS FOR COMPANY NAME: If a company name is found or inferred anywhere (e.g. from text, url, or hint), YOU MUST REPLACE AND USE THE REAL COMPANY NAME in the text. NEVER output '[Şirket Adı]', '[Company Name]', '[Şirket İsmi]' or similar bracketed placeholders when the company name is present or inferable!
+3. If no company name exists anywhere in the text or URL, write naturally (e.g. 'ekibinizde', 'şirketinizde', 'your team') rather than leaving raw brackets like '[Şirket Adı]'.
+
+==================================================
+INSTRUCTIONS & GUIDELINES
+==================================================
+{(isColdMessage
+? @"- Format: 3 to 4 concise paragraphs ideal for a LinkedIn InMail, Connection request note, or direct email to a Recruiter/Hiring Manager.
+- Tone: Professional, direct, respectful, and value-driven.
+- Structure:
+  1. Catchy Opening: Mention the specific role and company, and why candidate's experience is a strong match.
+  2. Core Value Hook: Highlight 2-3 key accomplishments/skills relevant to the job.
+  3. Call to Action: Friendly request for a 10-minute chat or coffee call.
+- Maximum length: ~150 to 250 words."
+: @"- Format: Formal Cover Letter / Letter of Interest.
+- Tone: Professional, confident, and engaging.
+- Structure:
+  1. Opening paragraph stating position, specific company name, and enthusiasm.
+  2. Body paragraphs demonstrating alignment between candidate achievements and job requirements.
+  3. Closing paragraph expressing desire for an interview and thanking the hiring manager.")}
+
+Respond with ONLY the final text content of the {(isColdMessage ? "Cold Message" : "Cover Letter")}. Do NOT wrap in JSON or Markdown code fences.";
+
+    var requestUrl = $"https://generativelanguage.googleapis.com/v1beta/models/{_model}:generateContent?key={_apiKey}";
+
+    var payload = new
+    {
+      contents = new[]
+      {
+        new
+        {
+          parts = new[]
+          {
+            new { text = prompt }
+          }
+        }
+      }
+    };
+
+    var requestContent = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+    var response = await _httpClient.PostAsync(requestUrl, requestContent);
+
+    if (!response.IsSuccessStatusCode)
+    {
+      var errorDetails = await response.Content.ReadAsStringAsync();
+      throw new Exception($"Gemini API error (Status: {response.StatusCode}): {errorDetails}");
+    }
+
+    var responseContent = await response.Content.ReadAsStringAsync();
+    using var doc = JsonDocument.Parse(responseContent);
+    var candidates = doc.RootElement.GetProperty("candidates");
+    if (candidates.GetArrayLength() == 0)
+    {
+      throw new Exception("Gemini API returned no response.");
+    }
+
+    var text = candidates[0]
+        .GetProperty("content")
+        .GetProperty("parts")[0]
+        .GetProperty("text")
+        .GetString();
+
+    return text?.Trim() ?? string.Empty;
+  }
+
+  private static string ExtractCompanyFromJobUrlOrText(string? jobUrl, string? jobText)
+  {
+    if (!string.IsNullOrWhiteSpace(jobUrl))
+    {
+      try
+      {
+        var uri = new Uri(jobUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase) ? jobUrl : $"https://{jobUrl}");
+        var path = uri.AbsolutePath;
+        var host = uri.Host.Replace("www.", "").ToLower();
+
+        // Check Kariyer.net / LinkedIn / company paths (e.g. /is-ilani/trendyol-software-developer-12345)
+        var match = System.Text.RegularExpressions.Regex.Match(path, @"/(?:at|company|is-ilani)/([a-z0-9-]+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        if (match.Success && match.Groups[1].Value.Length > 0)
+        {
+          var parts = match.Groups[1].Value.Split('-');
+          // Filter out digits or common words
+          var companyNameParts = parts.Where(p => !p.All(char.IsDigit) && p.Length > 1).Take(2);
+          if (companyNameParts.Any())
+          {
+            return string.Join(" ", companyNameParts.Select(p => char.ToUpper(p[0]) + p.Substring(1)));
+          }
+        }
+
+        // Domain name fallback if not aggregator
+        var aggregators = new[] { "kariyer", "linkedin", "indeed", "glassdoor", "jooble" };
+        if (!aggregators.Any(agg => host.Contains(agg)))
+        {
+          var hostParts = host.Split('.');
+          if (hostParts.Length >= 2)
+          {
+            var domainName = hostParts[hostParts.Length - 2];
+            if (domainName.Length > 2)
+            {
+              return char.ToUpper(domainName[0]) + domainName.Substring(1);
+            }
+          }
+        }
+      }
+      catch { }
+    }
+
+    return string.Empty;
   }
 }

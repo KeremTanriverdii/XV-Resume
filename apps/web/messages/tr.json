@@ -6,8 +6,15 @@
     "title": "Özgeçmişlerim",
     "templates": "Şablonlar",
     "settings": "Ayarlar",
-    "createTitle": "Özelleştirilmiş Özgeçmiş Oluşturun",
-    "createSubtitle": "Başvurduğunuz iş tanımının linkini yapıştırın. Yapay zekamız gereksinimleri analiz edecek ve özgeçmişinizi mükemmel şekilde eşleşecek şekilde uyarlayacaktır.",
+    "createTitle": "Tüm Kariyer Paketinizi Tek Adımda Oluşturun",
+    "createSubtitle": "İş ilanı linkini yapıştırın; yapay zekamız tek tıkla ATS uyumlu Özgeçmiş, kişiselleştirilmiş Ön Yazı, Cold Message ve anlık ATS Uyum Analizini bir arada üretsin.",
+    "badgeText": "All-in-One AI Kariyer Süiti",
+    "features": {
+      "resume": "ATS Uyumlu Özgeçmiş",
+      "coverLetter": "Kişiselleştirilmiş Ön Yazı",
+      "coldMessage": "Etkili Cold Message",
+      "atsScore": "Anlık ATS Puanı"
+    },
     "placeholderUrl": "https://linkedin.com/jobs/view/...",
     "btnStartAi": "Yapay Zekayı Başlat",
     "generating": "Oluşturuluyor...",
@@ -43,7 +50,14 @@
     "profiles": "Profiller",
     "educations": "Eğitimler",
     "experiences": "Deneyimler",
-    "projects": "Projeler"
+    "projects": "Projeler",
+    "outreach": "Cold Message & Kapak Yazısı",
+    "atsScan": "Hızlı ATS Uyum Testi",
+    "deleteConfirmTitle": "Özgeçmişi Sil",
+    "deleteConfirmDesc": "Bu özgeçmiş oturumunu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+    "deleteConfirmCancel": "İptal",
+    "deleteConfirmAction": "Sil",
+    "loading": "Oturum Yükleniyor..."
   },
   "common": {
     "light": "Açık",
@@ -150,7 +164,23 @@
   },
   "profiles": {
     "title": "Profiller",
-    "myProfiles": "Profillerim",
+    "profile": "Profil",
+    "myProfiles": "Kayıtlı Profillerim",
+    "myProfilesSubtitle": "Özgeçmiş oluştururken ve AI ilan başvurularında kullanabileceğiniz kayıtlı aday profilleriniz.",
+    "builderTitle": "Çok Adımlı Profil Oluşturucu",
+    "builderSubtitle": "CV profilinizi gerçek zamanlı şablon önizlemesi ile adım adım oluşturun veya güncelleyin.",
+    "livePreview": "Canlı A4 Önizleme",
+    "realtimeSync": "Gerçek Zamanlı Senkronizasyon",
+    "notFoundDesc": "Yukarıdaki profil oluşturucuyu kullanarak ilk aday profilinizi hemen kaydedebilirsiniz.",
+    "activeEditing": "Aktif Düzenleniyor",
+    "limitFull": "(Limit Doldu)",
+    "maxProfilesReached": "Maksimum 4 adet aday profili sınırına ulaştınız. Yeni bir profil oluşturmak için lütfen mevcut profillerinizden birini silin.",
+    "deleting": "Siliniyor...",
+    "signInToDownload": "Yüksek Çözünürlüklü PDF İndirmek İçin Giriş Yapın",
+    "signInToEmail": "CV'nizi E-postalamak İçin Giriş Yapın",
+    "signInToSave": "Profilinizi Kaydedin",
+    "profileSetupSteps": "Profil Adımları",
+    "completeStepsDesc": "CV'nizi oluşturmak için tüm adımları tamamlayın",
     "addProfile": "Profil Oluştur",
     "editProfile": "Profili Düzenle",
     "newProfile": "Yeni Profil Bilgisi",
@@ -311,6 +341,31 @@
     "downloadingPdf": "PDF Hazırlanıyor...",
     "template": "CV Şablonu",
     "colorTheme": "Renk Teması",
+    "save": "Kaydet",
+    "saving": "Kaydediliyor...",
+    "saved": "Kaydedildi!",
+    "delete": "Sil",
+    "deleteConfirm": "Bu özgeçmiş oturumunu silmek istediğinizden emin misiniz?",
+    "aiSessionOptions": "AI Oturum Seçenekleri",
+    "activeVersion": "Aktif Sürüm",
+    "jobDescTitle": "İş İlanı Detayları",
+    "goToJobPosting": "İlan Sayfasına Git",
+    "sessionNotFoundTitle": "Özgeçmiş Oturumu Bulunamadı",
+    "sessionNotFoundDesc": "İstenen AI CV oluşturma oturumu alınamadı.",
+    "tabs": {
+      "cvPreview": "Özelleştirilmiş CV Önizleme",
+      "jobDesc": "İş İlanı",
+      "atsAnalysis": "ATS Analizi",
+      "coverLetter": "Ön Yazı",
+      "coldMessage": "Cold Message"
+    },
+    "authModal": {
+      "saveExportTitle": "CV'nizi Kaydedin ve İndirin",
+      "downloadTitle": "Yüksek Çözünürlüklü PDF İndirmek İçin Giriş Yapın",
+      "emailTitle": "CV'nizi E-postalamak İçin Giriş Yapın",
+      "saveTitle": "CV İlerlemenizi Kaydedin",
+      "atsTitle": "ATS Analizini Açmak İçin Giriş Yapın"
+    },
     "templates": {
       "modern": "Modern Klasik",
       "modernDesc": "Rozetler ve renkli vurgular içeren dengeli 1 sütunlu modern düzen.",
@@ -327,6 +382,149 @@
       "indigo": "İndigo Mor",
       "purple": "Gece Moru",
       "slate": "Koyu Gri / Slate"
+    }
+  },
+  "outreach": {
+    "title": "Cold Message & Kapak Yazısı AI Oluşturucu",
+    "subtitle": "Aday bilgilerinizi ve iş ilanını seçin, yüksek dönüşümlü kapak yazısı veya cold message oluşturun.",
+    "coverLetter": "Kapak Yazısı",
+    "coldMessage": "Cold Message",
+    "step1Title": "1. Aday Veri Kaynağını Seçin (3 Seçenek)",
+    "step1Desc": "Aday geçmişinizi nasıl sağlamak istediğinizi seçin.",
+    "uploadCv": "CV Yükle",
+    "createdCv": "Kayıtlı CV",
+    "profile": "Profil",
+    "uploadLabel": "Aday CV Dosyası / Eklenti",
+    "attachDoc": "CV Belgesi Ekleyin (.pdf, .txt, .docx)",
+    "maxSize": "Maksimum dosya boyutu 10MB",
+    "browseFile": "Gözat & Dosya Ekle",
+    "orPasteRaw": "Veya ham CV metnini doğrudan yapıştırın:",
+    "selectCreatedResume": "Kayıtlı CV Oturumunu Seçin",
+    "selectProfile": "Aday Profilini Seçin",
+    "step2Title": "2. Hedef İş İlanı ve Dil",
+    "jobUrlLabel": "Harici İş İlanı Bağlantısı (URL)",
+    "jobUrlPlaceholder": "https://www.linkedin.com/jobs/view/...",
+    "jobDescLabel": "Veya İş İlanı Metni",
+    "jobDescPlaceholder": "İş ilanı detaylarını buraya yapıştırın...",
+    "outputLang": "Çıktı Dili",
+    "btnGenerate": "Oluştur",
+    "btnGenerating": "Oluşturuluyor...",
+    "readyTitle": "Oluşturmaya Hazır",
+    "readyDesc": "Aday veri kaynağınızı seçin ve yüksek dönüşümlü mesaj üretmek için Oluştur butonuna tıklayın.",
+    "analyzing": "Yapay zeka aday deneyimini ve iş detaylarını analiz ediyor...",
+    "cachedNotice": "Önbellekten Hızlı Alındı ($0 AI Token Maliyeti)",
+    "copy": "Kopyala",
+    "copied": "Kopyalandı!",
+    "download": ".txt İndir",
+    "edit": "Düzenle",
+    "doneEditing": "Tamamla"
+  },
+  "toast": {
+    "authMissing": "Oturum gerekli. Lütfen giriş yapın.",
+    "errorUploadCv": "Lütfen CV dosyanızı yükleyin veya CV metnini yapıştırın.",
+    "errorSelectResume": "Lütfen kayıtlı özgeçmişlerinizden birini seçin.",
+    "errorSelectProfile": "Lütfen profillerinizden birini seçin.",
+    "attachedFileSuccess": "Dosya eklendi",
+    "fileRemoved": "Eklenen CV dosyası kaldırıldı.",
+    "cachedSuccess": "Önbellekten anında alındı! ($0 AI token maliyeti)",
+    "generateSuccess": "İçerik başarıyla oluşturuldu!",
+    "generationFailed": "Oluşturma başarısız oldu. Lütfen tekrar deneyin.",
+    "copiedSuccess": "Panoya kopyalandı!",
+    "copiedFailed": "Kopyalama başarısız oldu.",
+    "downloadSuccess": ".txt dosyası indirildi",
+    "savedSuccess": "Başarıyla kaydedildi!",
+    "saveError": "Kaydetme başarısız oldu.",
+    "coverLetterSaved": "Kapak Yazısı başarıyla kaydedildi!",
+    "coldMessageSaved": "Cold Message başarıyla kaydedildi!",
+    "maxProfilesReached": "Maksimum 4 adet aday profili sınırına ulaştınız. Yeni bir profil eklemek için lütfen mevcut profillerinizden birini silin.",
+    "deleteSuccess": "Özgeçmiş başarıyla silindi",
+    "deleteError": "Özgeçmiş silinirken bir hata oluştu",
+    "resetPasswordSent": "Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.",
+    "sendEmailError": "E-posta gönderilirken bir hata oluştu. Lütfen tekrar deneyin.",
+    "rateLimitError": "Çok fazla istek gönderildi. Lütfen birkaç dakika bekleyip tekrar deneyin."
+  },
+  "profileBuilder": {
+    "step1Header": "1. Adım: Profil Adı, Fotoğraf ve Kişisel Bilgiler",
+    "step2Header": "2. Adım: İş Deneyimleri Ekleme",
+    "step3Header": "3. Adım: Eğitim Bilgisi Ekleme",
+    "step4Header": "4. Adım: Projeler ve Portfolyo Ekleme",
+    "step5Header": "5. Adım: Teknik Yetenekler, Diller ve Özet",
+    "profileNameLabel": "Profil Adı / Kimliği",
+    "showPhotoLabel": "CV Üzerinde Fotoğraf Gösterilsin",
+    "selectImageFile": "Fotoğraf Dosyası Seç",
+    "removePhoto": "Kaldır",
+    "militaryStatusLabel": "Askerlik Durumu",
+    "postponedUntilDate": "Tecil Bitiş Tarihi",
+    "btnPrevious": "Önceki",
+    "btnNext": "Sonraki",
+    "btnSaveProfile": "Profili Kaydet",
+    "currentlyWorkingHere": "Hala Burada Çalışıyorum",
+    "currentlyStudyingHere": "Hala Burada Okuyorum"
+  },
+  "languageGeneration": {
+    "title": "Hedef Üretim Dilleri",
+    "selectedCount": "{count} Dil Seçildi",
+    "selectedCountPlural": "{count} Dil Seçildi",
+    "description": "Özgeçmiş, Ön Yazı ve Cold Message seçilen tüm dillerde AI ile ayrı ayrı üretilir."
+  },
+  "subscription": {
+    "premiumAccess": "✨ Premium Erişim",
+    "upgradeTitle": "ResumeX Pro'ya Yükseltin",
+    "upgradeSubtitle": "Üst düzey yapay zeka hassasiyetiyle 6+ dilde sınırsız ATS uyumlu özgeçmiş oluşturun.",
+    "monthlyBilling": "Aylık Ödeme ($15/ay)",
+    "annualBilling": "Yıllık Ödeme",
+    "savePercent": "%20 Tasarruf",
+    "proPlan": "Pro Plan",
+    "perMonth": "/ ay",
+    "unlimitedGenerations": "Sınırsız ATS Uyumlu Özgeçmiş Üretimi",
+    "multiLanguageTranslations": "Çoklu Dil Çevirileri (TR, EN, DE, FR, ES, IT)",
+    "pdfExport": "Sayfa Düzeni Korumalı PDF İhracatı",
+    "instantScraper": "Anlık AI İlan Taraması ve Uyum Analizi",
+    "subscribeNowMonthly": "Hemen Abone Ol — $15/ay",
+    "subscribeNowYearly": "Hemen Abone Ol — $144/yıl",
+    "openingCheckout": "Ödeme Sayfası Açılıyor...",
+    "secureCheckout": "🔒 Paddle altyapısı ile 256-bit güvenli ödeme. İstediğiniz zaman iptal edin.",
+    "trialActiveTitle": "Deneme Sürümü Aktif",
+    "trialActiveText": "Ücretsiz deneme sürenizin bitmesine {days} gün kaldı.",
+    "upgradeToPro": "Pro'ya Yükselt →",
+    "upgradeToProBadge": "Pro'ya Yükselt ✨",
+    "subscriptionExpiredTitle": "Abonelik Süresi Doldu",
+    "subscriptionExpiredText": "14 günlük ücretsiz deneme süreniz veya aylık aboneliğiniz sona erdi."
+  },
+  "aiOverlay": {
+    "title": "Yapay Zeka Akıllı İşleme Katmanı",
+    "stepCounter": "Adım {current} / {total}",
+    "securityBadge": "Google XYZ & ATS Optimizer Guard",
+    "steps": {
+      "1": {
+        "label": "İş İlanı Analizi",
+        "text": "İş ilanı ve pozisyon gereksinimleri derinlemesine analiz ediliyor..."
+      },
+      "2": {
+        "label": "Deneyim Eşleştirme",
+        "text": "Kariyer profiliniz ve tecrübeleriniz pozisyonla eşleştiriliyor..."
+      },
+      "3": {
+        "label": "XYZ Formülü",
+        "text": "Google XYZ Formülü ile iş tecrübesi cümleleri optimize ediliyor..."
+      },
+      "4": {
+        "label": "ATS Puanlama",
+        "text": "ATS anahtar kelimeleri ve uyumluluk puanı hesaplanıyor..."
+      },
+      "5": {
+        "label": "Ön Yazı & Mesaj",
+        "text": "İş ilanına özel Ön Yazı ve Cold Message oluşturuluyor..."
+      },
+      "6": {
+        "label": "Belge Düzenleme",
+        "text": "Özgeçmiş belgeniz mükemmel şekilde biçimlendiriliyor..."
+      }
+    },
+    "tips": {
+      "1": "Google XYZ Formülü: '[Sonuç] elde edildi, [Ölçüt] ile ölçüldü, [Eylem] yapıldı' kuralı ile cümlelerinizi güçlendirir.",
+      "2": "İş tecrübelerinde ölçülebilir başarılar (Örn: %35 verimlilik artışı) eklemek ATS puanınızı belirgin artırır.",
+      "3": "CV belgenizi dilediğiniz zaman Türkçe, İngilizce veya Almanca olarak yeniden üretebilirsiniz."
     }
   }
 }
