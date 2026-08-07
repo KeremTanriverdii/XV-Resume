@@ -22,26 +22,36 @@ export async function proxy(request: NextRequest) {
   let response = intlMiddleware(request as any);
 
   // 3. Supabase Auth & Session Refresh
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
+  let user = null;
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
-  // Refresh session token if expired
-  const { data: { user } } = await supabase.auth.getUser();
+  if (supabaseUrl && supabaseKey) {
+    try {
+      const supabase = createServerClient(
+        supabaseUrl,
+        supabaseKey,
+        {
+          cookies: {
+            getAll() {
+              return request.cookies.getAll();
+            },
+            setAll(cookiesToSet) {
+              cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+              cookiesToSet.forEach(({ name, value, options }) =>
+                response.cookies.set(name, value, options)
+              );
+            },
+          },
+        }
+      );
+
+      const { data } = await supabase.auth.getUser();
+      user = data?.user ?? null;
+    } catch (err) {
+      console.error('Supabase auth check failed in proxy:', err);
+    }
+  }
 
   // Extract locale from pathname (e.g. /tr/dashboard -> tr)
   const localeMatch = pathname.match(/^\/(en|tr|de|es|fr|jp)(?:\/|$)/);

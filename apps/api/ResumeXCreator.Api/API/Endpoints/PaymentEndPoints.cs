@@ -49,7 +49,7 @@ public static class PaymentEndpoints
     group.MapPost("/paddle-webhook", async (HttpContext context, AppDbContext dbContext, IConfiguration config, IWebHostEnvironment env) =>
     {
       var signatureHeader = context.Request.Headers["Paddle-Signature"].ToString();
-      
+
       // Read RAW body as text
       context.Request.EnableBuffering();
       using var reader = new StreamReader(context.Request.Body, System.Text.Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 1024, leaveOpen: true);
@@ -197,7 +197,17 @@ public static class PaymentEndpoints
         if (!response.IsSuccessStatusCode)
         {
           var errorContent = await response.Content.ReadAsStringAsync();
-          return Results.BadRequest(new { error = "Failed to create portal session from Paddle API.", details = errorContent });
+
+          if (errorContent.Contains("invalid input") || errorContent.Contains("not_found") || errorContent.Contains("bad_request"))
+          {
+            user.PaddleCustomerId = null;
+            user.SubscriptionsStatus = "Inactive";
+            await dbContext.SaveChangesAsync();
+            return Results.BadRequest(new { error = "Veritabanındaki Paddle Müşteri Kodu (Customer ID) Paddle Sandbox sunucularında bulunamadı. Temizlendi. Lütfen 'Pro Planına Abone Ol' butonunu kullanarak yeni bir abonelik başlatın." });
+          }
+          ;
+
+          return Results.BadRequest(new { error = "Paddle Müşteri Portalı oturumu oluşturulamadı.", details = errorContent });
         }
 
         var responseJson = await response.Content.ReadAsStringAsync();

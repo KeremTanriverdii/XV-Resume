@@ -88,40 +88,80 @@ public class DeepSeekAiService : IAiService
 
   public async Task<AiAtsAnalysisResult> AnalyzeAtsAsync(
       string externalJobLink,
-      AiProfileInput profile,
-      string? jobDescriptionText = null)
+      AiProfileInput? profile = null,
+      string? jobDescriptionText = null,
+      string languageCode = "en")
   {
     if (string.IsNullOrWhiteSpace(_apiKey))
     {
       throw new InvalidOperationException("DeepSeek API key is not configured.");
     }
 
-    var jobDescription = !string.IsNullOrWhiteSpace(jobDescriptionText)
+    var rawJobDescription = !string.IsNullOrWhiteSpace(jobDescriptionText)
         ? jobDescriptionText
         : await ScrapeJobDescriptionAsync(externalJobLink);
+    var jobDescription = Regex.Replace(rawJobDescription ?? string.Empty, @"[\x00-\x08\x0B\x0C\x0E-\x1F]", " ");
 
-    var prompt = $@"
-You are an expert ATS (Applicant Tracking System) parser and senior recruiter.
-Analyze the candidate profile against the target job description.
-
-JOB DESCRIPTION:
-{jobDescription}
-
-CANDIDATE PROFILE:
-- Full Name: {profile.FullName}
+    var candidateDataStr = profile != null
+        ? $@"- Full Name: {profile.FullName}
 - Title: {profile.Title}
 - Summary: {profile.Summary}
 - Skills: {string.Join(", ", profile.Skills)}
 - Experiences: {JsonSerializer.Serialize(profile.Experiences)}
 - Educations: {JsonSerializer.Serialize(profile.Educations)}
-- Projects: {JsonSerializer.Serialize(profile.Projects)}
+- Projects: {JsonSerializer.Serialize(profile.Projects)}"
+        : "Candidate structured profile not selected. Extract candidate profile details directly from candidate attached CV in Target Job Description field above.";
 
-RETURN STICTLY A JSON OBJECT matching these exact properties:
-- matchPercentage: INTEGER (0 to 100)
-- matchedSkills: ARRAY of STRINGS
-- missingSkills: ARRAY of STRINGS
-- atsFeedback: STRING (actionable 3-4 sentence Markdown advice on how to improve ATS match)
-- scrapedJobTitle: STRING (extracted job title from description)
+    var prompt = $@"
+You are an expert ATS (Applicant Tracking System) parser and senior recruiter.
+Analyze the candidate profile against the target job description using professional 3-pillar ATS evaluation rules.
+IMPORTANT: Respond strictly in specified language: '{languageCode}'.
+
+==================================================
+TARGET JOB DESCRIPTION & ATTACHED CANDIDATE CV
+==================================================
+{jobDescription}
+
+==================================================
+CANDIDATE PROFILE DATA
+==================================================
+{candidateDataStr}
+
+==================================================
+ATS SCORING WEIGHTS & EVALUATION MODEL
+==================================================
+Calculate the final `matchPercentage` (INTEGER 0 to 100) using a weighted combination of 3 core pillars:
+
+1. KEYWORD & TECHNICAL SKILLS MATCH (50% - 60% Weight):
+   - Direct match of core technical skills, frameworks, tools, and job terminology in Job Description vs Profile.
+   - Do NOT penalize candidate excessively if core requirements match and only minor nice-to-have skills are missing.
+
+2. FORMAT, STRUCTURE & GOOGLE XYZ FORMULA (20% - 30% Weight):
+   - Machine readability and clean section layout (Summary, Experience, Education, Skills).
+   - Evaluation of experience bullet points against Google's XYZ Formula ('Accomplished [X] measured by [Y] by doing [Z]').
+
+3. EXPERIENCE & EDUCATION FIT (10% - 20% Weight):
+   - Candidate seniority, role relevance, degree field, and background alignment.
+
+==================================================
+DEDUPLICATION & EXACT MATCHING RULES
+==================================================
+1. STRICT SKILL MATCHING: Compare Job Description requirements against Candidate Profile Skills, Summary, Experiences, and Projects.
+2. SYNONYM & CASE INSENSITIVITY: Treat equivalent terms as identical (e.g., React / ReactJS, .NET / C# / .NET Core, Postgres / PostgreSQL, Amazon Web Services / AWS).
+3. NEVER CONFLICT: If a skill (or its synonym) is present anywhere in the Candidate Profile, it MUST be included in `matchedSkills`. It MUST NEVER be listed in `missingSkills`, `criticalMissingSkills`, or `recommendedMissingSkills`.
+4. DETERMINISTIC EVALUATION: Calculate `matchPercentage` consistently and objectively based purely on factual matches.
+
+==================================================
+OUTPUT SCHEMA & INSTRUCTIONS
+==================================================
+RETURN STRICTLY A JSON OBJECT matching these exact properties in language '{languageCode}':
+- matchPercentage: INTEGER (0 to 100 based on the 3 weighted pillars above)
+- matchedSkills: ARRAY of STRINGS (key skills present in both job and candidate profile)
+- missingSkills: ARRAY of STRINGS (all missing skills)
+- criticalMissingSkills: ARRAY of STRINGS (must-have core skills required by job but missing in candidate profile)
+- recommendedMissingSkills: ARRAY of STRINGS (nice-to-have secondary skills required by job but missing in profile)
+- atsFeedback: STRING (Rich Markdown ATS analysis covering: 1) Technical Match, 2) Google XYZ Formula Before/After Transformation example, 3) Seniority & Layout advice in '{languageCode}')
+- scrapedJobTitle: STRING (extracted target job title)
 ";
 
     var payload = new
@@ -129,11 +169,11 @@ RETURN STICTLY A JSON OBJECT matching these exact properties:
       model = _model,
       messages = new[]
         {
-          new { role = "system", content = "You are an expert ATS analysis tool. Respond STRICTLY in JSON format." },
+          new { role = "system", content = $"You are an expert ATS analysis tool. Respond STRICTLY in JSON format in language: '{languageCode}'." },
           new { role = "user", content = prompt }
         },
       response_format = new { type = "json_object" },
-      temperature = 0.3
+      temperature = 0.0
     };
 
     var responseContent = await PostToDeepSeekAsync(payload);
@@ -167,11 +207,27 @@ RETURN STICTLY A JSON OBJECT matching these exact properties:
         missingSkills.Add(item.GetString() ?? "");
     }
 
+    var criticalMissingSkills = new List<string>();
+    if (root.TryGetProperty("criticalMissingSkills", out var critArr))
+    {
+      foreach (var item in critArr.EnumerateArray())
+        criticalMissingSkills.Add(item.GetString() ?? "");
+    }
+
+    var recommendedMissingSkills = new List<string>();
+    if (root.TryGetProperty("recommendedMissingSkills", out var recArr))
+    {
+      foreach (var item in recArr.EnumerateArray())
+        recommendedMissingSkills.Add(item.GetString() ?? "");
+    }
+
     return new AiAtsAnalysisResult
     {
       MatchPercentage = root.GetProperty("matchPercentage").GetInt32(),
       MatchedSkills = matchedSkills,
-      MissingSkills = missingSkills,
+      MissingSkills = missingSkills.Count > 0 ? missingSkills : criticalMissingSkills.Concat(recommendedMissingSkills).ToList(),
+      CriticalMissingSkills = criticalMissingSkills,
+      RecommendedMissingSkills = recommendedMissingSkills,
       AtsFeedback = root.GetProperty("atsFeedback").GetString() ?? string.Empty,
       ScrapedJobTitle = root.TryGetProperty("scrapedJobTitle", out var titleProp) ? titleProp.GetString() ?? string.Empty : string.Empty,
       ScrapedJobDescription = jobDescription
@@ -275,44 +331,22 @@ Respond with ONLY the final plain text content of the {(isColdMessage ? "Cold Me
     throw new Exception("DeepSeek API request failed after retries.");
   }
 
-  private async Task<string> ScrapeJobDescriptionAsync(string url)
+  private async Task<string> ScrapeJobDescriptionAsync(string input)
   {
-    if (string.IsNullOrWhiteSpace(url) || !Uri.TryCreate(url, UriKind.Absolute, out _))
+    if (string.IsNullOrWhiteSpace(input)) return string.Empty;
+    if (Uri.TryCreate(input, UriKind.Absolute, out var uriResult)
+        && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps))
     {
-      return "No job link provided. Generate resume targeting the applicant's title.";
-    }
-
-    try
-    {
-      var request = new HttpRequestMessage(HttpMethod.Get, url);
-      request.Headers.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
-      request.Headers.AcceptLanguage.ParseAdd("tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7");
-
-      var response = await _httpClient.SendAsync(request);
-      if (!response.IsSuccessStatusCode)
+      try
       {
-        return $"[Could not retrieve job page directly: Status {response.StatusCode}. Aligning resume with industry standards for target position.]";
+        return await Infrastructure.Helpers.JobScraperHelper.ScrapeJobDescriptionAsync(input);
       }
-
-      var html = await response.Content.ReadAsStringAsync();
-      if (string.IsNullOrWhiteSpace(html))
+      catch
       {
-        return "[Job page returned empty content. Aligning resume with industry standards.]";
+        return input;
       }
-
-      string cleanText = Regex.Replace(html, "<script[^>]*?>[\\s\\S]*?</script>", " ", RegexOptions.IgnoreCase);
-      cleanText = Regex.Replace(cleanText, "<style[^>]*?>[\\s\\S]*?</style>", " ", RegexOptions.IgnoreCase);
-      cleanText = Regex.Replace(cleanText, "<.*?>", " ");
-      cleanText = System.Net.WebUtility.HtmlDecode(cleanText);
-      cleanText = Regex.Replace(cleanText, @"[ \t]+", " ");
-      cleanText = Regex.Replace(cleanText, @"\n\s*\n", "\n\n").Trim();
-
-      return cleanText.Length > 8000 ? cleanText[..8000] : cleanText;
     }
-    catch (Exception ex)
-    {
-      return $"[Could not retrieve job page directly: {ex.Message}. Aligning resume with industry standards for target position.]";
-    }
+    return input;
   }
 
   private string BuildPrompt(string jobDescription, AiProfileInput profile, string languageCode)

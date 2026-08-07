@@ -183,6 +183,10 @@ export interface ResumeTranslationDto {
   projectsHtml?: string | null;
   matchPercentage?: number | null;
   atsFeedback?: string | null;
+  matchedSkills?: string[];
+  missingSkills?: string[];
+  criticalMissingSkills?: string[];
+  recommendedMissingSkills?: string[];
   coverLetter?: string | null;
   coldMessage?: string | null;
   version: number;
@@ -205,15 +209,35 @@ export interface AtsAnalysisRequestDto {
   externalJobLink: string;
   profileId: string;
   jobDescriptionText?: string;
+  languageCode?: string;
 }
 
 export interface AtsAnalysisResultDto {
   matchPercentage: number;
   matchedSkills: string[];
   missingSkills: string[];
+  criticalMissingSkills?: string[];
+  recommendedMissingSkills?: string[];
   atsFeedback: string;
   scrapedJobTitle: string;
   scrapedJobDescription: string;
+}
+
+export interface AtsScanDto {
+  id: string;
+  userId: string;
+  profileId?: string | null;
+  jobTitle: string;
+  externalJobLink: string;
+  jobDescription: string;
+  matchPercentage: number;
+  matchedSkills: string[];
+  missingSkills: string[];
+  criticalMissingSkills?: string[];
+  recommendedMissingSkills?: string[];
+  atsFeedback: string;
+  createdAt: string;
+  profile?: Profile | null;
 }
 
 export * from "./landing";

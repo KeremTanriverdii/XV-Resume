@@ -16,6 +16,7 @@ public static class ServiceExtensions
     services.AddScoped<IExperienceService, ExperienceService>();
     services.AddScoped<IProjectService, ProjectService>();
     services.AddScoped<IUserService, UserService>();
+    services.AddScoped<IAtsScanService, AtsScanService>();
     return services;
   }
 }

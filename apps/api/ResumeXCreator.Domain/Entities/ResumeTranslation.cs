@@ -14,6 +14,10 @@ public class ResumeTranslation
   public string? ProjectsHtml { get; set; } = string.Empty;
   public int? MatchPercentage { get; set; }
   public string? AtsFeedback { get; set; }
+  public string? MatchedSkillsJson { get; set; }
+  public string? MissingSkillsJson { get; set; }
+  public string? CriticalMissingSkillsJson { get; set; }
+  public string? RecommendedMissingSkillsJson { get; set; }
   public string? CoverLetter { get; set; } = string.Empty;
   public string? ColdMessage { get; set; } = string.Empty;
   public int Version { get; set; } = 1;

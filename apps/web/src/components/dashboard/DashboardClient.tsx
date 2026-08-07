@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useResumeStore } from '@/store/useResumeStore';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import {
   ArrowRight,
@@ -42,6 +43,7 @@ export default function DashboardClient() {
   const generateMutation = useGenerateResume();
   const isGenerating = generateMutation.isPending;
   const [jobLink, setJobLink] = useState('');
+  const [jobText, setJobText] = useState('');
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(
     null,
   );
@@ -99,7 +101,8 @@ export default function DashboardClient() {
 
   const handleStartResume = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!jobLink.trim() || !selectedProfileId || !token) return;
+    const finalJobInput = jobText.trim() || jobLink.trim();
+    if (!finalJobInput || !selectedProfileId || !token) return;
 
     if (!canGenerateResume) {
       setIsSubscribeModalOpen(true);
@@ -109,7 +112,7 @@ export default function DashboardClient() {
     try {
       const result = await generateMutation.mutateAsync({
         data: {
-          externalJobLink: jobLink,
+          externalJobLink: finalJobInput,
           profileId: selectedProfileId,
           selectedLanguagesForGeneration: selectedLangsForGen,
         },
@@ -129,6 +132,7 @@ export default function DashboardClient() {
         });
 
         setJobLink('');
+        setJobText('');
         setSelectedProfileId(null);
         router.push(
           `/dashboard/resume/${result.id}?template=${selectedTemplate}&color=${selectedColor}`,
@@ -238,6 +242,16 @@ export default function DashboardClient() {
           onSubmit={handleStartResume}
           className="mt-4 flex flex-col w-full max-w-2xl items-center gap-4 bg-card/60 backdrop-blur-md p-5 sm:p-6 rounded-3xl border border-border/80 shadow-lg"
         >
+          {/* Tip Banner */}
+          <div className="w-full flex items-start gap-2.5 p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-300 text-xs leading-relaxed text-left">
+            <Sparkles className="h-4 w-4 shrink-0 mt-0.5 text-amber-500" />
+            <div>
+              <span className="font-extrabold">{t('tipTitle')}:</span>{' '}
+              <span>{t('tipDesc')}</span>
+            </div>
+          </div>
+
+          {/* Job Link Input */}
           <div className="relative flex-1 w-full">
             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/60 pointer-events-none">
               <Link2 className="h-4 w-4" />
@@ -247,9 +261,24 @@ export default function DashboardClient() {
               placeholder={t('placeholderUrl')}
               value={jobLink}
               onChange={(e) => setJobLink(e.target.value)}
-              required
               disabled={isGenerating || !canGenerateResume}
               className="w-full pl-11 pr-5 py-6 text-sm sm:text-base rounded-2xl border-border/80 shadow-xs focus-visible:ring-indigo-500/50 bg-background/80"
+            />
+          </div>
+
+          {/* Direct Job Description Textarea */}
+          <div className="w-full space-y-1.5 text-left">
+            <label className="text-xs font-bold text-foreground flex items-center gap-1.5 px-1">
+              <FileText className="h-3.5 w-3.5 text-primary" />
+              <span>{t('orPasteText')}</span>
+            </label>
+            <Textarea
+              placeholder={t('placeholderText')}
+              value={jobText}
+              onChange={(e) => setJobText(e.target.value)}
+              disabled={isGenerating || !canGenerateResume}
+              rows={3}
+              className="w-full p-3 text-xs sm:text-sm rounded-2xl border-border/80 shadow-xs focus-visible:ring-indigo-500/50 bg-background/80 resize-none"
             />
           </div>
 
@@ -272,7 +301,7 @@ export default function DashboardClient() {
             size="lg"
             className="w-full rounded-2xl py-6 px-10 bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-indigo-500/20 group transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer mt-2"
             disabled={
-              !jobLink.trim() ||
+              (!jobLink.trim() && !jobText.trim()) ||
               !selectedProfileId ||
               isGenerating ||
               !canGenerateResume

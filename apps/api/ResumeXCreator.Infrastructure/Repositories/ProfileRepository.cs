@@ -14,6 +14,8 @@ public class ProfileRepository(AppDbContext context) : GenericRepository<Profile
   public Task<Profile?> GetWithResumesByIdAsync(Guid id)
   {
     return _context.Profiles
+        .AsNoTracking()
+        .AsSplitQuery()
         .Include(p => p.Resumes)
             .ThenInclude(r => r.Translations)
         .FirstOrDefaultAsync(p => p.Id == id);
@@ -22,6 +24,8 @@ public class ProfileRepository(AppDbContext context) : GenericRepository<Profile
   public Task<Profile?> GetWithDetailsByIdAsync(Guid id)
   {
     return _context.Profiles
+        .AsNoTracking()
+        .AsSplitQuery()
         .Include(p => p.ProfileProjects)
             .ThenInclude(pp => pp.Project)
         .Include(p => p.ProfileEducations)
@@ -34,6 +38,8 @@ public class ProfileRepository(AppDbContext context) : GenericRepository<Profile
   public async Task<IEnumerable<Profile>> GetByUserIdAsync(string userId)
   {
     return await _context.Profiles
+        .AsNoTracking()
+        .AsSplitQuery()
         .Where(p => p.UserId == userId)
         .Include(p => p.ProfileProjects)
             .ThenInclude(pp => pp.Project)
@@ -41,6 +47,7 @@ public class ProfileRepository(AppDbContext context) : GenericRepository<Profile
             .ThenInclude(pe => pe.Education)
         .Include(p => p.ProfileExperiences)
             .ThenInclude(pe => pe.Experience)
+        .OrderByDescending(p => p.CreatedAt)
         .ToListAsync();
   }
 }

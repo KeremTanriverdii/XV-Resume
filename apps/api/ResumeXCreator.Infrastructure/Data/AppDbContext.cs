@@ -17,6 +17,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
   public DbSet<ProfileExperience> ProfileExperiences => Set<ProfileExperience>();
   public DbSet<ProfileProject> ProfileProjects => Set<ProfileProject>();
   public DbSet<ProfileEducation> ProfileEducations => Set<ProfileEducation>();
+  public DbSet<AtsScan> AtsScans => Set<AtsScan>();
 
   protected override void OnModelCreating(ModelBuilder modelBuilder)
   {
@@ -168,7 +169,7 @@ v => v);
     modelBuilder.Entity<Resume>(entity =>
     {
       entity.HasKey(e => e.Id);
-      entity.Property(e => e.ExternalJobLink).IsRequired().HasMaxLength(2000);
+      entity.Property(e => e.ExternalJobLink).IsRequired();
       entity.Property(e => e.JobDescription).IsRequired();
 
       entity.HasOne(d => d.Profile)
@@ -196,6 +197,18 @@ v => v);
             .WithMany(p => p.Translations)
             .HasForeignKey(d => d.ResumeId)
             .OnDelete(DeleteBehavior.Cascade);
+    });
+
+    // ── AtsScan (Standalone ATS Scans) ──
+    modelBuilder.Entity<AtsScan>(entity =>
+    {
+      entity.HasKey(e => e.Id);
+      entity.Property(e => e.UserId).IsRequired();
+      entity.Property(e => e.JobTitle).IsRequired().HasMaxLength(200);
+      entity.HasOne(e => e.Profile)
+            .WithMany()
+            .HasForeignKey(e => e.ProfileId)
+            .OnDelete(DeleteBehavior.SetNull);
     });
   }
 }

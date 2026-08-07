@@ -45,8 +45,10 @@ const LANGUAGES = [
 import { createClient } from '@/utils/supabase/client';
 import { useAuth } from './AuthProvider';
 import { useResumes, useInfiniteResumes, useDeleteResume, resumeKeys } from '@/hooks/useResume';
+import { useInfiniteAtsScans, useDeleteAtsScan, atsScanKeys } from '@/hooks/useAtsScan';
 import { useQueryClient } from '@tanstack/react-query';
 import { fetchResumeById } from '@/services/resumeService';
+import { fetchAtsScanById } from '@/services/atsScanService';
 
 const QuickAtsScanModal = dynamic(
   () =>
@@ -97,6 +99,17 @@ export function AppSidebar() {
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteResumes(token, 10);
+  const [sessionTab, setSessionTab] = useState<'resumes' | 'ats'>('resumes');
+  const {
+    data: atsInfiniteData,
+    isLoading: isAtsLoading,
+  } = useInfiniteAtsScans(token, 10);
+  const deleteAtsMutation = useDeleteAtsScan();
+
+  const atsScansList = useMemo(() => {
+    if (!atsInfiniteData?.pages) return [];
+    return atsInfiniteData.pages.flat();
+  }, [atsInfiniteData]);
   const locale = useLocale();
 
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
@@ -131,6 +144,15 @@ export function AppSidebar() {
     queryClient.prefetchQuery({
       queryKey: resumeKeys.detail(id),
       queryFn: () => fetchResumeById(id, token),
+      staleTime: 5 * 60 * 1000,
+    });
+  };
+
+  const handlePrefetchAtsScan = (id: string) => {
+    if (!token || !id) return;
+    queryClient.prefetchQuery({
+      queryKey: atsScanKeys.detail(id),
+      queryFn: () => fetchAtsScanById(id, token),
       staleTime: 5 * 60 * 1000,
     });
   };
@@ -328,56 +350,132 @@ export function AppSidebar() {
               </span>
             </Button>
           </div>
-          <SidebarGroupLabel>{t('sidebar.recent-resumes')}</SidebarGroupLabel>
+
+          {/* Session Type Tabs */}
+          <div className="px-2 pb-2">
+            <div className="flex items-center p-1 rounded-xl bg-muted/60 border border-border/50 text-[11px] font-bold">
+              <button
+                type="button"
+                onClick={() => setSessionTab('resumes')}
+                className={`flex-1 py-1 rounded-lg text-center transition-all ${
+                  sessionTab === 'resumes'
+                    ? 'bg-background text-foreground shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                All-in-One ({displaySessions.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setSessionTab('ats')}
+                className={`flex-1 py-1 rounded-lg text-center transition-all ${
+                  sessionTab === 'ats'
+                    ? 'bg-background text-amber-600 dark:text-amber-400 shadow-xs font-black'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                ATS Match ({atsScansList.length})
+              </button>
+            </div>
+          </div>
+
+          <SidebarGroupLabel>
+            {sessionTab === 'resumes' ? (t('sidebar.recentResumesTab') || 'Son CV Oturumları') : (t('sidebar.recentAtsScansTab') || 'Son ATS Analizleri')}
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {isResumesLoading && displaySessions.length === 0 ? (
-                <div className="px-2 py-1 space-y-2">
-                  <Skeleton className="h-8 w-full rounded-lg" />
-                  <Skeleton className="h-8 w-full rounded-lg" />
-                  <Skeleton className="h-8 w-full rounded-lg" />
-                </div>
-              ) : displaySessions.length === 0 ? (
-                <div className="px-4 py-2 text-xs text-muted-foreground">
-                  {t('sidebar.no-recent-resumes')}
-                </div>
+              {sessionTab === 'resumes' ? (
+                isResumesLoading && displaySessions.length === 0 ? (
+                  <div className="px-2 py-1 space-y-2">
+                    <Skeleton className="h-8 w-full rounded-lg" />
+                    <Skeleton className="h-8 w-full rounded-lg" />
+                    <Skeleton className="h-8 w-full rounded-lg" />
+                  </div>
+                ) : displaySessions.length === 0 ? (
+                  <div className="px-4 py-2 text-xs text-muted-foreground">
+                    {t('sidebar.no-recent-resumes')}
+                  </div>
+                ) : (
+                  <>
+                    {displaySessions.map((session) => (
+                      <SidebarMenuItem
+                        key={session.id}
+                        className="group/item relative flex items-center"
+                      >
+                        <SidebarMenuButton asChild className="pr-8">
+                          <Link
+                            href={`/dashboard/resume/${session.id}`}
+                            prefetch={true}
+                            onMouseEnter={() => handlePrefetchSession(session.id)}
+                          >
+                            <MessageSquare className="mr-2 h-4 w-4 shrink-0" />
+                            <span className="truncate">{session.jobTitle}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                        <Button
+                          type="button"
+                          onClick={(e) => openDeleteModal(e, session)}
+                          title={t('sidebar.deleteConfirmTitle')}
+                          className="absolute right-2 border-0 text-zinc-400 hover:text-red-500 opacity-0 group-hover/item:opacity-100 transition-opacity  rounded-md hover:bg-red-500/10 cursor-pointer"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </SidebarMenuItem>
+                    ))}
+                    <div ref={loadMoreRef} className="py-1 text-center w-full">
+                      {isFetchingNextPage && (
+                        <div className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground py-1">
+                          <Loader2 className="h-3 w-3 animate-spin text-primary shrink-0" />
+                          <span>{t('sidebar.loading')}</span>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )
               ) : (
-                <>
-                  {displaySessions.map((session) => (
+                /* ATS Match Session List */
+                isAtsLoading && atsScansList.length === 0 ? (
+                  <div className="px-2 py-1 space-y-2">
+                    <Skeleton className="h-8 w-full rounded-lg" />
+                    <Skeleton className="h-8 w-full rounded-lg" />
+                  </div>
+                ) : atsScansList.length === 0 ? (
+                  <div className="px-4 py-2 text-xs text-muted-foreground">
+                    {t('sidebar.noAtsScans') || 'Henüz ATS analizi bulunmuyor.'}
+                  </div>
+                ) : (
+                  atsScansList.map((scan) => (
                     <SidebarMenuItem
-                      key={session.id}
+                      key={scan.id}
                       className="group/item relative flex items-center"
                     >
                       <SidebarMenuButton asChild className="pr-8">
                         <Link
-                          href={`/dashboard/resume/${session.id}`}
+                          href={`/dashboard/ats-scan/${scan.id}`}
                           prefetch={true}
-                          onMouseEnter={() => handlePrefetchSession(session.id)}
+                          onMouseEnter={() => handlePrefetchAtsScan(scan.id)}
                         >
-                          <MessageSquare className="mr-2 h-4 w-4 shrink-0" />
-                          <span className="truncate">{session.jobTitle}</span>
+                          <div className="h-4 w-4 rounded-full bg-amber-500/20 text-amber-500 font-extrabold text-[9px] flex items-center justify-center mr-2 shrink-0 border border-amber-500/40">
+                            %{scan.matchPercentage}
+                          </div>
+                          <span className="truncate">{scan.jobTitle}</span>
                         </Link>
                       </SidebarMenuButton>
                       <Button
                         type="button"
-                        onClick={(e) => openDeleteModal(e, session)}
-                        title={t('sidebar.deleteConfirmTitle')}
-                        className="absolute right-2 border-0 text-zinc-400 hover:text-red-500 opacity-0 group-hover/item:opacity-100 transition-opacity  rounded-md hover:bg-red-500/10 cursor-pointer"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (token) deleteAtsMutation.mutate({ id: scan.id, token });
+                        }}
+                        title="Analizi Sil"
+                        className="absolute right-2 border-0 text-zinc-400 hover:text-red-500 opacity-0 group-hover/item:opacity-100 transition-opacity rounded-md hover:bg-red-500/10 cursor-pointer"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </SidebarMenuItem>
-                  ))}
-                  {/* Sentinel element for infinite scroll */}
-                  <div ref={loadMoreRef} className="py-1 text-center w-full">
-                    {isFetchingNextPage && (
-                      <div className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground py-1">
-                        <Loader2 className="h-3 w-3 animate-spin text-primary shrink-0" />
-                        <span>Yükleniyor...</span>
-                      </div>
-                    )}
-                  </div>
-                </>
+                  ))
+                )
               )}
             </SidebarMenu>
           </SidebarGroupContent>

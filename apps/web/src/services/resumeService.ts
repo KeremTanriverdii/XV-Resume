@@ -71,7 +71,7 @@ export const updateResumeTranslation = async (
  * Perform standalone real-time ATS Analysis (Quick Scan).
  */
 export const analyzeAts = async (
-  data: { externalJobLink: string; profileId: string; jobDescriptionText?: string },
+  data: { externalJobLink: string; profileId: string; jobDescriptionText?: string; languageCode?: string },
   token: string | undefined
 ) => {
   if (!token) return null;

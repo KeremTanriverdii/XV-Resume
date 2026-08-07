@@ -58,30 +58,47 @@ public class SwitchableAiService : IAiService
 
   public async Task<AiAtsAnalysisResult> AnalyzeAtsAsync(
       string externalJobLink,
-      AiProfileInput profile,
-      string? jobDescriptionText = null)
+      AiProfileInput? profile = null,
+      string? jobDescriptionText = null,
+      string languageCode = "en")
   {
     var provider = Provider;
 
     if (provider.Equals("DeepSeek", StringComparison.OrdinalIgnoreCase))
     {
-      return await _deepSeekService.AnalyzeAtsAsync(externalJobLink, profile, jobDescriptionText);
+      try
+      {
+        return await _deepSeekService.AnalyzeAtsAsync(externalJobLink, profile, jobDescriptionText, languageCode);
+      }
+      catch (Exception ex)
+      {
+        _logger.LogWarning(ex, "DeepSeek AI Service failed. Falling back to Gemini AI Service.");
+        return await _geminiService.AnalyzeAtsAsync(externalJobLink, profile, jobDescriptionText, languageCode);
+      }
     }
 
     if (provider.Equals("Auto", StringComparison.OrdinalIgnoreCase))
     {
       try
       {
-        return await _deepSeekService.AnalyzeAtsAsync(externalJobLink, profile, jobDescriptionText);
+        return await _deepSeekService.AnalyzeAtsAsync(externalJobLink, profile, jobDescriptionText, languageCode);
       }
       catch (Exception ex)
       {
         _logger.LogWarning(ex, "DeepSeek AI Service failed in Auto mode. Falling back to Gemini AI Service.");
-        return await _geminiService.AnalyzeAtsAsync(externalJobLink, profile, jobDescriptionText);
+        return await _geminiService.AnalyzeAtsAsync(externalJobLink, profile, jobDescriptionText, languageCode);
       }
     }
 
-    return await _geminiService.AnalyzeAtsAsync(externalJobLink, profile, jobDescriptionText);
+    try
+    {
+      return await _geminiService.AnalyzeAtsAsync(externalJobLink, profile, jobDescriptionText, languageCode);
+    }
+    catch (Exception ex)
+    {
+      _logger.LogWarning(ex, "Gemini AI Service failed. Trying DeepSeek fallback.");
+      return await _deepSeekService.AnalyzeAtsAsync(externalJobLink, profile, jobDescriptionText, languageCode);
+    }
   }
 
   public async Task<string> GenerateOutreachTextAsync(

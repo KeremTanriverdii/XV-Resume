@@ -16,6 +16,10 @@ public record ResumeTranslationDto
   public string? ProjectsHtml { get; init; } = string.Empty;
   public int? MatchPercentage { get; init; }
   public string? AtsFeedback { get; init; }
+  public List<string> MatchedSkills { get; init; } = [];
+  public List<string> MissingSkills { get; init; } = [];
+  public List<string> CriticalMissingSkills { get; init; } = [];
+  public List<string> RecommendedMissingSkills { get; init; } = [];
   public string? CoverLetter { get; init; }
   public string? ColdMessage { get; init; }
   public int Version { get; init; }

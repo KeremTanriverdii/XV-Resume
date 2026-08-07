@@ -4,6 +4,7 @@ import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { AlertOctagon, RefreshCw, Home } from 'lucide-react';
 import { Link } from '@/i18n/routing';
+import { useTranslations } from 'next-intl';
 
 export default function Error({
   error,
@@ -12,6 +13,8 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const t = useTranslations('errorBoundary');
+
   useEffect(() => {
     console.error('Unhandled app error:', error);
   }, [error]);
@@ -26,22 +29,22 @@ export default function Error({
       </div>
 
       <h2 className="text-3xl font-extrabold text-foreground tracking-tight mb-2">
-        Bir Hata Oluştu
+        {t('title')}
       </h2>
       <p className="text-sm text-muted-foreground max-w-md mb-6 leading-relaxed">
-        İşleminiz gerçekleştirilirken beklenmeyen bir sorun meydana geldi. Lütfen tekrar deneyin.
+        {t('description')}
       </p>
 
       <div className="flex items-center gap-3 flex-wrap justify-center">
-        <Button onClick={reset} className="rounded-full gap-2 px-6 bg-primary text-primary-foreground">
+        <Button onClick={reset} className="rounded-full gap-2 px-6 bg-primary text-primary-foreground cursor-pointer">
           <RefreshCw className="h-4 w-4" />
-          <span>Yeniden Dene</span>
+          <span>{t('retry')}</span>
         </Button>
 
-        <Button asChild variant="outline" className="rounded-full gap-2 px-6">
+        <Button asChild variant="outline" className="rounded-full gap-2 px-6 cursor-pointer">
           <Link href="/dashboard">
             <Home className="h-4 w-4" />
-            <span>Dashboard</span>
+            <span>{t('dashboard')}</span>
           </Link>
         </Button>
       </div>

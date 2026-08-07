@@ -144,17 +144,17 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Ensure Database Schema migrations (e.g. PhotoUrl column type text)
+// Auto-apply pending EF Core migrations on startup
 using (var scope = app.Services.CreateScope())
 {
   var db = scope.ServiceProvider.GetRequiredService<ResumeXCreator.Infrastructure.Data.AppDbContext>();
   try
   {
-    db.Database.ExecuteSqlRaw("ALTER TABLE \"Profiles\" ALTER COLUMN \"PhotoUrl\" TYPE text;");
+    await db.Database.MigrateAsync();
   }
   catch (Exception ex)
   {
-    Console.WriteLine($"[DB Startup] Note: {ex.Message}");
+    Console.WriteLine($"[DB Startup] Migration note: {ex.Message}");
   }
 }
 
@@ -193,6 +193,7 @@ app.MapExperienceEndpoints();
 app.MapEducationEndpoints();
 app.MapProjectEndpoints();
 app.MapResumeEndpoints();
+app.MapAtsScanEndpoints();
 app.MapUserEndpoints();
 app.MapPaymentEndpoints();
 app.MapOutreachEndpoints();

@@ -9,8 +9,7 @@ public class CreateResumeDtoValidator : AbstractValidator<CreateResumeDto>
   public CreateResumeDtoValidator()
   {
     RuleFor(x => x.ExternalJobLink)
-      .NotEmpty().WithMessage("External Job Link is required.")
-      .Must(LinkIsValidUri).WithMessage("External Job Link must be a valid absolute URI (http or https).");
+      .NotEmpty().WithMessage("External Job Link or Job Description is required.");
 
     RuleFor(x => x)
       .Must(x => (x.ProfileId.HasValue ? 1 : 0) + (x.NewProfile != null ? 1 : 0) + (x.ManualProfileData != null ? 1 : 0) == 1)

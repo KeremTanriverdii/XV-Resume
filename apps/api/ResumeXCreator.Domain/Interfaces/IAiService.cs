@@ -12,8 +12,9 @@ public interface IAiService
 
   Task<AiAtsAnalysisResult> AnalyzeAtsAsync(
       string externalJobLink,
-      AiProfileInput profile,
-      string? jobDescriptionText = null);
+      AiProfileInput? profile = null,
+      string? jobDescriptionText = null,
+      string languageCode = "en");
 
   Task<string> GenerateOutreachTextAsync(
       string outreachType,
@@ -28,6 +29,8 @@ public record AiAtsAnalysisResult
   public int MatchPercentage { get; init; }
   public List<string> MatchedSkills { get; init; } = [];
   public List<string> MissingSkills { get; init; } = [];
+  public List<string> CriticalMissingSkills { get; init; } = [];
+  public List<string> RecommendedMissingSkills { get; init; } = [];
   public string AtsFeedback { get; init; } = string.Empty;
   public string ScrapedJobTitle { get; init; } = string.Empty;
   public string ScrapedJobDescription { get; init; } = string.Empty;
@@ -43,6 +46,10 @@ public record AiGeneratedResumeResult
   public string LanguagesHtml { get; init; } = string.Empty;
   public string? ProjectsHtml { get; init; } = string.Empty;
   public int MatchPercentage { get; init; }
+  public List<string> MatchedSkills { get; init; } = [];
+  public List<string> MissingSkills { get; init; } = [];
+  public List<string> CriticalMissingSkills { get; init; } = [];
+  public List<string> RecommendedMissingSkills { get; init; } = [];
   public string AtsFeedback { get; init; } = string.Empty;
   public string CoverLetter { get; init; } = string.Empty;
   public string ColdMessage { get; init; } = string.Empty;

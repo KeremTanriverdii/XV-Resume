@@ -69,11 +69,13 @@ public class GeminiAiService : IAiService
             languagesHtml = new { type = "STRING" },
             projectsHtml = new { type = "STRING" },
             matchPercentage = new { type = "INTEGER" },
+            matchedSkills = new { type = "ARRAY", items = new { type = "STRING" } },
+            missingSkills = new { type = "ARRAY", items = new { type = "STRING" } },
             atsFeedback = new { type = "STRING" },
             coverLetter = new { type = "STRING" },
             coldMessage = new { type = "STRING" }
           },
-          required = new[] { "title", "summary", "experienceHtml", "educationHtml", "skillsHtml", "languagesHtml", "projectsHtml", "matchPercentage", "atsFeedback", "coverLetter", "coldMessage" }
+          required = new[] { "title", "summary", "experienceHtml", "educationHtml", "skillsHtml", "languagesHtml", "projectsHtml", "matchPercentage", "matchedSkills", "missingSkills", "atsFeedback", "coverLetter", "coldMessage" }
         }
       }
     };
@@ -143,92 +145,22 @@ public class GeminiAiService : IAiService
     }
   }
 
-  private async Task<string> ScrapeJobDescriptionAsync(string url)
+  private async Task<string> ScrapeJobDescriptionAsync(string input)
   {
-    if (string.IsNullOrWhiteSpace(url) || !Uri.TryCreate(url, UriKind.Absolute, out _))
+    if (string.IsNullOrWhiteSpace(input)) return string.Empty;
+    if (Uri.TryCreate(input, UriKind.Absolute, out var uriResult)
+        && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps))
     {
-      return "No job link provided. Generate resume targeting the applicant's title.";
+      try
+      {
+        return await Infrastructure.Helpers.JobScraperHelper.ScrapeJobDescriptionAsync(input);
+      }
+      catch
+      {
+        return input;
+      }
     }
-
-    try
-    {
-      var request = new HttpRequestMessage(HttpMethod.Get, url);
-      request.Headers.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
-      request.Headers.AcceptLanguage.ParseAdd("tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7");
-
-      var response = await _httpClient.SendAsync(request);
-      if (!response.IsSuccessStatusCode)
-      {
-        return $"[Could not retrieve job page directly: Status {response.StatusCode}. Aligning resume with industry standards for target position.]";
-      }
-
-      var html = await response.Content.ReadAsStringAsync();
-      if (string.IsNullOrWhiteSpace(html))
-      {
-        return "[Job page returned empty content. Aligning resume with industry standards.]";
-      }
-
-      string targetHtml = html;
-
-      // 1. Target specific Job Description containers if present (LinkedIn, Kariyer.net, Indeed, Glassdoor)
-      var containerPatterns = new[]
-      {
-        @"<div[^>]*class=""[^""]*show-more-less-html__markup[^""]*""[^>]*>([\s\S]*?)</div>",
-        @"<section[^>]*class=""[^""]*description[^""]*""[^>]*>([\s\S]*?)</section>",
-        @"<div[^>]*class=""[^""]*description__text[^""]*""[^>]*>([\s\S]*?)</div>",
-        @"<div[^>]*id=""job-details""[^>]*>([\s\S]*?)</div>",
-        @"<article[^>]*>([\s\S]*?)</article>",
-        @"<main[^>]*>([\s\S]*?)</main>"
-      };
-
-      foreach (var pattern in containerPatterns)
-      {
-        var match = Regex.Match(html, pattern, RegexOptions.IgnoreCase);
-        if (match.Success && match.Groups[1].Value.Trim().Length > 100)
-        {
-          targetHtml = match.Groups[1].Value;
-          break;
-        }
-      }
-
-      // 2. Strip scripts, styles, navs, headers, footers, buttons, svgs
-      var cleanText = Regex.Replace(targetHtml, "<script[^>]*?>[\\s\\S]*?</script>", " ", RegexOptions.IgnoreCase);
-      cleanText = Regex.Replace(cleanText, "<style[^>]*?>[\\s\\S]*?</style>", " ", RegexOptions.IgnoreCase);
-      cleanText = Regex.Replace(cleanText, "<nav[^>]*?>[\\s\\S]*?</nav>", " ", RegexOptions.IgnoreCase);
-      cleanText = Regex.Replace(cleanText, "<header[^>]*?>[\\s\\S]*?</header>", " ", RegexOptions.IgnoreCase);
-      cleanText = Regex.Replace(cleanText, "<footer[^>]*?>[\\s\\S]*?</footer>", " ", RegexOptions.IgnoreCase);
-      cleanText = Regex.Replace(cleanText, "<button[^>]*?>[\\s\\S]*?</button>", " ", RegexOptions.IgnoreCase);
-      cleanText = Regex.Replace(cleanText, "<svg[^>]*?>[\\s\\S]*?</svg>", " ", RegexOptions.IgnoreCase);
-      cleanText = Regex.Replace(cleanText, @"function\s+\w+[\s\S]*?\{[\s\S]*?\}", " ");
-
-      // 3. Convert HTML headings and bold tags to Markdown headers (Language Agnostic)
-      cleanText = Regex.Replace(cleanText, @"<h[1-6][^>]*>(.*?)</h[1-6]>", "\n\n### $1\n", RegexOptions.IgnoreCase);
-      cleanText = Regex.Replace(cleanText, @"<(strong|b)[^>]*>(.*?)</\1>", " **$2** ", RegexOptions.IgnoreCase);
-      cleanText = Regex.Replace(cleanText, @"<li[^>]*>", "\n• ", RegexOptions.IgnoreCase);
-      cleanText = Regex.Replace(cleanText, @"</?(p|div|tr|br\s*/?)[^>]*>", "\n", RegexOptions.IgnoreCase);
-
-      // 4. Strip remaining HTML tags & HtmlDecode entities
-      cleanText = Regex.Replace(cleanText, "<.*?>", "");
-      cleanText = System.Net.WebUtility.HtmlDecode(cleanText);
-
-      // 5. Language-Agnostic Section Header Format: Format short standalone lines ending with a colon (: or Japanese/Asian ：)
-      cleanText = Regex.Replace(cleanText, @"(?m)^([^\n\r]{2,60}[:：])\s*$", "\n\n### $1\n");
-
-      // 6. Normalize whitespace: keep line breaks, trim excess empty lines
-      cleanText = Regex.Replace(cleanText, @"[ \t]+", " ");
-      cleanText = Regex.Replace(cleanText, @"\n\s*\n", "\n\n").Trim();
-
-      if (cleanText.Length < 50)
-      {
-        return "[Could not extract meaningful job text. Aligning resume with industry standards.]";
-      }
-
-      return cleanText.Length > 8000 ? cleanText[..8000] : cleanText;
-    }
-    catch (Exception ex)
-    {
-      return $"[Could not retrieve job page directly: {ex.Message}. Aligning resume with industry standards for target position.]";
-    }
+    return input;
   }
 
   private string BuildPrompt(string jobDescription, AiProfileInput profile, string languageCode)
@@ -366,40 +298,80 @@ OUTPUT & LANGUAGE RULES
 
   public async Task<AiAtsAnalysisResult> AnalyzeAtsAsync(
       string externalJobLink,
-      AiProfileInput profile,
-      string? jobDescriptionText = null)
+      AiProfileInput? profile = null,
+      string? jobDescriptionText = null,
+      string languageCode = "en")
   {
     if (string.IsNullOrWhiteSpace(_apiKey))
     {
       throw new InvalidOperationException("Gemini API key is not configured.");
     }
 
-    var jobDescription = !string.IsNullOrWhiteSpace(jobDescriptionText)
+    var rawJobDescription = !string.IsNullOrWhiteSpace(jobDescriptionText)
         ? jobDescriptionText
         : await ScrapeJobDescriptionAsync(externalJobLink);
+    var jobDescription = Regex.Replace(rawJobDescription ?? string.Empty, @"[\x00-\x08\x0B\x0C\x0E-\x1F]", " ");
 
-    var prompt = $@"
-You are an expert ATS (Applicant Tracking System) parser and senior recruiter.
-Analyze the candidate profile against the target job description.
-
-JOB DESCRIPTION:
-{jobDescription}
-
-CANDIDATE PROFILE:
-- Full Name: {profile.FullName}
+    var candidateDataStr = profile != null
+        ? $@"- Full Name: {profile.FullName}
 - Title: {profile.Title}
 - Summary: {profile.Summary}
 - Skills: {string.Join(", ", profile.Skills)}
 - Experiences: {JsonSerializer.Serialize(profile.Experiences)}
 - Educations: {JsonSerializer.Serialize(profile.Educations)}
-- Projects: {JsonSerializer.Serialize(profile.Projects)}
+- Projects: {JsonSerializer.Serialize(profile.Projects)}"
+        : "Candidate structured profile not selected. Extract candidate profile details directly from candidate attached CV in Target Job Description field above.";
 
-RETURN JSON STRICTLY matching this schema:
-- matchPercentage: INTEGER (0 to 100)
-- matchedSkills: ARRAY of STRINGS (key technical/soft skills present in both job description and profile)
-- missingSkills: ARRAY of STRINGS (important skills/keywords required by job description but missing or weak in profile)
-- atsFeedback: STRING (actionable 3-4 sentence Markdown advice on how to improve ATS match)
-- scrapedJobTitle: STRING (extracted job title from description)
+    var prompt = $@"
+You are an expert ATS (Applicant Tracking System) parser and senior recruiter.
+Analyze the candidate profile against the target job description using professional 3-pillar ATS evaluation rules.
+IMPORTANT: Respond strictly in specified language: '{languageCode}'.
+
+==================================================
+TARGET JOB DESCRIPTION & ATTACHED CANDIDATE CV
+==================================================
+{jobDescription}
+
+==================================================
+CANDIDATE PROFILE DATA
+==================================================
+{candidateDataStr}
+
+==================================================
+ATS SCORING WEIGHTS & EVALUATION MODEL
+==================================================
+Calculate the final `matchPercentage` (INTEGER 0 to 100) using a weighted combination of 3 core pillars:
+
+1. KEYWORD & TECHNICAL SKILLS MATCH (50% - 60% Weight):
+   - Direct match of core technical skills, frameworks, tools, and job terminology in Job Description vs Profile.
+   - Do NOT penalize candidate excessively if core requirements match and only minor nice-to-have skills are missing.
+
+2. FORMAT, STRUCTURE & GOOGLE XYZ FORMULA (20% - 30% Weight):
+   - Machine readability and clean section layout (Summary, Experience, Education, Skills).
+   - Evaluation of experience bullet points against Google's XYZ Formula ('Accomplished [X] measured by [Y] by doing [Z]').
+
+3. EXPERIENCE & EDUCATION FIT (10% - 20% Weight):
+   - Candidate seniority, role relevance, degree field, and background alignment.
+
+==================================================
+DEDUPLICATION & EXACT MATCHING RULES
+==================================================
+1. STRICT SKILL MATCHING: Compare Job Description requirements against Candidate Profile Skills, Summary, Experiences, and Projects.
+2. SYNONYM & CASE INSENSITIVITY: Treat equivalent terms as identical (e.g., React / ReactJS, .NET / C# / .NET Core, Postgres / PostgreSQL, Amazon Web Services / AWS).
+3. NEVER CONFLICT: If a skill (or its synonym) is present anywhere in the Candidate Profile, it MUST be included in `matchedSkills`. It MUST NEVER be listed in `missingSkills`, `criticalMissingSkills`, or `recommendedMissingSkills`.
+4. DETERMINISTIC EVALUATION: Calculate `matchPercentage` consistently and objectively based purely on factual matches.
+
+==================================================
+OUTPUT SCHEMA & INSTRUCTIONS
+==================================================
+Return JSON STRICTLY matching this schema in language '{languageCode}':
+- matchPercentage: INTEGER (0 to 100 based on the 3 weighted pillars above)
+- matchedSkills: ARRAY of STRINGS (key skills present in both job and candidate profile)
+- missingSkills: ARRAY of STRINGS (all missing skills)
+- criticalMissingSkills: ARRAY of STRINGS (must-have core skills required by job but missing in candidate profile)
+- recommendedMissingSkills: ARRAY of STRINGS (nice-to-have secondary skills required by job but missing in profile)
+- atsFeedback: STRING (Rich Markdown ATS analysis covering: 1) Technical Match, 2) Google XYZ Formula Before/After Transformation example, 3) Seniority & Layout advice in '{languageCode}')
+- scrapedJobTitle: STRING (extracted target job title)
 ";
 
     var requestUrl = $"https://generativelanguage.googleapis.com/v1beta/models/{_model}:generateContent?key={_apiKey}";
@@ -418,6 +390,7 @@ RETURN JSON STRICTLY matching this schema:
         },
       generationConfig = new
       {
+        temperature = 0.0,
         responseMimeType = "application/json",
         responseSchema = new
         {
@@ -427,10 +400,12 @@ RETURN JSON STRICTLY matching this schema:
             matchPercentage = new { type = "INTEGER" },
             matchedSkills = new { type = "ARRAY", items = new { type = "STRING" } },
             missingSkills = new { type = "ARRAY", items = new { type = "STRING" } },
+            criticalMissingSkills = new { type = "ARRAY", items = new { type = "STRING" } },
+            recommendedMissingSkills = new { type = "ARRAY", items = new { type = "STRING" } },
             atsFeedback = new { type = "STRING" },
             scrapedJobTitle = new { type = "STRING" }
           },
-          required = new[] { "matchPercentage", "matchedSkills", "missingSkills", "atsFeedback", "scrapedJobTitle" }
+          required = new[] { "matchPercentage", "matchedSkills", "missingSkills", "criticalMissingSkills", "recommendedMissingSkills", "atsFeedback", "scrapedJobTitle" }
         }
       }
     };
@@ -475,11 +450,27 @@ RETURN JSON STRICTLY matching this schema:
         missingSkills.Add(item.GetString() ?? "");
     }
 
+    var criticalMissingSkills = new List<string>();
+    if (root.TryGetProperty("criticalMissingSkills", out var critArr))
+    {
+      foreach (var item in critArr.EnumerateArray())
+        criticalMissingSkills.Add(item.GetString() ?? "");
+    }
+
+    var recommendedMissingSkills = new List<string>();
+    if (root.TryGetProperty("recommendedMissingSkills", out var recArr))
+    {
+      foreach (var item in recArr.EnumerateArray())
+        recommendedMissingSkills.Add(item.GetString() ?? "");
+    }
+
     return new AiAtsAnalysisResult
     {
       MatchPercentage = root.GetProperty("matchPercentage").GetInt32(),
       MatchedSkills = matchedSkills,
-      MissingSkills = missingSkills,
+      MissingSkills = missingSkills.Count > 0 ? missingSkills : criticalMissingSkills.Concat(recommendedMissingSkills).ToList(),
+      CriticalMissingSkills = criticalMissingSkills,
+      RecommendedMissingSkills = recommendedMissingSkills,
       AtsFeedback = root.GetProperty("atsFeedback").GetString() ?? string.Empty,
       ScrapedJobTitle = root.TryGetProperty("scrapedJobTitle", out var titleProp) ? titleProp.GetString() ?? string.Empty : string.Empty,
       ScrapedJobDescription = jobDescription
