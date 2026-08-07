@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Link2,
   Sparkles,
@@ -45,19 +45,49 @@ export const AtsMatcherTab: React.FC<AtsMatcherTabProps> = ({
     score: number;
     matchingKeywords: string[];
     missingKeywords: string[];
+    criticalMissingSkills: string[];
+    recommendedMissingSkills: string[];
     recommendations: string[];
   } | null>(
     translation.matchPercentage
       ? {
           score: translation.matchPercentage,
-          matchingKeywords: ['Skills Match', 'Experience Match'],
-          missingKeywords: [],
+          matchingKeywords: translation.matchedSkills?.length
+            ? translation.matchedSkills
+            : ['Skills Match', 'Experience Match'],
+          missingKeywords: translation.missingSkills || [],
+          criticalMissingSkills: translation.criticalMissingSkills || [],
+          recommendedMissingSkills: translation.recommendedMissingSkills || [],
           recommendations: translation.atsFeedback
             ? [translation.atsFeedback]
             : ['Target job requirements match this resume.'],
         }
       : null,
   );
+
+  useEffect(() => {
+    if (translation.matchPercentage) {
+      setAtsResult({
+        score: translation.matchPercentage,
+        matchingKeywords: translation.matchedSkills?.length
+          ? translation.matchedSkills
+          : ['Skills Match', 'Experience Match'],
+        missingKeywords: translation.missingSkills || [],
+        criticalMissingSkills: translation.criticalMissingSkills || [],
+        recommendedMissingSkills: translation.recommendedMissingSkills || [],
+        recommendations: translation.atsFeedback
+          ? [translation.atsFeedback]
+          : ['Target job requirements match this resume.'],
+      });
+    }
+  }, [
+    translation.matchPercentage,
+    translation.matchedSkills,
+    translation.missingSkills,
+    translation.criticalMissingSkills,
+    translation.recommendedMissingSkills,
+    translation.atsFeedback,
+  ]);
 
   const [iterationCount, setIterationCount] = useState(0);
   const MAX_ITERATIONS = 5;
@@ -74,6 +104,7 @@ export const AtsMatcherTab: React.FC<AtsMatcherTabProps> = ({
             externalJobLink: targetUrl,
             profileId: resume.profileId,
             jobDescriptionText: jobDescription.trim() || undefined,
+            languageCode: translation.languageCode || 'en',
           },
           token,
         );
@@ -83,6 +114,8 @@ export const AtsMatcherTab: React.FC<AtsMatcherTabProps> = ({
             score: res.matchPercentage,
             matchingKeywords: res.matchedSkills,
             missingKeywords: res.missingSkills,
+            criticalMissingSkills: res.criticalMissingSkills || [],
+            recommendedMissingSkills: res.recommendedMissingSkills || [],
             recommendations: res.atsFeedback ? [res.atsFeedback] : [],
           });
           setIsAnalyzing(false);
@@ -96,6 +129,8 @@ export const AtsMatcherTab: React.FC<AtsMatcherTabProps> = ({
         score: newScore,
         matchingKeywords: ['TypeScript', 'React', 'Next.js', 'REST APIs'],
         missingKeywords: ['Docker', 'Kubernetes'],
+        criticalMissingSkills: ['Docker'],
+        recommendedMissingSkills: ['Kubernetes'],
         recommendations: [
           'Add containerization experience to Work Experience.',
           'Emphasize cloud deployment skills.',
@@ -113,27 +148,61 @@ export const AtsMatcherTab: React.FC<AtsMatcherTabProps> = ({
     setIsAnalyzing(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1800));
+      await new Promise((resolve) => setTimeout(resolve, 800));
 
       const nextIteration = iterationCount + 1;
       setIterationCount(nextIteration);
 
-      const improvedScore = Math.min(76 + nextIteration * 5, 99);
-      const remainingMissing = atsResult.missingKeywords.slice(1);
+      const addedKeyword =
+        atsResult.criticalMissingSkills[0] ||
+        atsResult.recommendedMissingSkills[0] ||
+        atsResult.missingKeywords[0];
+
+      if (!addedKeyword) {
+        setIsAnalyzing(false);
+        return;
+      }
+
+      const remainingCritical = atsResult.criticalMissingSkills.filter(
+        (k) => k !== addedKeyword,
+      );
+      const remainingRecommended = atsResult.recommendedMissingSkills.filter(
+        (k) => k !== addedKeyword,
+      );
+      const remainingMissing = atsResult.missingKeywords.filter(
+        (k) => k !== addedKeyword,
+      );
+
+      const updatedMatching = atsResult.matchingKeywords.includes(addedKeyword)
+        ? atsResult.matchingKeywords
+        : [...atsResult.matchingKeywords, addedKeyword];
+
+      // Calculate deterministic score increase based on resolved skills
+      const totalInitial =
+        atsResult.matchingKeywords.length +
+        atsResult.missingKeywords.length;
+      const newScore = Math.min(
+        99,
+        Math.max(
+          atsResult.score + 4,
+          Math.round((updatedMatching.length / (totalInitial || 1)) * 100),
+        ),
+      );
 
       setAtsResult({
         ...atsResult,
-        score: improvedScore,
+        score: newScore,
+        matchingKeywords: updatedMatching,
         missingKeywords: remainingMissing,
+        criticalMissingSkills: remainingCritical,
+        recommendedMissingSkills: remainingRecommended,
       });
 
       // Update CV skills dynamically
       if (translation.skillsHtml) {
-        const addedKeyword =
-          atsResult.missingKeywords[0] || 'Cloud Architecture';
         onApplyTailoredTranslation({
           ...translation,
-          skillsHtml: `${translation.skillsHtml}\n<p><strong>Cloud & DevOps:</strong> ${addedKeyword}, CI/CD</p>`,
+          skillsHtml: `${translation.skillsHtml}\n<p><strong>Optimized Skill:</strong> ${addedKeyword}</p>`,
         });
       }
     } catch (err) {
@@ -213,7 +282,7 @@ export const AtsMatcherTab: React.FC<AtsMatcherTabProps> = ({
           </div>
           <p className="text-xs text-muted-foreground mt-0.5">
             Measure your CV against a specific job posting and optimize keywords
-            automatically.
+            automatically using 3-pillar ATS scoring rules & Google XYZ formula.
           </p>
         </div>
 
@@ -227,6 +296,14 @@ export const AtsMatcherTab: React.FC<AtsMatcherTabProps> = ({
             </span>
           </div>
         )}
+      </div>
+
+      {/* Tip Banner */}
+      <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-300 text-xs leading-relaxed">
+        <Sparkles className="h-4 w-4 shrink-0 mt-0.5 text-amber-500" />
+        <div>
+          <span className="font-bold">Önemli İpucu:</span> İş ilanı linkleri bazı sitelerde (LinkedIn, Kariyer.net vb.) oturum engeline takılabilir. <strong className="underline decoration-amber-500/40">İlan metnini doğrudan kopyalayıp sağdaki kutuya yapıştırmanız %100 doğrulukta sonuç verir.</strong>
+        </div>
       </div>
 
       {/* Input Section */}
@@ -246,7 +323,7 @@ export const AtsMatcherTab: React.FC<AtsMatcherTabProps> = ({
 
         <div>
           <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 mb-1.5">
-            Or Paste Job Description Text
+            Or Paste Job Description Text (Önerilen)
           </label>
           <Input
             value={jobDescription}
@@ -300,13 +377,13 @@ export const AtsMatcherTab: React.FC<AtsMatcherTabProps> = ({
               <div>
                 <h4 className="text-sm font-bold text-foreground">
                   {atsResult.score >= 85
-                    ? 'Excellent ATS Match!'
+                    ? 'Excellent ATS Match! 🎉'
                     : atsResult.score >= 70
-                      ? 'Good ATS Match'
-                      : 'Needs Keyword Optimization'}
+                      ? 'Good ATS Match 👍'
+                      : 'Needs Keyword & Impact Optimization ⚡'}
                 </h4>
                 <p className="text-xs text-muted-foreground">
-                  Based on target job posting requirements.
+                  Evaluated on 3 Pillars: %50 Keyword Match, %30 Layout & Google XYZ Formula, %20 Seniority.
                 </p>
               </div>
             </div>
@@ -329,12 +406,12 @@ export const AtsMatcherTab: React.FC<AtsMatcherTabProps> = ({
             </Button>
           </div>
 
-          {/* Keywords Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Matching Keywords */}
+          {/* Keywords Categorized Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* 1. Matching Keywords */}
             <div className="p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 flex flex-col gap-2">
               <h5 className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-                <CheckCircle2 className="h-4 w-4" /> Matching Keywords Found (
+                <CheckCircle2 className="h-4 w-4" /> Matching Keywords (
                 {atsResult.matchingKeywords.length})
               </h5>
               <div className="flex flex-wrap gap-1.5 mt-1">
@@ -349,30 +426,70 @@ export const AtsMatcherTab: React.FC<AtsMatcherTabProps> = ({
               </div>
             </div>
 
-            {/* Missing Keywords */}
-            <div className="p-4 rounded-xl border border-rose-500/20 bg-rose-500/5 flex flex-col gap-2">
+            {/* 2. Critical Missing Skills (Must-Have) */}
+            <div className="p-4 rounded-xl border border-rose-500/30 bg-rose-500/5 flex flex-col gap-2">
               <h5 className="text-xs font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1.5">
-                <AlertTriangle className="h-4 w-4" /> Missing Key Requirements (
-                {atsResult.missingKeywords.length})
+                <AlertTriangle className="h-4 w-4 text-rose-500" /> Critical Gaps / Kritik Eksikler (
+                {atsResult.criticalMissingSkills.length > 0
+                  ? atsResult.criticalMissingSkills.length
+                  : atsResult.missingKeywords.length})
               </h5>
               <div className="flex flex-wrap gap-1.5 mt-1">
-                {atsResult.missingKeywords.length > 0 ? (
-                  atsResult.missingKeywords.map((kw, idx) => (
+                {(atsResult.criticalMissingSkills.length > 0
+                  ? atsResult.criticalMissingSkills
+                  : atsResult.missingKeywords
+                ).map((kw, idx) => (
+                  <span
+                    key={idx}
+                    className="px-2 py-0.5 rounded-md bg-rose-500/15 border border-rose-500/30 text-rose-700 dark:text-rose-300 text-[11px] font-bold"
+                  >
+                    🚨 {kw}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* 3. Recommended Secondary Skills (Nice-to-Have) */}
+            <div className="p-4 rounded-xl border border-indigo-500/20 bg-indigo-500/5 flex flex-col gap-2">
+              <h5 className="text-xs font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
+                <Sparkles className="h-4 w-4 text-indigo-400" /> Recommended / Önerilen Beceriler (
+                {atsResult.recommendedMissingSkills.length})
+              </h5>
+              <div className="flex flex-wrap gap-1.5 mt-1">
+                {atsResult.recommendedMissingSkills.length > 0 ? (
+                  atsResult.recommendedMissingSkills.map((kw, idx) => (
                     <span
                       key={idx}
-                      className="px-2 py-0.5 rounded-md bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 text-[11px] font-semibold"
+                      className="px-2 py-0.5 rounded-md bg-indigo-500/10 border border-indigo-500/20 text-indigo-700 dark:text-indigo-300 text-[11px] font-semibold"
                     >
-                      ! {kw}
+                      💡 {kw}
                     </span>
                   ))
                 ) : (
-                  <span className="text-xs text-emerald-600 font-semibold">
-                    No missing keywords! Target match achieved.
+                  <span className="text-xs text-muted-foreground">
+                    No secondary gaps identified.
                   </span>
                 )}
               </div>
             </div>
           </div>
+
+          {/* Structured AI Feedback & Google XYZ Formula Recommendation Card */}
+          {atsResult.recommendations.length > 0 && (
+            <div className="p-5 rounded-xl border border-indigo-500/20 bg-slate-900/60 backdrop-blur-md flex flex-col gap-3">
+              <div className="flex items-center gap-2 text-indigo-400 font-bold text-xs uppercase tracking-wider border-b border-indigo-500/10 pb-2">
+                <Sparkles className="h-4 w-4" />
+                <span>AI ATS Report & Google XYZ Formula Recommendations</span>
+              </div>
+              <div className="text-xs text-slate-300 leading-relaxed whitespace-pre-line space-y-2">
+                {atsResult.recommendations.map((rec, idx) => (
+                  <div key={idx} className="prose prose-invert max-w-none text-xs">
+                    {rec}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
