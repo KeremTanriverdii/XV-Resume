@@ -313,7 +313,7 @@ export default function ProfileCreateForm({
       summary,
       skills: skillsTags,
       socialLinks: socialLinks.map((s) => s.trim()).filter(Boolean),
-      showPhoto,
+      showPhoto: !!photoUrl.trim() || showPhoto,
       photoUrl: photoUrl.trim() || undefined,
       militaryStatus:
         militaryStatus === 'Default'

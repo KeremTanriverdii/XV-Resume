@@ -1,29 +1,8 @@
 'use client';
-import { Button } from '@/components/ui/button';
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
-import { useProfiles } from '@/hooks/useProfile';
+
 import { useState, useEffect } from 'react';
-import { formatDate } from '@/utils/date';
-import {
-  Loader2,
-  Mail,
-  Phone,
-  MapPin,
-  Sparkles,
-  FolderGit2,
-  Link2,
-  X,
-} from 'lucide-react';
-import { Experience } from '@/types';
+import { useProfiles } from '@/hooks/useProfile';
+import { Loader2, Check, User, Sparkles, Mail, Phone, MapPin } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 export function SelectProfile({
@@ -36,311 +15,118 @@ export function SelectProfile({
   onSelect: (id: string | null) => void;
 }) {
   const t = useTranslations('profiles');
+  const tDetail = useTranslations('atsScanDetail');
   const { data: profiles, isLoading, error } = useProfiles(token!);
-  const [tempSelectedId, setTempSelectedId] = useState<string | null>(
-    selectedProfileId,
-  );
 
-  // Keep state in sync with external changes
+  // Auto-select first profile once on initial load if none selected
   useEffect(() => {
-    setTempSelectedId(selectedProfileId);
-  }, [selectedProfileId]);
+    if (profiles && profiles.length > 0 && !selectedProfileId) {
+      onSelect(profiles[0].id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profiles]);
 
   if (isLoading) {
     return (
-      <Button
-        variant="outline"
-        disabled
-        className="w-full max-w-xl gap-2 rounded-full py-6"
-      >
-        <Loader2 className="h-4 w-4 animate-spin" />
-        {t('loading')}
-      </Button>
+      <div className="w-full flex items-center justify-center p-4 border border-border/60 rounded-2xl bg-muted/20 text-xs text-muted-foreground gap-2">
+        <Loader2 className="h-4 w-4 animate-spin text-primary" />
+        <span>{t('loading') || 'Profiler yükleniyor...'}</span>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <div className="text-sm text-destructive font-medium w-full max-w-xl text-center py-4 border border-dashed rounded-2xl">
-        {t('error')}
+      <div className="w-full text-xs text-destructive font-medium text-center p-4 border border-dashed border-destructive/30 rounded-2xl bg-destructive/5">
+        {t('error') || 'Profiler yüklenirken bir hata oluştu.'}
       </div>
     );
   }
 
   if (!profiles || profiles.length === 0) {
     return (
-      <Button
-        variant="outline"
-        disabled
-        className="w-full max-w-xl rounded-full py-6"
-      >
-        {t('notFound')}
-      </Button>
+      <div className="w-full text-xs text-muted-foreground font-medium text-center p-4 border border-dashed border-border/80 rounded-2xl bg-muted/10">
+        {t('notFound') || 'Henüz bir profiliniz yok. Lütfen önce profil oluşturun.'}
+      </div>
     );
   }
 
-  const selectedProfile = profiles.find((p) => p.id === selectedProfileId);
   return (
-    <Sheet>
-      <SheetTrigger asChild>
-        {selectedProfile ? (
-          <div className="w-full max-w-xl cursor-pointer group/card text-left">
-            <div className="relative flex flex-col border border-border/80 rounded-2xl p-6 bg-card hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300">
-              {/* Deselect / Reset Button */}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={(e) => {
-                  e.stopPropagation(); // Prevent opening the sheet
-                  onSelect(null);
-                }}
-                className="absolute top-4 right-4 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full transition-colors cursor-pointer"
-                title={t('notFound')}
-              >
-                <X className="h-4 w-4" />
-              </Button>
+    <div className="w-full space-y-2">
+      <label className="text-xs font-bold text-foreground flex items-center gap-1.5 px-1">
+        <User className="h-3.5 w-3.5 text-primary" />
+        <span>{tDetail('selectProfileToUse') || 'Kullanılacak Profilinizi Seçin'}</span>
+      </label>
 
-              {/* Profile Badge & Name */}
-              <div className="mb-4">
-                <span className="inline-flex items-center text-xs font-semibold bg-primary/10 text-primary mb-2 px-2 py-0.5 rounded-full">
-                  {t('profileName')}: {selectedProfile.profileName}
-                </span>
-                <h3 className="text-xl font-bold tracking-tight text-foreground group-hover/card:text-primary transition-colors">
-                  {selectedProfile.fullName}
-                </h3>
-                {selectedProfile.title && (
-                  <p className="text-sm font-medium text-primary mt-1">
-                    {selectedProfile.title}
-                  </p>
-                )}
-              </div>
-
-              {/* Contact Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 py-3 border-y border-border/50 text-xs text-muted-foreground">
-                {selectedProfile.email && (
-                  <div className="flex items-center gap-2 truncate">
-                    <Mail className="h-3.5 w-3.5 shrink-0 text-primary/70" />
-                    <span className="truncate">{selectedProfile.email}</span>
-                  </div>
-                )}
-                {selectedProfile.phone && (
-                  <div className="flex items-center gap-2 truncate">
-                    <Phone className="h-3.5 w-3.5 shrink-0 text-primary/70" />
-                    <span className="truncate">{selectedProfile.phone}</span>
-                  </div>
-                )}
-                {selectedProfile.location && (
-                  <div className="flex items-center gap-2 sm:col-span-2 truncate">
-                    <MapPin className="h-3.5 w-3.5 shrink-0 text-primary/70" />
-                    <span className="truncate">{selectedProfile.location}</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Summary */}
-              {selectedProfile.summary && (
-                <div className="mt-4">
-                  <p className="text-xs text-muted-foreground line-clamp-2 italic border-l-2 border-primary/30 pl-3 leading-relaxed">
-                    {selectedProfile.summary}
-                  </p>
-                </div>
-              )}
-
-              {/* Skills Badges */}
-              {selectedProfile.skills && selectedProfile.skills.length > 0 && (
-                <div className="mt-4 flex flex-wrap gap-1.5">
-                  <div className="flex items-center gap-1 text-[10px] uppercase tracking-wider font-semibold text-muted-foreground w-full mb-1">
-                    <Sparkles className="h-3 w-3 text-amber-500" />
-                    <span>{t('skills')}</span>
-                  </div>
-                  {selectedProfile.skills.slice(0, 6).map((skill, idx) => (
-                    <span
-                      key={idx}
-                      className="px-2 py-0.5 bg-muted text-muted-foreground text-[10px] font-medium rounded-md border border-border/60"
-                    >
-                      {skill}
-                    </span>
-                  ))}
-                  {selectedProfile.skills.length > 6 && (
-                    <span className="text-[10px] text-muted-foreground font-medium pl-1 self-center">
-                      +{selectedProfile.skills.length - 6} {t('more')}
-                    </span>
-                  )}
-                </div>
-              )}
-
-              {/* Projects Summary */}
-              {selectedProfile.projects &&
-                selectedProfile.projects.length > 0 && (
-                  <div className="mt-4 flex flex-wrap gap-1.5">
-                    <div className="flex items-center gap-1 text-[10px] uppercase tracking-wider font-semibold text-muted-foreground w-full mb-1">
-                      <FolderGit2 className="h-3 w-3 text-blue-500" />
-                      <span>{t('projects')}</span>
-                    </div>
-                    {selectedProfile.projects
-                      .slice(0, 3)
-                      .map((project: any, idx: number) => (
-                        <span
-                          key={idx}
-                          className="px-2 py-0.5 bg-blue-500/5 text-blue-600 dark:text-blue-400 text-[10px] font-medium rounded-md border border-blue-500/10"
-                        >
-                          {project.title}
-                        </span>
-                      ))}
-                    {selectedProfile.projects.length > 3 && (
-                      <span className="text-[10px] text-muted-foreground font-medium pl-1 self-center">
-                        +{selectedProfile.projects.length - 3} {t('more')}
-                      </span>
-                    )}
-                  </div>
-                )}
-
-              {/* Social Links Summary */}
-              {selectedProfile.socialLinks &&
-                selectedProfile.socialLinks.length > 0 && (
-                  <div className="mt-4 flex flex-wrap gap-1.5">
-                    <div className="flex items-center gap-1 text-[10px] uppercase tracking-wider font-semibold text-muted-foreground w-full mb-1">
-                      <Link2 className="h-3 w-3 text-cyan-500" />
-                      <span>{t('links')}</span>
-                    </div>
-                    {selectedProfile.socialLinks.map(
-                      (link: string, idx: number) => {
-                        let label = link;
-                        try {
-                          const url = new URL(
-                            link.startsWith('http') ? link : `https://${link}`,
-                          );
-                          label = url.hostname.replace('www.', '');
-                        } catch {}
-                        return (
-                          <span
-                            key={idx}
-                            className="px-2 py-0.5 bg-cyan-500/5 text-cyan-600 dark:text-cyan-400 text-[10px] font-medium rounded-md border border-cyan-500/10 max-w-[120px] truncate"
-                            title={link}
-                          >
-                            {label}
-                          </span>
-                        );
-                      },
-                    )}
-                  </div>
-                )}
-
-              <div className="mt-5 text-right w-full">
-                <span className="text-[10px] font-semibold text-primary group-hover/card:underline">
-                  {t('changeProfile')} &rarr;
-                </span>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <Button
-            variant="outline"
-            className="w-full max-w-xl rounded-full py-6 border-dashed border-2 hover:border-primary/50 hover:bg-primary/5 transition-all text-base cursor-pointer"
-          >
-            + {t('selectProfileForResume')}
-          </Button>
-        )}
-      </SheetTrigger>
-      <SheetContent className="flex flex-col h-full w-full sm:max-w-2xl data-[state=open]:duration-700 data-[state=open]:delay-150">
-        <SheetHeader className="pb-4 border-b px-6 sm:px-8">
-          <SheetTitle>{t('selectProfileForResume')}</SheetTitle>
-          <SheetDescription>{t('selectProfileDesc')}</SheetDescription>
-        </SheetHeader>
-
-        {/* Scrollable list container */}
-        <div className="flex-1 overflow-y-auto my-3 px-6 sm:px-6 gap-4 grid grid-cols-1 sm:grid-cols-2 min-h-0 p-1 content-start">
-          {profiles.map((profile) => {
-            const isSelected = tempSelectedId === profile.id;
-            return (
-              <button
-                key={profile.id}
-                type="button"
-                onClick={() => setTempSelectedId(profile.id)}
-                className={`w-full text-left p-4 border rounded-2xl transition-all hover:bg-muted/50 cursor-pointer flex flex-col gap-2 group ${
-                  isSelected
-                    ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                    : 'border-border bg-card'
-                }`}
-              >
-                {/* Header Row: Title & Photo */}
-                <div className="flex items-center justify-between w-full">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <h4 className="font-semibold text-base truncate group-hover:text-primary transition-colors">
-                      {profile.profileName}
-                    </h4>
-                  </div>
-                  {profile.showPhoto && profile.photoUrl && (
-                    <img
-                      src={profile.photoUrl}
-                      alt={profile.fullName}
-                      className="h-10 w-10 rounded-md object-cover border border-border/80 shadow-xs shrink-0"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                      }}
-                    />
-                  )}
-                </div>
-
-                {/* Details Section */}
-                <div className="w-full">
-                  {profile.fullName && (
-                    <p className="text-sm text-foreground/90 font-medium truncate">
-                      {profile.fullName}
-                    </p>
-                  )}
-                  {profile.title && (
-                    <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                      {profile.title}
-                    </p>
-                  )}
-
-                  {/* Languages */}
-                  {profile.languages && profile.languages.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-1 items-center">
-                      <span className="text-[9px] font-bold uppercase tracking-wider bg-secondary text-secondary-foreground px-1.5 py-0.5 rounded border border-border">
-                        Langs:
-                      </span>
-                      {profile.languages.map((lang) => (
-                        <span
-                          key={lang}
-                          className="text-[9px] font-bold uppercase tracking-wider bg-primary/10 text-primary px-1.5 py-0.5 rounded border border-primary/20"
-                        >
-                          {lang}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Postponed Status if applicable */}
-                  {profile.militaryStatus === 'Postponed' &&
-                    profile.militaryPostponedUntil && (
-                      <div className="mt-2 text-[10px] text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20 py-0.5 px-2 rounded-full w-fit flex items-center gap-1">
-                        <span>🛡️</span>
-                        <span>
-                          {t('militaryStatus.Postponed') || 'Postponed'}:{' '}
-                          {formatDate(profile.militaryPostponedUntil)}
-                        </span>
-                      </div>
-                    )}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-
-        <SheetFooter className="pt-4 border-t gap-2 sm:gap-0 mt-auto px-6 sm:px-8">
-          <SheetClose asChild>
-            <Button
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full">
+        {profiles.map((p) => {
+          const isSelected = selectedProfileId === p.id;
+          const initial = p.fullName ? p.fullName.charAt(0).toUpperCase() : 'P';
+          return (
+            <button
+              key={p.id}
               type="button"
-              onClick={() => onSelect(tempSelectedId)}
-              className="w-full sm:w-auto"
+              onClick={() => onSelect(p.id)}
+              className={`relative flex items-center gap-3 p-3.5 rounded-2xl border text-left transition-all cursor-pointer group ${
+                isSelected
+                  ? 'border-primary bg-primary/10 shadow-md ring-2 ring-primary/20'
+                  : 'border-border/80 bg-card hover:bg-muted/50 hover:border-primary/40'
+              }`}
             >
-              {t('confirmSelection')}
-            </Button>
-          </SheetClose>
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
+              {/* Avatar / Photo */}
+              {p.showPhoto && p.photoUrl ? (
+                <img
+                  src={p.photoUrl}
+                  alt={p.fullName}
+                  className="h-10 w-10 rounded-xl object-cover border border-border/80 shrink-0 shadow-xs"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              ) : (
+                <div
+                  className={`h-10 w-10 rounded-xl flex items-center justify-center text-sm font-bold shrink-0 transition-colors ${
+                    isSelected
+                      ? 'bg-primary text-primary-foreground shadow-xs'
+                      : 'bg-muted text-muted-foreground group-hover:bg-primary/20 group-hover:text-primary'
+                  }`}
+                >
+                  {initial}
+                </div>
+              )}
+
+              {/* Info */}
+              <div className="flex flex-col min-w-0 flex-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-extrabold text-foreground truncate">
+                    {p.profileName || 'Profil'}
+                  </span>
+                  {isSelected && (
+                    <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-primary/20 text-primary font-bold">
+                      {tDetail('active') || 'Aktif'}
+                    </span>
+                  )}
+                </div>
+                <span className="text-[11px] text-muted-foreground truncate font-medium mt-0.5">
+                  {p.fullName}
+                </span>
+                {p.title && (
+                  <span className="text-[10px] text-primary/80 truncate font-semibold">
+                    {p.title}
+                  </span>
+                )}
+              </div>
+
+              {/* Checkmark */}
+              {isSelected && (
+                <div className="h-5 w-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center shrink-0 shadow-xs">
+                  <Check className="h-3 w-3 stroke-[3]" />
+                </div>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }

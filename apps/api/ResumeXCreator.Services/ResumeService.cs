@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using ResumeXCreator.Domain.Entities;
 using ResumeXCreator.Domain.Interfaces;
@@ -67,27 +68,8 @@ public class ResumeService(
     Languages = p.Languages ?? [],
     SocialLinks = string.Join("\n", p.SocialLinks ?? []),
     Skills = p.Skills ?? [],
-    Experiences = p.ProfileExperiences?
-        .OrderBy(pe => pe.SortOrder)
-        .Select(pe => new AiExperienceInput
-        {
-          CompanyName = pe.Experience?.CompanyName ?? string.Empty,
-          Role = pe.Experience?.Role ?? string.Empty,
-          StartDate = pe.Experience?.StartDate.ToString("yyyy-MM") ?? string.Empty,
-          EndDate = pe.Experience?.EndDate?.ToString("yyyy-MM") ?? (pe.Experience?.IsOngoing == true ? "Present" : string.Empty),
-          Description = pe.Experience?.Description ?? string.Empty
-        }).ToList() ?? [],
-    Educations = p.ProfileEducations?
-        .OrderBy(pe => pe.SortOrder)
-        .Select(pe => new AiEducationInput
-        {
-          SchoolName = pe.Education?.SchoolName ?? string.Empty,
-          Degree = pe.Education?.Degree ?? string.Empty,
-          FieldOfStudy = pe.Education?.FieldOfStudy ?? string.Empty,
-          StartDate = pe.Education?.StartDate.ToString("yyyy-MM") ?? string.Empty,
-          EndDate = pe.Education?.EndDate?.ToString("yyyy-MM") ?? (pe.Education?.IsOngoing == true ? "Present" : string.Empty),
-          GPA = pe.Education?.GPA ?? string.Empty
-        }).ToList() ?? [],
+    Experiences = MapExperiencesForAi(p),
+    Educations = MapEducationsForAi(p),
     Projects = p.ProfileProjects?
         .OrderBy(pp => pp.SortOrder)
         .Select(pp => new AiProjectInput
@@ -99,6 +81,111 @@ public class ResumeService(
           RepositoryUrl = pp.Project?.RepositoryUrl
         }).ToList() ?? []
   };
+
+  private static List<AiExperienceInput> MapExperiencesForAi(Profile p)
+  {
+    var listFromRel = p.ProfileExperiences?
+        .OrderBy(pe => pe.SortOrder)
+        .Select(pe => new AiExperienceInput
+        {
+          CompanyName = pe.Experience?.CompanyName ?? string.Empty,
+          Role = pe.Experience?.Role ?? string.Empty,
+          StartDate = pe.Experience?.StartDate.ToString("yyyy-MM") ?? string.Empty,
+          EndDate = pe.Experience?.EndDate?.ToString("yyyy-MM") ?? (pe.Experience?.IsOngoing == true ? "Present" : string.Empty),
+          Description = pe.Experience?.Description ?? string.Empty
+        })
+        .Where(e => !string.IsNullOrWhiteSpace(e.CompanyName) || !string.IsNullOrWhiteSpace(e.Role))
+        .ToList();
+
+    if (listFromRel != null && listFromRel.Count > 0) return listFromRel;
+
+    if (!string.IsNullOrWhiteSpace(p.ExperienceJson))
+    {
+      try
+      {
+        using var doc = JsonDocument.Parse(p.ExperienceJson);
+        if (doc.RootElement.ValueKind == JsonValueKind.Array)
+        {
+          var jsonList = new List<AiExperienceInput>();
+          foreach (var el in doc.RootElement.EnumerateArray())
+          {
+            var company = el.TryGetProperty("companyName", out var c) || el.TryGetProperty("CompanyName", out c) ? c.GetString() : string.Empty;
+            var role = el.TryGetProperty("role", out var r) || el.TryGetProperty("Role", out r) ? r.GetString() : string.Empty;
+            var desc = el.TryGetProperty("description", out var d) || el.TryGetProperty("Description", out d) ? d.GetString() : string.Empty;
+            var start = el.TryGetProperty("startDate", out var s) || el.TryGetProperty("StartDate", out s) ? s.GetString() : string.Empty;
+            var end = el.TryGetProperty("endDate", out var e) || el.TryGetProperty("EndDate", out e) ? e.GetString() : string.Empty;
+
+            jsonList.Add(new AiExperienceInput
+            {
+              CompanyName = company ?? string.Empty,
+              Role = role ?? string.Empty,
+              StartDate = start ?? string.Empty,
+              EndDate = end ?? string.Empty,
+              Description = desc ?? string.Empty
+            });
+          }
+          if (jsonList.Count > 0) return jsonList;
+        }
+      }
+      catch { }
+    }
+
+    return [];
+  }
+
+  private static List<AiEducationInput> MapEducationsForAi(Profile p)
+  {
+    var listFromRel = p.ProfileEducations?
+        .OrderBy(pe => pe.SortOrder)
+        .Select(pe => new AiEducationInput
+        {
+          SchoolName = pe.Education?.SchoolName ?? string.Empty,
+          Degree = pe.Education?.Degree ?? string.Empty,
+          FieldOfStudy = pe.Education?.FieldOfStudy ?? string.Empty,
+          StartDate = pe.Education?.StartDate.ToString("yyyy-MM") ?? string.Empty,
+          EndDate = pe.Education?.EndDate?.ToString("yyyy-MM") ?? (pe.Education?.IsOngoing == true ? "Present" : string.Empty),
+          GPA = pe.Education?.GPA ?? string.Empty
+        })
+        .Where(e => !string.IsNullOrWhiteSpace(e.SchoolName) || !string.IsNullOrWhiteSpace(e.Degree))
+        .ToList();
+
+    if (listFromRel != null && listFromRel.Count > 0) return listFromRel;
+
+    if (!string.IsNullOrWhiteSpace(p.EducationJson))
+    {
+      try
+      {
+        using var doc = JsonDocument.Parse(p.EducationJson);
+        if (doc.RootElement.ValueKind == JsonValueKind.Array)
+        {
+          var jsonList = new List<AiEducationInput>();
+          foreach (var el in doc.RootElement.EnumerateArray())
+          {
+            var school = el.TryGetProperty("schoolName", out var s) || el.TryGetProperty("SchoolName", out s) ? s.GetString() : string.Empty;
+            var degree = el.TryGetProperty("degree", out var d) || el.TryGetProperty("Degree", out d) ? d.GetString() : string.Empty;
+            var field = el.TryGetProperty("fieldOfStudy", out var f) || el.TryGetProperty("FieldOfStudy", out f) ? f.GetString() : string.Empty;
+            var start = el.TryGetProperty("startDate", out var st) || el.TryGetProperty("StartDate", out st) ? st.GetString() : string.Empty;
+            var end = el.TryGetProperty("endDate", out var en) || el.TryGetProperty("EndDate", out en) ? en.GetString() : string.Empty;
+            var gpa = el.TryGetProperty("gpa", out var g) || el.TryGetProperty("GPA", out g) ? g.GetString() : string.Empty;
+
+            jsonList.Add(new AiEducationInput
+            {
+              SchoolName = school ?? string.Empty,
+              Degree = degree ?? string.Empty,
+              FieldOfStudy = field ?? string.Empty,
+              StartDate = start ?? string.Empty,
+              EndDate = end ?? string.Empty,
+              GPA = gpa ?? string.Empty
+            });
+          }
+          if (jsonList.Count > 0) return jsonList;
+        }
+      }
+      catch { }
+    }
+
+    return [];
+  }
 
   private static AiProfileInput MapManualToAiProfileInput(ManualProfileDataDto manual) => new()
   {
@@ -238,6 +325,10 @@ public class ResumeService(
           ProjectsHtml = aiResult.ProjectsHtml,
           MatchPercentage = aiResult.MatchPercentage,
           AtsFeedback = aiResult.AtsFeedback,
+          MatchedSkillsJson = JsonSerializer.Serialize(aiResult.MatchedSkills),
+          MissingSkillsJson = JsonSerializer.Serialize(aiResult.MissingSkills),
+          CriticalMissingSkillsJson = JsonSerializer.Serialize(aiResult.CriticalMissingSkills),
+          RecommendedMissingSkillsJson = JsonSerializer.Serialize(aiResult.RecommendedMissingSkills),
           CoverLetter = aiResult.CoverLetter,
           ColdMessage = aiResult.ColdMessage,
           CreatedAt = DateTime.UtcNow
@@ -314,11 +405,15 @@ public class ResumeService(
     }
 
     // ── 4. Create Resume ──
+    var safeJobLink = dto.ExternalJobLink.Length > 2000
+        ? dto.ExternalJobLink[..2000]
+        : dto.ExternalJobLink;
+
     var resume = new Resume
     {
       Id = Guid.NewGuid(),
       ProfileId = savedProfileId,
-      ExternalJobLink = dto.ExternalJobLink,
+      ExternalJobLink = safeJobLink,
       JobDescription = "Pending AI processing",
       CreatedAt = DateTime.UtcNow
     };
@@ -360,6 +455,10 @@ public class ResumeService(
         ProjectsHtml = aiResult.ProjectsHtml,
         MatchPercentage = aiResult.MatchPercentage,
         AtsFeedback = aiResult.AtsFeedback,
+        MatchedSkillsJson = JsonSerializer.Serialize(aiResult.MatchedSkills),
+        MissingSkillsJson = JsonSerializer.Serialize(aiResult.MissingSkills),
+        CriticalMissingSkillsJson = JsonSerializer.Serialize(aiResult.CriticalMissingSkills),
+        RecommendedMissingSkillsJson = JsonSerializer.Serialize(aiResult.RecommendedMissingSkills),
         CoverLetter = aiResult.CoverLetter,
         ColdMessage = aiResult.ColdMessage,
         CreatedAt = DateTime.UtcNow
@@ -370,6 +469,7 @@ public class ResumeService(
     await _resumeRepository.AddAsync(resume);
     await _resumeRepository.SaveChangesAsync();
 
+    resume.Profile = profile;
     return MapToDto(resume);
   }
 
@@ -435,6 +535,10 @@ public class ResumeService(
       ProjectsHtml = translation.ProjectsHtml,
       MatchPercentage = translation.MatchPercentage,
       AtsFeedback = translation.AtsFeedback,
+      MatchedSkills = DeserializeSkillsJson(translation.MatchedSkillsJson),
+      MissingSkills = DeserializeSkillsJson(translation.MissingSkillsJson),
+      CriticalMissingSkills = DeserializeSkillsJson(translation.CriticalMissingSkillsJson),
+      RecommendedMissingSkills = DeserializeSkillsJson(translation.RecommendedMissingSkillsJson),
       CoverLetter = translation.CoverLetter,
       ColdMessage = translation.ColdMessage,
       Version = translation.Version,
@@ -479,13 +583,15 @@ public class ResumeService(
     }
 
     var aiProfile = MapToAiProfileInput(profile);
-    var result = await _aiService.AnalyzeAtsAsync(dto.ExternalJobLink, aiProfile, dto.JobDescriptionText);
+    var result = await _aiService.AnalyzeAtsAsync(dto.ExternalJobLink, aiProfile, dto.JobDescriptionText, dto.LanguageCode);
 
     return new AtsAnalysisResultDto
     {
       MatchPercentage = result.MatchPercentage,
       MatchedSkills = result.MatchedSkills,
       MissingSkills = result.MissingSkills,
+      CriticalMissingSkills = result.CriticalMissingSkills,
+      RecommendedMissingSkills = result.RecommendedMissingSkills,
       AtsFeedback = result.AtsFeedback,
       ScrapedJobTitle = result.ScrapedJobTitle,
       ScrapedJobDescription = result.ScrapedJobDescription
@@ -514,6 +620,10 @@ public class ResumeService(
       ProjectsHtml = t.ProjectsHtml,
       MatchPercentage = t.MatchPercentage,
       AtsFeedback = t.AtsFeedback,
+      MatchedSkills = DeserializeSkillsJson(t.MatchedSkillsJson),
+      MissingSkills = DeserializeSkillsJson(t.MissingSkillsJson),
+      CriticalMissingSkills = DeserializeSkillsJson(t.CriticalMissingSkillsJson),
+      RecommendedMissingSkills = DeserializeSkillsJson(t.RecommendedMissingSkillsJson),
       CoverLetter = t.CoverLetter,
       ColdMessage = t.ColdMessage,
       Version = t.Version,
@@ -585,5 +695,12 @@ public class ResumeService(
           Location = pe.Experience?.Location
         }).ToList() ?? []
     };
+  }
+
+  private static List<string> DeserializeSkillsJson(string? json)
+  {
+    if (string.IsNullOrWhiteSpace(json)) return [];
+    try { return JsonSerializer.Deserialize<List<string>>(json) ?? []; }
+    catch { return []; }
   }
 }

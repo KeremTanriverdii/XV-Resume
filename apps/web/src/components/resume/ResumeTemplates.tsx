@@ -423,7 +423,7 @@ export const ResumeTemplates: React.FC<ResumeTemplatesProps> = ({
           className={` ${theme.borderClass}/30 pb-2 text-center sm:text-left flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4`}
         >
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
-            {profile?.showPhoto && profile?.photoUrl && (
+            {profile?.photoUrl && profile?.showPhoto !== false && (
               <div className="relative h-20 w-20 rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-sm shrink-0">
                 <img
                   src={profile.photoUrl}
@@ -597,7 +597,7 @@ export const ResumeTemplates: React.FC<ResumeTemplatesProps> = ({
           className={`md:col-span-4 ${theme.bgLightClass} p-6 sm:p-8 flex flex-col gap-6 border-b md:border-b-0 md:border-r border-border/60`}
         >
           <div className="flex flex-col items-center text-center">
-            {profile?.showPhoto && profile?.photoUrl ? (
+            {profile?.photoUrl && profile?.showPhoto !== false ? (
               <img
                 src={profile.photoUrl}
                 alt={fullName}
